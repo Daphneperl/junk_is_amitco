@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Titles + Pixel Assets</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+</head>
+<body>
+  <script>
+    console.log("Drawing frame...");
+
+    let titles = ["RGB", "Completeness", "Intimacy", "Artist", "Temperament"];
+    let fontSize = 36;
+    let padding = 20;
+    let cornerRadius = 0;
+
+    let imageFiles = [
+      "assets/Asset_12.png",
+      "assets/Asset_13.png",
+      "assets/Asset_14.png",
+      "assets/Asset_15.png",
+      "assets/Asset_16.png",
+      "assets/Asset_17.png",
+      "assets/Asset_18.png",
+      "assets/Asset_19.png"
+    ];
+
+    let images = [];
+    let positions = [];
+    let customFont;
+    let rectangles = []; // Store rectangle bounds for click detection
+
+    // Links for each title
+    let links = {
+      "RGB": "RGB0606.html",
+      "Completeness": "completeness0606.html", 
+      "Temperament": "temperament0606.html"
+    };
+
+    function preload() {
+      // Load custom font
+      customFont = loadFont('assets/VT323-Regular.ttf');
+      
+      // Load images
+      for (let i = 0; i < imageFiles.length; i++) {
+        images[i] = loadImage(imageFiles[i]);
+      }
+    }
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      pixelDensity(2);
+      
+      // Apply custom font
+      textFont(customFont);
+      textSize(fontSize);
+      textAlign(CENTER, CENTER);
+      rectMode(CENTER);
+
+      for (let i = 0; i < images.length; i++) {
+        positions.push({
+          x: random(0, width),
+          y: random(0, height),
+          size: random(100, 200)
+        });
+      }
+
+      // Change to loop for animation
+      loop();
+    }
+
+    function draw() {
+      background(0);
+
+      // Draw main content
+      for (let i = 0; i < images.length; i++) {
+        let img = images[i];
+        let pos = positions[i];
+        image(img, pos.x, pos.y, pos.size, pos.size);
+      }
+
+      let spacing = height / (titles.length + 1);
+      rectangles = []; // Clear previous rectangle data
+      
+      for (let i = 0; i < titles.length; i++) {
+        let y = spacing * (i + 1);
+        let x = width / 2;
+        let textW = textWidth(titles[i]);
+        let rectW = textW + padding * 2;
+        let rectH = fontSize + padding;
+
+        // Store rectangle bounds for click detection
+        rectangles.push({
+          x: x - rectW/2,
+          y: y - rectH/2,
+          w: rectW,
+          h: rectH,
+          title: titles[i]
+        });
+
+        // Draw rectangle centered at (x, y)
+        fill(0); // Black background
+        stroke(255);
+        strokeWeight(2);
+        rect(x, y, rectW, rectH, cornerRadius);
+
+        // Draw text centered at the same (x, y) position but adjusted up slightly
+        fill(255);
+        noStroke();
+        text(titles[i], x, y - 3);
+      }
+    }
+
+    function mousePressed() {
+      // Check if click is within any rectangle
+      for (let i = 0; i < rectangles.length; i++) {
+        let rect = rectangles[i];
+        if (mouseX >= rect.x && mouseX <= rect.x + rect.w &&
+            mouseY >= rect.y && mouseY <= rect.y + rect.h) {
+          // Navigate to the corresponding page
+          if (links[rect.title]) {
+            window.location.href = links[rect.title];
+          }
+        }
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      redraw();
+    }
+  </script>
+</body>
+</html>
