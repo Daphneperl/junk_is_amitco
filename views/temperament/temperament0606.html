@@ -12,7 +12,7 @@
     <style>
         @font-face {
             font-family: 'Pixel';
-            src: url('pixel.ttf') format('truetype');
+            src: url('../../assets/pixel.ttf') format('truetype');
         }
         body {
             margin: 0;
@@ -687,7 +687,7 @@ Keywords: Melancholic, dramatic, sad, cool, woman, failure`;
                         resolve();
                     };
                     img.onerror = () => reject();
-                    img.src = `images/${filename}`;
+                    img.src = `../../images/${filename}`;
                 });
             });
             return Promise.all(promises);
@@ -737,7 +737,7 @@ Keywords: Melancholic, dramatic, sad, cool, woman, failure`;
                         const y = radius * Math.sin(theta) * Math.sin(phi);
                         const z = radius * Math.cos(theta);
 
-                        return createImageSprite(`images/${d.filename}`, { x, y, z }, { temperament_score: d.temperament_score, intimacy_score: d.intimacy_score }, normalizedScore)
+                        return createImageSprite(`../../images/${d.filename}`, { x, y, z }, { temperament_score: d.temperament_score, intimacy_score: d.intimacy_score }, normalizedScore)
                             .then(() => updateLoadingProgress());
                     });
 
