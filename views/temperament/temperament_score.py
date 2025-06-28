@@ -12,7 +12,7 @@ from pathlib import Path
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-IMAGE_DIR = "images"
+IMAGE_DIR = "../../images"
 OUTPUT_JSON = "temperament_scores.json"
 
 # Load model and tokenizer
