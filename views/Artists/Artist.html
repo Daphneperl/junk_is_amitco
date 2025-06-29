@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Artist Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Pixel';
+            src: url('../../assets/pixel.ttf') format('truetype');
+        }
+        body {
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
+        }
+        #visualization {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #black-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
+        #loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+        }
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            background: #ffffff;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="black-overlay"></div>
+    <div id="loading-container" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+        <div class="loading-bar">
+            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
+        </div>
+        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+    </div>
+    <div id="visualization"></div>
+    <script>
+        let scene, camera, renderer, controls;
+        let composer;
+        let particles;
+        let imageGroups = [];
+        let isInitialized = false;
+        let helixGroup;
+        let isDragging = false;
+        let previousY = 0;
+        let targetY = 0;
+        let currentY = 0;
+        let scrollVelocity = 0;
+        const SCROLL_SPEED = 0.3;
+        const SCROLL_SMOOTHING = 0.95;
+        const VELOCITY_DAMPENING = 0.92;
+        const MAX_SCROLL = 150;
+
+        // Function to position clusters in a helix
+        function createHelixPosition(index, totalClusters) {
+            const turns = 8; // More turns for a longer helix
+            const heightStep = 300 / totalClusters; // Much taller (300 units instead of 120)
+            const radius = 30; // Slightly smaller radius to focus on vertical movement
+            
+            // Calculate position on helix
+            const angle = (index / totalClusters) * Math.PI * 2 * turns;
+            const x = radius * Math.cos(angle);
+            const y = (index * heightStep) - 150; // Center vertically (half of 300)
+            const z = radius * Math.sin(angle);
+            
+            return new THREE.Vector3(x, y, z);
+        }
+
+        async function loadAndCreateImageClusters() {
+            try {
+                helixGroup = new THREE.Group(); // Create container for all clusters
+                scene.add(helixGroup);
+
+                const response = await fetch('../../images/images.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load images.json');
+                }
+                const imageList = await response.json();
+                
+                const textureLoader = new THREE.TextureLoader();
+                let loadedImages = 0;
+                const totalImages = imageList.length;
+                
+                // Calculate number of clusters
+                const avgClusterSize = 5; // Average of 3-7 images per cluster
+                const estimatedClusters = Math.ceil(imageList.length / avgClusterSize);
+                let clusterIndex = 0;
+                
+                let remainingImages = [...imageList];
+                while (remainingImages.length > 0) {
+                    const clusterSize = Math.min(Math.floor(Math.random() * 5) + 3, remainingImages.length);
+                    const clusterGroup = new THREE.Group();
+                    
+                    // Position cluster on helix
+                    const helixPos = createHelixPosition(clusterIndex, estimatedClusters);
+                    clusterGroup.position.copy(helixPos);
+                    
+                    // Add images to cluster
+                    for (let i = 0; i < clusterSize && remainingImages.length > 0; i++) {
+                        const imageIndex = Math.floor(Math.random() * remainingImages.length);
+                        const imagePath = remainingImages[imageIndex];
+                        remainingImages.splice(imageIndex, 1);
+                        
+                        await new Promise((resolve, reject) => {
+                            textureLoader.load(
+                                `../../images/${imagePath}`,
+                                (texture) => {
+                                    const aspectRatio = texture.image.width / texture.image.height;
+                                    const spriteMaterial = new THREE.SpriteMaterial({ 
+                                        map: texture,
+                                        transparent: true,
+                                        opacity: 0.8
+                                    });
+                                    const sprite = new THREE.Sprite(spriteMaterial);
+                                    
+                                    // Set size maintaining aspect ratio
+                                    const baseSize = 5;
+                                    sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
+                                    
+                                    // Position within cluster (random offset from center)
+                                    const offset = 8;
+                                    sprite.position.set(
+                                        (Math.random() - 0.5) * offset,
+                                        (Math.random() - 0.5) * offset,
+                                        (Math.random() - 0.5) * offset
+                                    );
+                                    
+                                    clusterGroup.add(sprite);
+                                    loadedImages++;
+                                    updateLoadingUI((loadedImages / totalImages) * 100);
+                                    resolve();
+                                },
+                                undefined,
+                                (error) => {
+                                    console.error('Error loading image:', imagePath, error);
+                                    loadedImages++;
+                                    updateLoadingUI((loadedImages / totalImages) * 100);
+                                    resolve();
+                                }
+                            );
+                        });
+                    }
+                    
+                    helixGroup.add(clusterGroup);
+                    imageGroups.push(clusterGroup);
+                    clusterIndex++;
+                }
+
+                // Initial camera position
+                camera.position.set(80, 0, 0); // Positioned to see the helix from the side
+
+                // Show visualization
+                document.getElementById('loading-container').style.display = 'none';
+                document.getElementById('visualization').style.display = 'block';
+                document.getElementById('black-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('black-overlay').style.display = 'none';
+                }, 500);
+
+                isInitialized = true;
+                animate();
+
+            } catch (error) {
+                console.error('Error in loadAndCreateImageClusters:', error);
+                document.getElementById('loading-text').textContent = 'Error loading images. Please refresh the page.';
+            }
+        }
+
+        // Add mouse event listeners
+        function initScrollControls() {
+            const container = renderer.domElement;
+            let lastDragTime = 0;
+            let lastDragY = 0;
+            
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousY = e.clientY;
+                lastDragY = e.clientY;
+                lastDragTime = Date.now();
+                scrollVelocity = 0;
+            });
+            
+            container.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const now = Date.now();
+                const dt = Math.min(now - lastDragTime, 50);
+                if (dt > 0) {
+                    scrollVelocity = (e.clientY - lastDragY) / dt * 0.5;
+                }
+                
+                const deltaY = (e.clientY - previousY) * SCROLL_SPEED;
+                targetY = Math.max(-MAX_SCROLL, Math.min(MAX_SCROLL, targetY + deltaY));
+                
+                previousY = e.clientY;
+                lastDragY = e.clientY;
+                lastDragTime = now;
+            });
+            
+            container.addEventListener('mouseup', () => {
+                isDragging = false;
+                scrollVelocity *= 8;
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                isDragging = false;
+                scrollVelocity = 0;
+            });
+
+            // Improved touch support
+            container.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                previousY = e.touches[0].clientY;
+                lastDragY = e.touches[0].clientY;
+                lastDragTime = Date.now();
+                scrollVelocity = 0;
+                e.preventDefault();
+            }, { passive: false });
+            
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                
+                const now = Date.now();
+                const dt = Math.min(now - lastDragTime, 50);
+                if (dt > 0) {
+                    scrollVelocity = (e.touches[0].clientY - lastDragY) / dt * 0.5;
+                }
+                
+                const deltaY = (e.touches[0].clientY - previousY) * SCROLL_SPEED;
+                targetY = Math.max(-MAX_SCROLL, Math.min(MAX_SCROLL, targetY + deltaY));
+                
+                previousY = e.touches[0].clientY;
+                lastDragY = e.touches[0].clientY;
+                lastDragTime = now;
+                e.preventDefault();
+            }, { passive: false });
+            
+            container.addEventListener('touchend', () => {
+                isDragging = false;
+                scrollVelocity *= 8;
+            });
+
+            // Improved wheel support
+            let wheelTimeout;
+            container.addEventListener('wheel', (e) => {
+                const deltaY = e.deltaY * 0.15;
+                targetY = Math.max(-MAX_SCROLL, Math.min(MAX_SCROLL, targetY + deltaY));
+                
+                scrollVelocity = 0;
+                clearTimeout(wheelTimeout);
+                wheelTimeout = setTimeout(() => {
+                    scrollVelocity = Math.sign(deltaY) * 0.05;
+                }, 50);
+                
+                e.preventDefault();
+            }, { passive: false });
+        }
+
+        function init() {
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            
+            // Create noise texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 1920;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+            
+            // Generate noise
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const value = Math.random() * 50;
+                data[i] = value;     // R
+                data[i + 1] = value; // G
+                data[i + 2] = value; // B
+                data[i + 3] = 20;    // A
+            }
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Create texture from canvas
+            const noiseTexture = new THREE.CanvasTexture(canvas);
+            noiseTexture.wrapS = THREE.RepeatWrapping;
+            noiseTexture.wrapT = THREE.RepeatWrapping;
+            
+            // Set as background
+            scene.background = noiseTexture;
+
+            // Create camera with larger far plane
+            camera = new THREE.PerspectiveCamera(
+                60, // Slightly narrower FOV
+                window.innerWidth / window.innerHeight,
+                0.1,
+                2000 // Much larger far plane to see the entire helix
+            );
+            camera.position.set(80, 0, 0);
+            camera.lookAt(0, 0, 0);
+
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 1);
+            document.getElementById('visualization').appendChild(renderer.domElement);
+
+            // Setup post-processing
+            composer = new THREE.EffectComposer(renderer);
+            const renderPass = new THREE.RenderPass(scene, camera);
+            composer.addPass(renderPass);
+
+            // Add vignette effect
+            const vignetteShader = {
+                uniforms: {
+                    "tDiffuse": { value: null },
+                    "offset": { value: 1.0 },
+                    "darkness": { value: 1.0 }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform sampler2D tDiffuse;
+                    uniform float offset;
+                    uniform float darkness;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec2 uv = vUv;
+                        vec4 color = texture2D(tDiffuse, uv);
+                        
+                        // Calculate distance from center
+                        vec2 center = vec2(0.5, 0.5);
+                        float dist = distance(uv, center);
+                        
+                        // Create vignette effect
+                        float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                        
+                        // Apply vignette
+                        color.rgb *= vignette;
+                        
+                        gl_FragColor = color;
+                    }
+                `
+            };
+
+            const vignettePass = new THREE.ShaderPass(vignetteShader);
+            vignettePass.uniforms.offset.value = 0.5;
+            vignettePass.uniforms.darkness.value = 0.5;
+            composer.addPass(vignettePass);
+
+            // Initialize scroll controls instead of orbit controls
+            initScrollControls();
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Load and create image clusters
+            loadAndCreateImageClusters();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            if (!isInitialized) return;
+            requestAnimationFrame(animate);
+
+            // Apply velocity when not dragging
+            if (!isDragging) {
+                targetY += scrollVelocity * 12;
+                scrollVelocity *= VELOCITY_DAMPENING;
+                
+                if (Math.abs(scrollVelocity) < 0.001) {
+                    scrollVelocity = 0;
+                }
+                
+                targetY = Math.max(-MAX_SCROLL, Math.min(MAX_SCROLL, targetY));
+            }
+
+            // Smooth scrolling animation with variable smoothing
+            const delta = targetY - currentY;
+            const smoothing = Math.abs(delta) > 1 ? SCROLL_SMOOTHING : 0.8;
+            currentY += delta * (1 - smoothing);
+            
+            if (helixGroup) {
+                helixGroup.position.y = -currentY;
+            }
+
+            // Animate particles
+            if (particles) {
+                const positions = particles.geometry.attributes.position.array;
+                const speeds = particles.userData.speeds;
+                const opacities = particles.userData.opacities;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    // Move particles in a more vertical pattern
+                    const speed = speeds[i / 3];
+                    const time = Date.now() * 0.001 * speed;
+                    
+                    positions[i] += Math.sin(time) * 0.01; // Reduced horizontal movement
+                    positions[i + 1] += Math.cos(time) * 0.02; // Increased vertical movement
+                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+                    // Keep particles within bounds
+                    if (positions[i + 1] > 150) positions[i + 1] = -150;
+                    if (positions[i + 1] < -150) positions[i + 1] = 150;
+                }
+                
+                particles.geometry.attributes.position.needsUpdate = true;
+            }
+            
+            composer.render();
+        }
+
+        function updateLoadingUI(progress) {
+            const progressBar = document.getElementById('loading-progress');
+            const loadingText = document.getElementById('loading-text');
+            
+            if (progressBar && loadingText) {
+                progressBar.style.width = `${progress}%`;
+                loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+            }
+        }
+
+        function startVisualization() {
+            // Show loading screen
+            document.getElementById('loading-container').style.display = 'block';
+            document.getElementById('black-overlay').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '1';
+            document.getElementById('visualization').style.display = 'none';
+
+            // Initialize the scene
+            init();
+        }
+
+        window.addEventListener('load', startVisualization);
+    </script>
+</body>
+</html>
