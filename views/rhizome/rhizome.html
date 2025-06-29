@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rhizome Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Pixel';
+            src: url('../../assets/pixel.ttf') format('truetype');
+        }
+        body {
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
+        }
+        #visualization {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #black-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
+        #loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+        }
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            background: #ffffff;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="black-overlay"></div>
+    <div id="loading-container">
+        <div class="loading-bar">
+            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
+        </div>
+        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+    </div>
+    <div id="visualization"></div>
+    <script>
+        let scene, camera, renderer, controls;
+        let composer;
+        let particles;
+        let imageSprites = [];
+        let connectionLines = [];
+        let totalImages = 0;
+        let loadedImages = 0;
+
+        async function loadImages() {
+            try {
+                const response = await fetch('../../images/images.json');
+                const imageList = await response.json();
+                totalImages = imageList.length;
+                
+                return Promise.all(imageList.map(imageName => {
+                    return new Promise((resolve, reject) => {
+                        const loader = new THREE.TextureLoader();
+                        loader.load(
+                            `../../images/${imageName}`,
+                            (texture) => {
+                                loadedImages++;
+                                updateLoadingUI((loadedImages / totalImages) * 100);
+                                resolve(texture);
+                            },
+                            undefined,
+                            (error) => reject(error)
+                        );
+                    });
+                }));
+            } catch (error) {
+                console.error('Error loading images:', error);
+                return [];
+            }
+        }
+
+        function createImageSprite(texture, index) {
+            const aspectRatio = texture.image.width / texture.image.height;
+            const width = 10; // Base width
+            const height = width / aspectRatio;
+
+            const material = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                opacity: 1
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(width, height, 1);
+
+            // Calculate base position using golden ratio for even distribution
+            const goldenRatio = (1 + Math.sqrt(5)) / 2;
+            const theta = 2 * Math.PI * index / goldenRatio;
+            const phi = Math.acos(1 - 2 * (index + 0.5) / totalImages);
+
+            // Add randomness to the radius (between 30% and 100% of max radius)
+            const maxRadius = 200; // Doubled from 100
+            const minRadius = maxRadius * 0.3; // Reduced minimum to 30% for more spread
+            const radius = minRadius + Math.random() * (maxRadius - minRadius);
+
+            // Add larger random offset to the angles for less uniform distribution
+            const thetaOffset = (Math.random() - 0.5) * Math.PI * 0.8; // Increased from 0.5 to 0.8
+            const phiOffset = (Math.random() - 0.5) * Math.PI * 0.5;   // Increased from 0.3 to 0.5
+
+            // Calculate final position with randomness
+            const finalTheta = theta + thetaOffset;
+            const finalPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi + phiOffset));
+
+            const targetX = radius * Math.sin(finalPhi) * Math.cos(finalTheta);
+            const targetY = radius * Math.sin(finalPhi) * Math.sin(finalTheta);
+            const targetZ = radius * Math.cos(finalPhi);
+
+            // Add larger random offsets for more organic distribution
+            const randomOffset = maxRadius * 0.25; // Increased from 0.15 to 0.25
+            const offsetX = (Math.random() - 0.5) * randomOffset;
+            const offsetY = (Math.random() - 0.5) * randomOffset;
+            const offsetZ = (Math.random() - 0.5) * randomOffset;
+
+            // Set final position with all offsets
+            sprite.position.set(
+                targetX + offsetX,
+                targetY + offsetY,
+                targetZ + offsetZ
+            );
+
+            // Store original position and time offset for movement
+            sprite.userData = {
+                timeOffset: index * 0.1,
+                originalX: targetX + offsetX,
+                originalY: targetY + offsetY,
+                originalZ: targetZ + offsetZ
+            };
+
+            return sprite;
+        }
+
+        function createConnectionLine() {
+            const material = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 1,
+                linewidth: 1
+            });
+            const geometry = new THREE.BufferGeometry();
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            return line;
+        }
+
+        function updateConnectionLines() {
+            // Remove old lines
+            connectionLines.forEach(line => scene.remove(line));
+            connectionLines = [];
+
+            // Create new lines
+            imageSprites.forEach((sprite, index) => {
+                let closestDistance = Infinity;
+                let closestSprite = null;
+
+                // Find closest sprite
+                imageSprites.forEach((otherSprite, otherIndex) => {
+                    if (index !== otherIndex) {
+                        const dx = sprite.position.x - otherSprite.position.x;
+                        const dy = sprite.position.y - otherSprite.position.y;
+                        const dz = sprite.position.z - otherSprite.position.z;
+                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestSprite = otherSprite;
+                        }
+                    }
+                });
+
+                if (closestSprite) {
+                    const line = createConnectionLine();
+                    const positions = new Float32Array([
+                        sprite.position.x, sprite.position.y, sprite.position.z,
+                        closestSprite.position.x, closestSprite.position.y, closestSprite.position.z
+                    ]);
+                    line.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                    connectionLines.push(line);
+                }
+            });
+        }
+
+        function createParticleSystem() {
+            const particleCount = 300;
+            const particleGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            const particleSizes = new Float32Array(particleCount);
+            const particleColors = new Float32Array(particleCount * 3);
+            const particleSpeeds = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                // Random positions within a sphere
+                const radius = 200; // Match the new larger radius
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+
+                // More vibrant colors
+                const hue = Math.random();
+                const saturation = 0.3 + Math.random() * 0.2;
+                const lightness = 0.5 + Math.random() * 0.3;
+                
+                // Convert HSL to RGB
+                const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+                const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
+                const m = lightness - c/2;
+                
+                let r, g, b;
+                if (hue < 1/6) {
+                    r = c; g = x; b = 0;
+                } else if (hue < 2/6) {
+                    r = x; g = c; b = 0;
+                } else if (hue < 3/6) {
+                    r = 0; g = c; b = x;
+                } else if (hue < 4/6) {
+                    r = 0; g = x; b = c;
+                } else if (hue < 5/6) {
+                    r = x; g = 0; b = c;
+                } else {
+                    r = c; g = 0; b = x;
+                }
+                
+                particleColors[i * 3] = r + m;
+                particleColors[i * 3 + 1] = g + m;
+                particleColors[i * 3 + 2] = b + m;
+
+                particleSpeeds[i] = Math.random() * 0.06;
+                particleSizes[i] = 2; // Slightly larger particles
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                sizeAttenuation: true,
+                depthWrite: false
+            });
+
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            particles.userData = { 
+                speeds: particleSpeeds,
+                opacities: new Float32Array(particleCount)
+            };
+            scene.add(particles);
+        }
+
+        async function init() {
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            
+            // Create noise texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 1920;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+            
+            // Generate noise
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const value = Math.random() * 50;
+                data[i] = value;
+                data[i + 1] = value;
+                data[i + 2] = value;
+                data[i + 3] = 20;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Create and set noise texture
+            const noiseTexture = new THREE.CanvasTexture(canvas);
+            noiseTexture.wrapS = THREE.RepeatWrapping;
+            noiseTexture.wrapT = THREE.RepeatWrapping;
+            scene.background = noiseTexture;
+
+            // Create particle system
+            createParticleSystem();
+
+            // Load and create image sprites
+            const textures = await loadImages();
+            textures.forEach((texture, index) => {
+                const sprite = createImageSprite(texture, index);
+                imageSprites.push(sprite);
+                scene.add(sprite);
+            });
+
+            // Initial creation of connection lines
+            updateConnectionLines();
+
+            // Create camera with increased distance
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 0, 500); // More zoomed out, centered position
+            
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 1);
+            document.getElementById('visualization').appendChild(renderer.domElement);
+
+            // Setup post-processing
+            composer = new THREE.EffectComposer(renderer);
+            const renderPass = new THREE.RenderPass(scene, camera);
+            composer.addPass(renderPass);
+
+            // Add vignette effect
+            const vignetteShader = {
+                uniforms: {
+                    "tDiffuse": { value: null },
+                    "offset": { value: 1.0 },
+                    "darkness": { value: 1.0 }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform sampler2D tDiffuse;
+                    uniform float offset;
+                    uniform float darkness;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec2 uv = vUv;
+                        vec4 color = texture2D(tDiffuse, uv);
+                        vec2 center = vec2(0.5, 0.5);
+                        float dist = distance(uv, center);
+                        float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                        color.rgb *= vignette;
+                        gl_FragColor = color;
+                    }
+                `
+            };
+
+            const vignettePass = new THREE.ShaderPass(vignetteShader);
+            vignettePass.uniforms.offset.value = 0.5;
+            vignettePass.uniforms.darkness.value = 0.5;
+            composer.addPass(vignettePass);
+
+            // Add orbit controls with adjusted settings
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 200;  // Prevent zooming in too close
+            controls.maxDistance = 1000; // Prevent zooming out too far
+            controls.target.set(0, 0, 0); // Ensure we're looking at the center
+            controls.update();
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now();
+            
+            // Animate particles
+            if (particles) {
+                const positions = particles.geometry.attributes.position.array;
+                const speeds = particles.userData.speeds;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    const speed = speeds[i / 3];
+                    const time = Date.now() * 0.001 * speed;
+                    
+                    positions[i] += Math.sin(time) * 0.01;
+                    positions[i + 1] += Math.cos(time) * 0.01;
+                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+                }
+                
+                particles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            // Animate images
+            imageSprites.forEach((sprite, index) => {
+                const floatTime = time * 0.0001 + sprite.userData.timeOffset;
+                const distanceFromCenter = Math.sqrt(
+                    sprite.userData.originalX ** 2 + 
+                    sprite.userData.originalY ** 2 + 
+                    sprite.userData.originalZ ** 2
+                );
+                
+                // Adjust float radius based on new maximum distance
+                const floatRadius = 0.8 + (distanceFromCenter / 200) * 0.4;
+                
+                // Use Perlin-like compound sine waves for more organic movement
+                const floatX = (
+                    Math.sin(floatTime * 0.2) * 0.7 +
+                    Math.sin(floatTime * 0.5) * 0.3
+                ) * floatRadius;
+                
+                const floatY = (
+                    Math.cos(floatTime * 0.3) * 0.7 +
+                    Math.cos(floatTime * 0.4) * 0.3
+                ) * floatRadius;
+                
+                const floatZ = (
+                    Math.sin(floatTime * 0.25) * 0.7 +
+                    Math.sin(floatTime * 0.6) * 0.3
+                ) * floatRadius;
+
+                // Add micro-movements for organic jittering
+                const microMove = 0.15;
+                const microTime = time * 0.0005 + sprite.userData.timeOffset;
+                const microX = Math.sin(microTime * 1.5) * microMove;
+                const microY = Math.cos(microTime * 1.7) * microMove;
+                const microZ = Math.sin(microTime * 1.6) * microMove;
+
+                sprite.position.x = sprite.userData.originalX + floatX + microX;
+                sprite.position.y = sprite.userData.originalY + floatY + microY;
+                sprite.position.z = sprite.userData.originalZ + floatZ + microZ;
+
+                // Apply gentler repulsion between sprites with increased minimum distance
+                imageSprites.forEach((otherSprite, otherIndex) => {
+                    if (index !== otherIndex) {
+                        const dx = sprite.position.x - otherSprite.position.x;
+                        const dy = sprite.position.y - otherSprite.position.y;
+                        const dz = sprite.position.z - otherSprite.position.z;
+                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                        
+                        const minDistance = 25;
+                        if (distance < minDistance) {
+                            const repulsionForce = (minDistance - distance) / minDistance;
+                            sprite.position.x += dx * repulsionForce * 0.03;
+                            sprite.position.y += dy * repulsionForce * 0.03;
+                            sprite.position.z += dz * repulsionForce * 0.03;
+                        }
+                    }
+                });
+            });
+
+            // Update connection lines every few frames for performance
+            if (time % 3 === 0) {
+                updateConnectionLines();
+            }
+            
+            controls.update();
+            composer.render();
+        }
+
+        let startTime;
+
+        function updateLoadingUI(progress) {
+            const progressBar = document.getElementById('loading-progress');
+            const loadingText = document.getElementById('loading-text');
+            
+            if (progressBar && loadingText) {
+                progressBar.style.width = `${progress}%`;
+                loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+            }
+        }
+
+        // Initialize the visualization
+        async function startVisualization() {
+            document.getElementById('loading-container').style.display = 'block';
+            document.getElementById('black-overlay').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '1';
+            document.getElementById('visualization').style.display = 'none';
+
+            await init();
+            
+            // Hide loading page and show visualization
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('visualization').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('black-overlay').style.display = 'none';
+            }, 500);
+            
+            // Start animation
+            animate();
+        }
+
+        // Start the visualization when the page loads
+        window.addEventListener('load', startVisualization);
+    </script>
+</body>
+</html>
