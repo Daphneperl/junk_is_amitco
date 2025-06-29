@@ -1,0 +1,4568 @@
+{
+  "image108.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.22018785774707794
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2166251689195633
+    }
+  ],
+  "image134.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.24024808406829834
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23979656398296356
+    }
+  ],
+  "image120.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25623804330825806
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2507178485393524
+    }
+  ],
+  "image63.jpg": [
+    {
+      "theme": "monumental",
+      "confidence": 0.23403657972812653
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.21619489789009094
+    }
+  ],
+  "image77.jpg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.21300487220287323
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.20561186969280243
+    }
+  ],
+  "image242.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.22015798091888428
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.21888749301433563
+    }
+  ],
+  "image256.jpg": [
+    {
+      "theme": "globalization",
+      "confidence": 0.20325630903244019
+    },
+    {
+      "theme": "tradition",
+      "confidence": 0.20233054459095
+    }
+  ],
+  "image88.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.2510342597961426
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.2409958392381668
+    }
+  ],
+  "image89.jpg": [
+    {
+      "theme": "chaos",
+      "confidence": 0.24668775498867035
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.24378705024719238
+    }
+  ],
+  "image257.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.21661259233951569
+    },
+    {
+      "theme": "flowing",
+      "confidence": 0.2104225605726242
+    }
+  ],
+  "image243.jpg": [
+    {
+      "theme": "flowing",
+      "confidence": 0.22021719813346863
+    },
+    {
+      "theme": "static",
+      "confidence": 0.2147761434316635
+    }
+  ],
+  "image76.jpg": [
+    {
+      "theme": "rural life",
+      "confidence": 0.2371465265750885
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2348059117794037
+    }
+  ],
+  "image62.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.26305878162384033
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.25860896706581116
+    }
+  ],
+  "image121.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.23355530202388763
+    },
+    {
+      "theme": "globalization",
+      "confidence": 0.22391319274902344
+    }
+  ],
+  "image135.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.23778538405895233
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.2356671690940857
+    }
+  ],
+  "image109.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.2276901751756668
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.21294794976711273
+    }
+  ],
+  "image123.jpg": [
+    {
+      "theme": "harmony",
+      "confidence": 0.23427839577198029
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23337838053703308
+    }
+  ],
+  "image137.jpg": [
+    {
+      "theme": "flowing",
+      "confidence": 0.2524327039718628
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.24685731530189514
+    }
+  ],
+  "image74.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2421109825372696
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.23949405550956726
+    }
+  ],
+  "image60.jpg": [
+    {
+      "theme": "technology",
+      "confidence": 0.22315353155136108
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.2209058254957199
+    }
+  ],
+  "image48.jpg": [
+    {
+      "theme": "identity",
+      "confidence": 0.23385626077651978
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22770796716213226
+    }
+  ],
+  "image255.jpg": [
+    {
+      "theme": "tradition",
+      "confidence": 0.238381490111351
+    },
+    {
+      "theme": "spirituality",
+      "confidence": 0.2365725040435791
+    }
+  ],
+  "image241.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.2350447177886963
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.23148499429225922
+    }
+  ],
+  "image240.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23452596366405487
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.233307883143425
+    }
+  ],
+  "image254.jpg": [
+    {
+      "theme": "static",
+      "confidence": 0.2529935836791992
+    },
+    {
+      "theme": "flowing",
+      "confidence": 0.2528577446937561
+    }
+  ],
+  "image49.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.22398293018341064
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22253002226352692
+    }
+  ],
+  "image61.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.24180518090724945
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23828770220279694
+    }
+  ],
+  "image75.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.26488959789276123
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2467920184135437
+    }
+  ],
+  "image136.jpg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.25706908106803894
+    },
+    {
+      "theme": "dramatic",
+      "confidence": 0.24119232594966888
+    }
+  ],
+  "image122.jpg": [
+    {
+      "theme": "love",
+      "confidence": 0.2642149329185486
+    },
+    {
+      "theme": "spirituality",
+      "confidence": 0.23450863361358643
+    }
+  ],
+  "image126.jpg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.2578560709953308
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.24512562155723572
+    }
+  ],
+  "image132.jpg": [
+    {
+      "theme": "identity",
+      "confidence": 0.23324012756347656
+    },
+    {
+      "theme": "dynamic",
+      "confidence": 0.23145605623722076
+    }
+  ],
+  "image8.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.25920456647872925
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24890050292015076
+    }
+  ],
+  "image250.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.2342025637626648
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22261518239974976
+    }
+  ],
+  "image244.jpg": [
+    {
+      "theme": "anger",
+      "confidence": 0.2400854080915451
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2390391081571579
+    }
+  ],
+  "image59.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.23479679226875305
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.22959676384925842
+    }
+  ],
+  "image71.jpg": [
+    {
+      "theme": "monumental",
+      "confidence": 0.22996941208839417
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.22391289472579956
+    }
+  ],
+  "image65.jpg": [
+    {
+      "theme": "globalization",
+      "confidence": 0.20343515276908875
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2007323056459427
+    }
+  ],
+  "image64.jpg": [
+    {
+      "theme": "technology",
+      "confidence": 0.24526283144950867
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.23575489223003387
+    }
+  ],
+  "image70.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.2334917038679123
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.23339401185512543
+    }
+  ],
+  "image58.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.21206878125667572
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.20670533180236816
+    }
+  ],
+  "image245.jpg": [
+    {
+      "theme": "contrasting",
+      "confidence": 0.22691433131694794
+    },
+    {
+      "theme": "tradition",
+      "confidence": 0.22654718160629272
+    }
+  ],
+  "image251.jpg": [
+    {
+      "theme": "symmetrical",
+      "confidence": 0.24683229625225067
+    },
+    {
+      "theme": "order",
+      "confidence": 0.23815219104290009
+    }
+  ],
+  "image9.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.2493639439344406
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.24762022495269775
+    }
+  ],
+  "image133.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.25954264402389526
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.25437647104263306
+    }
+  ],
+  "image127.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2391960769891739
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.23637764155864716
+    }
+  ],
+  "image131.jpg": [
+    {
+      "theme": "identity",
+      "confidence": 0.2389114946126938
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.2330481857061386
+    }
+  ],
+  "image125.jpg": [
+    {
+      "theme": "love",
+      "confidence": 0.2569030821323395
+    },
+    {
+      "theme": "sadness",
+      "confidence": 0.2524896562099457
+    }
+  ],
+  "image119.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2287982702255249
+    },
+    {
+      "theme": "harmony",
+      "confidence": 0.2227257937192917
+    }
+  ],
+  "image247.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2599491775035858
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2455742061138153
+    }
+  ],
+  "image253.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.22418412566184998
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.21949613094329834
+    }
+  ],
+  "image66.jpg": [
+    {
+      "theme": "memory",
+      "confidence": 0.24401308596134186
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.23599377274513245
+    }
+  ],
+  "image72.jpg": [
+    {
+      "theme": "symmetrical",
+      "confidence": 0.23719027638435364
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2307250052690506
+    }
+  ],
+  "image99.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.2141105979681015
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.20021554827690125
+    }
+  ],
+  "image98.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.2306905835866928
+    },
+    {
+      "theme": "monumental",
+      "confidence": 0.22347185015678406
+    }
+  ],
+  "image73.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.22896458208560944
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.22349411249160767
+    }
+  ],
+  "image67.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.24405930936336517
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23544102907180786
+    }
+  ],
+  "image252.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.2288389354944229
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.2251349836587906
+    }
+  ],
+  "image246.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.21256029605865479
+    },
+    {
+      "theme": "monumental",
+      "confidence": 0.20848028361797333
+    }
+  ],
+  "image118.jpg": [
+    {
+      "theme": "nature",
+      "confidence": 0.2238360494375229
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.22147399187088013
+    }
+  ],
+  "image124.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2578657269477844
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.257613867521286
+    }
+  ],
+  "image130.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.24869441986083984
+    },
+    {
+      "theme": "mythology",
+      "confidence": 0.22733141481876373
+    }
+  ],
+  "image157.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.24425628781318665
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2343526929616928
+    }
+  ],
+  "image143.jpg": [
+    {
+      "theme": "anger",
+      "confidence": 0.23360657691955566
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.2332182675600052
+    }
+  ],
+  "image194.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.2258685827255249
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.2241433709859848
+    }
+  ],
+  "image180.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2579953968524933
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2575082778930664
+    }
+  ],
+  "image14.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23341217637062073
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23055924475193024
+    }
+  ],
+  "image209.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2588309347629547
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.251814067363739
+    }
+  ],
+  "image221.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2393530160188675
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.22979897260665894
+    }
+  ],
+  "image28.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.25517719984054565
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.24757860600948334
+    }
+  ],
+  "image235.jpg": [
+    {
+      "theme": "minimal",
+      "confidence": 0.23630808293819427
+    },
+    {
+      "theme": "asymmetrical",
+      "confidence": 0.23316653072834015
+    }
+  ],
+  "image234.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.23662444949150085
+    },
+    {
+      "theme": "order",
+      "confidence": 0.23501227796077728
+    }
+  ],
+  "image29.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.23160052299499512
+    },
+    {
+      "theme": "order",
+      "confidence": 0.21733959019184113
+    }
+  ],
+  "image220.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.24560949206352234
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.24092485010623932
+    }
+  ],
+  "image208.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.23416396975517273
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.22883646190166473
+    }
+  ],
+  "image15.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.24751371145248413
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.23965422809123993
+    }
+  ],
+  "image181.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24938644468784332
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23902182281017303
+    }
+  ],
+  "image195.jpg": [
+    {
+      "theme": "static",
+      "confidence": 0.2264702469110489
+    },
+    {
+      "theme": "flowing",
+      "confidence": 0.22315062582492828
+    }
+  ],
+  "image142.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.23279988765716553
+    },
+    {
+      "theme": "monumental",
+      "confidence": 0.2266191840171814
+    }
+  ],
+  "image156.jpg": [
+    {
+      "theme": "rural life",
+      "confidence": 0.2402428835630417
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.22434484958648682
+    }
+  ],
+  "image168.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.22291064262390137
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.21204788982868195
+    }
+  ],
+  "image140.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.24302938580513
+    },
+    {
+      "theme": "power",
+      "confidence": 0.2279839664697647
+    }
+  ],
+  "image154.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.22563287615776062
+    },
+    {
+      "theme": "spirituality",
+      "confidence": 0.2254319190979004
+    }
+  ],
+  "image183.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2512173056602478
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24570226669311523
+    }
+  ],
+  "image197.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.2383713722229004
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.23545615375041962
+    }
+  ],
+  "image17.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25222909450531006
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.25058838725090027
+    }
+  ],
+  "image236.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.24348194897174835
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.2399459332227707
+    }
+  ],
+  "image222.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.21619288623332977
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.20352546870708466
+    }
+  ],
+  "image223.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2526887059211731
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.2486087530851364
+    }
+  ],
+  "image237.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.23808979988098145
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.2345423400402069
+    }
+  ],
+  "image16.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.23512254655361176
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.23492535948753357
+    }
+  ],
+  "image196.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23540277779102325
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23305392265319824
+    }
+  ],
+  "image182.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.23710110783576965
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.22445368766784668
+    }
+  ],
+  "image155.jpg": [
+    {
+      "theme": "symmetrical",
+      "confidence": 0.255135178565979
+    },
+    {
+      "theme": "asymmetrical",
+      "confidence": 0.2326330989599228
+    }
+  ],
+  "image141.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2534259259700775
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2448246031999588
+    }
+  ],
+  "image169.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.25935542583465576
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2589476406574249
+    }
+  ],
+  "image145.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.22697840631008148
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.2248411923646927
+    }
+  ],
+  "image151.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.21973617374897003
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.21850194036960602
+    }
+  ],
+  "image179.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2334231734275818
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.2270330935716629
+    }
+  ],
+  "image186.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25500696897506714
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.24199238419532776
+    }
+  ],
+  "image192.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.24637269973754883
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24569500982761383
+    }
+  ],
+  "image233.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.23937425017356873
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2229575365781784
+    }
+  ],
+  "image227.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.22563545405864716
+    },
+    {
+      "theme": "harmony",
+      "confidence": 0.22147800028324127
+    }
+  ],
+  "image12.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.2368038296699524
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.21465912461280823
+    }
+  ],
+  "image13.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.23457905650138855
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23457667231559753
+    }
+  ],
+  "image226.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.22827383875846863
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.2160845398902893
+    }
+  ],
+  "image232.jpg": [
+    {
+      "theme": "rhythmic",
+      "confidence": 0.25101742148399353
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.24751856923103333
+    }
+  ],
+  "image193.jpg": [
+    {
+      "theme": "geometric",
+      "confidence": 0.22901496291160583
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.22471022605895996
+    }
+  ],
+  "image187.jpg": [
+    {
+      "theme": "geometric",
+      "confidence": 0.2481294721364975
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.24541586637496948
+    }
+  ],
+  "image178.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.23371265828609467
+    },
+    {
+      "theme": "urban life",
+      "confidence": 0.23129382729530334
+    }
+  ],
+  "image150.jpg": [
+    {
+      "theme": "minimal",
+      "confidence": 0.25877612829208374
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.25585678219795227
+    }
+  ],
+  "image144.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.24213522672653198
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23086731135845184
+    }
+  ],
+  "image152.jpg": [
+    {
+      "theme": "rhythmic",
+      "confidence": 0.23291192948818207
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2320793718099594
+    }
+  ],
+  "image146.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.24857904016971588
+    },
+    {
+      "theme": "monumental",
+      "confidence": 0.24152639508247375
+    }
+  ],
+  "image191.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.20930784940719604
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.20671121776103973
+    }
+  ],
+  "image185.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23136068880558014
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.22147096693515778
+    }
+  ],
+  "image224.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.23718886077404022
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.23559141159057617
+    }
+  ],
+  "image39.jpg": [
+    {
+      "theme": "serene",
+      "confidence": 0.2316734492778778
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.22763949632644653
+    }
+  ],
+  "image230.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.22657576203346252
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.21837663650512695
+    }
+  ],
+  "image218.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2525525689125061
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.24241487681865692
+    }
+  ],
+  "image11.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2462926059961319
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.24229863286018372
+    }
+  ],
+  "image219.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.24851182103157043
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24810141324996948
+    }
+  ],
+  "image231.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.243414968252182
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24041040241718292
+    }
+  ],
+  "image38.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.2138751596212387
+    },
+    {
+      "theme": "static",
+      "confidence": 0.21377144753932953
+    }
+  ],
+  "image225.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2556806802749634
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.2536594569683075
+    }
+  ],
+  "image184.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.22396287322044373
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.21986237168312073
+    }
+  ],
+  "image190.jpg": [
+    {
+      "theme": "chaos",
+      "confidence": 0.24563102424144745
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.24386143684387207
+    }
+  ],
+  "image147.jpg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.24700823426246643
+    },
+    {
+      "theme": "loneliness",
+      "confidence": 0.24695055186748505
+    }
+  ],
+  "image153.jpg": [
+    {
+      "theme": "geometric",
+      "confidence": 0.2462293803691864
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.22851870954036713
+    }
+  ],
+  "image176.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.2233603596687317
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.21014347672462463
+    }
+  ],
+  "image162.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.25327521562576294
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23881302773952484
+    }
+  ],
+  "image189.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2366749793291092
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.23591390252113342
+    }
+  ],
+  "image21.jpg": [
+    {
+      "theme": "serene",
+      "confidence": 0.22775369882583618
+    },
+    {
+      "theme": "harmony",
+      "confidence": 0.22588014602661133
+    }
+  ],
+  "image35.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.22597454488277435
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.21446557343006134
+    }
+  ],
+  "image228.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23136068880558014
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.22147096693515778
+    }
+  ],
+  "image200.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.21711008250713348
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.21543768048286438
+    }
+  ],
+  "image214.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24333079159259796
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.22921979427337646
+    }
+  ],
+  "image215.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25683867931365967
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.2428775429725647
+    }
+  ],
+  "image201.jpg": [
+    {
+      "theme": "static",
+      "confidence": 0.23387901484966278
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.2325650304555893
+    }
+  ],
+  "image229.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.21014654636383057
+    },
+    {
+      "theme": "order",
+      "confidence": 0.20880550146102905
+    }
+  ],
+  "image34.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.23242813348770142
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23198099434375763
+    }
+  ],
+  "image20.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.22764745354652405
+    },
+    {
+      "theme": "order",
+      "confidence": 0.2267323136329651
+    }
+  ],
+  "image188.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24524888396263123
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23427213728427887
+    }
+  ],
+  "image163.jpg": [
+    {
+      "theme": "mysterious",
+      "confidence": 0.2354084849357605
+    },
+    {
+      "theme": "loneliness",
+      "confidence": 0.23361344635486603
+    }
+  ],
+  "image177.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2581866979598999
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23779802024364471
+    }
+  ],
+  "image149.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.22382615506649017
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.22313399612903595
+    }
+  ],
+  "image161.jpg": [
+    {
+      "theme": "isolation",
+      "confidence": 0.23378080129623413
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22787970304489136
+    }
+  ],
+  "image175.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2657283544540405
+    },
+    {
+      "theme": "dynamic",
+      "confidence": 0.24921220541000366
+    }
+  ],
+  "image36.jpg": [
+    {
+      "theme": "chaos",
+      "confidence": 0.21602873504161835
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.21321992576122284
+    }
+  ],
+  "image22.jpg": [
+    {
+      "theme": "globalization",
+      "confidence": 0.2197936624288559
+    },
+    {
+      "theme": "freedom",
+      "confidence": 0.219219371676445
+    }
+  ],
+  "image217.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.264061838388443
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.25628384947776794
+    }
+  ],
+  "image203.jpg": [
+    {
+      "theme": "geometric",
+      "confidence": 0.2346770167350769
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.23435793817043304
+    }
+  ],
+  "image202.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.2081279754638672
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2076033055782318
+    }
+  ],
+  "image216.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24720452725887299
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.24142692983150482
+    }
+  ],
+  "image23.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.23088420927524567
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.22961178421974182
+    }
+  ],
+  "image37.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.20749197900295258
+    },
+    {
+      "theme": "monumental",
+      "confidence": 0.20426923036575317
+    }
+  ],
+  "image174.jpg": [
+    {
+      "theme": "rhythmic",
+      "confidence": 0.2552107274532318
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2544991075992584
+    }
+  ],
+  "image160.jpg": [
+    {
+      "theme": "serene",
+      "confidence": 0.23641198873519897
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.23055413365364075
+    }
+  ],
+  "image148.jpg": [
+    {
+      "theme": "geometric",
+      "confidence": 0.232113316655159
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2302745133638382
+    }
+  ],
+  "image164.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.22229570150375366
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.22225730121135712
+    }
+  ],
+  "image170.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.24519462883472443
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23824895918369293
+    }
+  ],
+  "image158.jpg": [
+    {
+      "theme": "conflict",
+      "confidence": 0.24006733298301697
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.23628069460391998
+    }
+  ],
+  "image212.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.2826969027519226
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2815715968608856
+    }
+  ],
+  "image206.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.26002711057662964
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2550063729286194
+    }
+  ],
+  "image33.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.20388534665107727
+    }
+  ],
+  "image27.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2140028178691864
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.20983761548995972
+    }
+  ],
+  "image26.jpg": [
+    {
+      "theme": "contrasting",
+      "confidence": 0.23480194807052612
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23194393515586853
+    }
+  ],
+  "image32.jpg": [
+    {
+      "theme": "complex",
+      "confidence": 0.22190065681934357
+    },
+    {
+      "theme": "organic",
+      "confidence": 0.2215673327445984
+    }
+  ],
+  "image207.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.23483705520629883
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2273409217596054
+    }
+  ],
+  "image213.jpg": [
+    {
+      "theme": "technology",
+      "confidence": 0.2473808228969574
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.24155597388744354
+    }
+  ],
+  "image159.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.24524915218353271
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.24267500638961792
+    }
+  ],
+  "image171.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23428834974765778
+    },
+    {
+      "theme": "organic",
+      "confidence": 0.22948135435581207
+    }
+  ],
+  "image165.jpg": [
+    {
+      "theme": "monumental",
+      "confidence": 0.22514499723911285
+    },
+    {
+      "theme": "symmetrical",
+      "confidence": 0.2221820205450058
+    }
+  ],
+  "image173.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25204789638519287
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.24834062159061432
+    }
+  ],
+  "image167.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.24517324566841125
+    },
+    {
+      "theme": "serene",
+      "confidence": 0.24183449149131775
+    }
+  ],
+  "image198.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2165672481060028
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2153211534023285
+    }
+  ],
+  "image205.jpg": [
+    {
+      "theme": "static",
+      "confidence": 0.23354406654834747
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.22982622683048248
+    }
+  ],
+  "image18.jpg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.24238967895507812
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.23335981369018555
+    }
+  ],
+  "image211.jpg": [
+    {
+      "theme": "complex",
+      "confidence": 0.24069848656654358
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23582424223423004
+    }
+  ],
+  "image239.jpg": [
+    {
+      "theme": "rhythmic",
+      "confidence": 0.2375807762145996
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.2319914996623993
+    }
+  ],
+  "image24.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.24685433506965637
+    },
+    {
+      "theme": "social justice",
+      "confidence": 0.2231707125902176
+    }
+  ],
+  "image30.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.2249537706375122
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2233029156923294
+    }
+  ],
+  "image31.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.24190188944339752
+    },
+    {
+      "theme": "serene",
+      "confidence": 0.23254892230033875
+    }
+  ],
+  "image25.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.23427294194698334
+    },
+    {
+      "theme": "globalization",
+      "confidence": 0.2285722941160202
+    }
+  ],
+  "image238.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.22425734996795654
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22273749113082886
+    }
+  ],
+  "image210.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2519804537296295
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.24372559785842896
+    }
+  ],
+  "image19.jpg": [
+    {
+      "theme": "complex",
+      "confidence": 0.22278502583503723
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2214866727590561
+    }
+  ],
+  "image204.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.22618062794208527
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2223890721797943
+    }
+  ],
+  "image199.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.21885770559310913
+    },
+    {
+      "theme": "order",
+      "confidence": 0.21256904304027557
+    }
+  ],
+  "image166.jpg": [
+    {
+      "theme": "spirituality",
+      "confidence": 0.25833675265312195
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2415100336074829
+    }
+  ],
+  "image172.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.24412095546722412
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.24021337926387787
+    }
+  ],
+  "image129.jpg": [
+    {
+      "theme": "peace",
+      "confidence": 0.23344095051288605
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2313704937696457
+    }
+  ],
+  "image115.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.20770269632339478
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2057075798511505
+    }
+  ],
+  "image101.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.23153017461299896
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.21206586062908173
+    }
+  ],
+  "image7.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2279219627380371
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.22711996734142303
+    }
+  ],
+  "image42.jpg": [
+    {
+      "theme": "minimal",
+      "confidence": 0.2395397573709488
+    },
+    {
+      "theme": "order",
+      "confidence": 0.23946648836135864
+    }
+  ],
+  "image56.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.23804493248462677
+    },
+    {
+      "theme": "symmetrical",
+      "confidence": 0.23539620637893677
+    }
+  ],
+  "image81.jpg": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.24602562189102173
+    },
+    {
+      "theme": "order",
+      "confidence": 0.22850632667541504
+    }
+  ],
+  "image95.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2888960838317871
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2566802501678467
+    }
+  ],
+  "image94.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.2507570683956146
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.24874362349510193
+    }
+  ],
+  "image80.jpg": [
+    {
+      "theme": "complex",
+      "confidence": 0.2390964776277542
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.23786696791648865
+    }
+  ],
+  "image57.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.24271315336227417
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23227550089359283
+    }
+  ],
+  "image43.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2489084005355835
+    },
+    {
+      "theme": "order",
+      "confidence": 0.24375033378601074
+    }
+  ],
+  "image6.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.2261732965707779
+    },
+    {
+      "theme": "rural life",
+      "confidence": 0.22208884358406067
+    }
+  ],
+  "image100.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.21986380219459534
+    },
+    {
+      "theme": "mythology",
+      "confidence": 0.2194724828004837
+    }
+  ],
+  "image114.jpg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.22262588143348694
+    },
+    {
+      "theme": "sadness",
+      "confidence": 0.2132672220468521
+    }
+  ],
+  "image128.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.2312280684709549
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22146333754062653
+    }
+  ],
+  "image102.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.21687555313110352
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.20729492604732513
+    }
+  ],
+  "image4.jpg": [
+    {
+      "theme": "geometric",
+      "confidence": 0.23271015286445618
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.2283661961555481
+    }
+  ],
+  "image116.jpg": [
+    {
+      "theme": "isolation",
+      "confidence": 0.22961068153381348
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22897478938102722
+    }
+  ],
+  "image55.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2588757872581482
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.25026386976242065
+    }
+  ],
+  "image248.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24433580040931702
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22578591108322144
+    }
+  ],
+  "image41.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.234494149684906
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23212981224060059
+    }
+  ],
+  "image69.jpg": [
+    {
+      "theme": "symmetrical",
+      "confidence": 0.22101609408855438
+    },
+    {
+      "theme": "contrasting",
+      "confidence": 0.21946507692337036
+    }
+  ],
+  "image96.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2403373122215271
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23159600794315338
+    }
+  ],
+  "image82.jpg": [
+    {
+      "theme": "abstract",
+      "confidence": 0.24696223437786102
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.24283665418624878
+    }
+  ],
+  "image83.jpg": [
+    {
+      "theme": "chaos",
+      "confidence": 0.2512984871864319
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.24904631078243256
+    }
+  ],
+  "image97.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.22251862287521362
+    },
+    {
+      "theme": "tradition",
+      "confidence": 0.20467041432857513
+    }
+  ],
+  "image68.jpg": [
+    {
+      "theme": "geometric",
+      "confidence": 0.24754907190799713
+    },
+    {
+      "theme": "symmetrical",
+      "confidence": 0.23737743496894836
+    }
+  ],
+  "image40.jpg": [
+    {
+      "theme": "complex",
+      "confidence": 0.24124644696712494
+    },
+    {
+      "theme": "order",
+      "confidence": 0.24061834812164307
+    }
+  ],
+  "image249.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2578469216823578
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2578282356262207
+    }
+  ],
+  "image54.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.22555959224700928
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.22088512778282166
+    }
+  ],
+  "image117.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.24334168434143066
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.23416994512081146
+    }
+  ],
+  "image5.jpg": [
+    {
+      "theme": "complex",
+      "confidence": 0.23468291759490967
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.23222877085208893
+    }
+  ],
+  "image103.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.23279988765716553
+    },
+    {
+      "theme": "monumental",
+      "confidence": 0.2266191840171814
+    }
+  ],
+  "image107.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.24813076853752136
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2403927445411682
+    }
+  ],
+  "image113.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.20863910019397736
+    },
+    {
+      "theme": "order",
+      "confidence": 0.2021847814321518
+    }
+  ],
+  "image78.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2620853781700134
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2546224296092987
+    }
+  ],
+  "image50.jpg": [
+    {
+      "theme": "symmetrical",
+      "confidence": 0.25176694989204407
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.23766165971755981
+    }
+  ],
+  "image259.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24519973993301392
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.23190224170684814
+    }
+  ],
+  "image44.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.24154698848724365
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.23338347673416138
+    }
+  ],
+  "image93.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24241061508655548
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2329932302236557
+    }
+  ],
+  "image87.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2393699437379837
+    },
+    {
+      "theme": "anger",
+      "confidence": 0.23695175349712372
+    }
+  ],
+  "image86.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2462267279624939
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23946890234947205
+    }
+  ],
+  "image92.jpg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2534259259700775
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2448246031999588
+    }
+  ],
+  "image45.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.24782349169254303
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.24441882967948914
+    }
+  ],
+  "image258.jpg": [
+    {
+      "theme": "asymmetrical",
+      "confidence": 0.22237199544906616
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.21721750497817993
+    }
+  ],
+  "image51.jpg": [
+    {
+      "theme": "asymmetrical",
+      "confidence": 0.20649470388889313
+    },
+    {
+      "theme": "order",
+      "confidence": 0.20439471304416656
+    }
+  ],
+  "image79.jpg": [
+    {
+      "theme": "rhythmic",
+      "confidence": 0.24323180317878723
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.23272204399108887
+    }
+  ],
+  "image112.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.21977172791957855
+    },
+    {
+      "theme": "order",
+      "confidence": 0.21426533162593842
+    }
+  ],
+  "image106.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.22215837240219116
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.22047843039035797
+    }
+  ],
+  "image110.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2660761773586273
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2656451165676117
+    }
+  ],
+  "image104.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.23379164934158325
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23176810145378113
+    }
+  ],
+  "image2.jpg": [
+    {
+      "theme": "static",
+      "confidence": 0.2343108057975769
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.22791990637779236
+    }
+  ],
+  "image138.jpg": [
+    {
+      "theme": "tradition",
+      "confidence": 0.2182728499174118
+    },
+    {
+      "theme": "globalization",
+      "confidence": 0.2125600427389145
+    }
+  ],
+  "image47.jpg": [
+    {
+      "theme": "rhythmic",
+      "confidence": 0.22344568371772766
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.22033748030662537
+    }
+  ],
+  "image53.jpg": [
+    {
+      "theme": "environmental",
+      "confidence": 0.23390509188175201
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23174501955509186
+    }
+  ],
+  "image84.jpg": [
+    {
+      "theme": "modernity",
+      "confidence": 0.23805317282676697
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.23289509117603302
+    }
+  ],
+  "image90.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.2288370579481125
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.2273443043231964
+    }
+  ],
+  "image91.jpg": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.2434786856174469
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.24103179574012756
+    }
+  ],
+  "image85.jpg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2393699437379837
+    },
+    {
+      "theme": "anger",
+      "confidence": 0.23695175349712372
+    }
+  ],
+  "image52.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.26142337918281555
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.25449690222740173
+    }
+  ],
+  "image46.jpg": [
+    {
+      "theme": "connection",
+      "confidence": 0.22758084535598755
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.22590868175029755
+    }
+  ],
+  "image139.jpg": [
+    {
+      "theme": "tradition",
+      "confidence": 0.2149711549282074
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.20353034138679504
+    }
+  ],
+  "image3.jpg": [
+    {
+      "theme": "constraint",
+      "confidence": 0.20921863615512848
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.2082866132259369
+    }
+  ],
+  "image105.jpg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.23402205109596252
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.22912269830703735
+    }
+  ],
+  "image111.jpg": [
+    {
+      "theme": "order",
+      "confidence": 0.22478263080120087
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.22038081288337708
+    }
+  ],
+  "image261.jpeg": [
+    {
+      "theme": "joy",
+      "confidence": 0.24774211645126343
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2401839643716812
+    }
+  ],
+  "image277.jpeg": [
+    {
+      "theme": "memory",
+      "confidence": 0.23792040348052979
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.2371036559343338
+    }
+  ],
+  "image282.jpeg": [
+    {
+      "theme": "chaos",
+      "confidence": 0.2500883936882019
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2429882436990738
+    }
+  ],
+  "image283.jpeg": [
+    {
+      "theme": "memory",
+      "confidence": 0.23316609859466553
+    },
+    {
+      "theme": "sadness",
+      "confidence": 0.23127102851867676
+    }
+  ],
+  "image276.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2611766457557678
+    },
+    {
+      "theme": "serene",
+      "confidence": 0.24256674945354462
+    }
+  ],
+  "image260.jpeg": [
+    {
+      "theme": "rural life",
+      "confidence": 0.24810808897018433
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.22241896390914917
+    }
+  ],
+  "image284.jpeg": [
+    {
+      "theme": "serene",
+      "confidence": 0.2518196105957031
+    },
+    {
+      "theme": "flowing",
+      "confidence": 0.24792297184467316
+    }
+  ],
+  "image267.jpeg": [
+    {
+      "theme": "isolation",
+      "confidence": 0.24162591993808746
+    },
+    {
+      "theme": "loneliness",
+      "confidence": 0.23919455707073212
+    }
+  ],
+  "image288.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23290860652923584
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.22720842063426971
+    }
+  ],
+  "image271.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2311895340681076
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2284546047449112
+    }
+  ],
+  "image270.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2383951097726822
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.23513241112232208
+    }
+  ],
+  "image266.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2381095588207245
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2341587394475937
+    }
+  ],
+  "image289.jpeg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.257368803024292
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24091652035713196
+    }
+  ],
+  "image285.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23892472684383392
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2336789071559906
+    }
+  ],
+  "image290.jpeg": [
+    {
+      "theme": "loneliness",
+      "confidence": 0.259426087141037
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.25597694516181946
+    }
+  ],
+  "image286.jpeg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.22301644086837769
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2193765789270401
+    }
+  ],
+  "image269.jpeg": [
+    {
+      "theme": "rural life",
+      "confidence": 0.25707483291625977
+    },
+    {
+      "theme": "nature",
+      "confidence": 0.24003969132900238
+    }
+  ],
+  "image273.jpeg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2498200237751007
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.24403603374958038
+    }
+  ],
+  "image265.jpeg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.2587840259075165
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.23103463649749756
+    }
+  ],
+  "image264.jpeg": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2743290066719055
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.27024999260902405
+    }
+  ],
+  "image272.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2526415288448334
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.24755580723285675
+    }
+  ],
+  "image287.jpeg": [
+    {
+      "theme": "mythology",
+      "confidence": 0.23904994130134583
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23848459124565125
+    }
+  ],
+  "image268.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24132126569747925
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.23531228303909302
+    }
+  ],
+  "image275.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2710803747177124
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2506627142429352
+    }
+  ],
+  "image263.jpeg": [
+    {
+      "theme": "identity",
+      "confidence": 0.24813354015350342
+    },
+    {
+      "theme": "asymmetrical",
+      "confidence": 0.24669654667377472
+    }
+  ],
+  "image279.jpeg": [
+    {
+      "theme": "technology",
+      "confidence": 0.24213674664497375
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.24148236215114594
+    }
+  ],
+  "image280.jpeg": [
+    {
+      "theme": "technology",
+      "confidence": 0.25708910822868347
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.249859020113945
+    }
+  ],
+  "image281.jpeg": [
+    {
+      "theme": "chaos",
+      "confidence": 0.24254144728183746
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.23719999194145203
+    }
+  ],
+  "image278.jpeg": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.24407240748405457
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.2427026331424713
+    }
+  ],
+  "image262.jpeg": [
+    {
+      "theme": "urban life",
+      "confidence": 0.23933091759681702
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23688443005084991
+    }
+  ],
+  "image274.jpeg": [
+    {
+      "theme": "figurative",
+      "confidence": 0.262447327375412
+    },
+    {
+      "theme": "mythology",
+      "confidence": 0.252382755279541
+    }
+  ],
+  "image487.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25022339820861816
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.2399699091911316
+    }
+  ],
+  "image493.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24191582202911377
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.24100655317306519
+    }
+  ],
+  "image478.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2708790898323059
+    },
+    {
+      "theme": "loneliness",
+      "confidence": 0.27037927508354187
+    }
+  ],
+  "image444.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24849188327789307
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.24671483039855957
+    }
+  ],
+  "image450.png": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.21479730308055878
+    },
+    {
+      "theme": "order",
+      "confidence": 0.2080947309732437
+    }
+  ],
+  "image530.png": [
+    {
+      "theme": "order",
+      "confidence": 0.20918749272823334
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.20896893739700317
+    }
+  ],
+  "image451.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.24412909150123596
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23773740231990814
+    }
+  ],
+  "image445.png": [
+    {
+      "theme": "identity",
+      "confidence": 0.24010488390922546
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.23521611094474792
+    }
+  ],
+  "image479.png": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.25652679800987244
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2549949288368225
+    }
+  ],
+  "image492.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.25380146503448486
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.2526160180568695
+    }
+  ],
+  "image486.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2338082194328308
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.22727656364440918
+    }
+  ],
+  "image490.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.24100391566753387
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23751237988471985
+    }
+  ],
+  "image484.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24935440719127655
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.2466602772474289
+    }
+  ],
+  "image453.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.2647281885147095
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.2578783929347992
+    }
+  ],
+  "image447.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.27078765630722046
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.26205137372016907
+    }
+  ],
+  "image446.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.24582095444202423
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.24234794080257416
+    }
+  ],
+  "image452.png": [
+    {
+      "theme": "identity",
+      "confidence": 0.23379120230674744
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.22948557138442993
+    }
+  ],
+  "image485.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2705325186252594
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.24409300088882446
+    }
+  ],
+  "image491.png": [
+    {
+      "theme": "constraint",
+      "confidence": 0.20922765135765076
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.20777632296085358
+    }
+  ],
+  "image495.png": [
+    {
+      "theme": "abstract",
+      "confidence": 0.24664954841136932
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.240805983543396
+    }
+  ],
+  "image481.png": [
+    {
+      "theme": "environmental",
+      "confidence": 0.24849392473697662
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23647147417068481
+    }
+  ],
+  "image456.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2490319460630417
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23245418071746826
+    }
+  ],
+  "image442.png": [
+    {
+      "theme": "power",
+      "confidence": 0.24904590845108032
+    },
+    {
+      "theme": "order",
+      "confidence": 0.2486838847398758
+    }
+  ],
+  "image293.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.269778847694397
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.26437073945999146
+    }
+  ],
+  "image292.png": [
+    {
+      "theme": "urban life",
+      "confidence": 0.2439498007297516
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.22988387942314148
+    }
+  ],
+  "image443.png": [
+    {
+      "theme": "environmental",
+      "confidence": 0.254390686750412
+    },
+    {
+      "theme": "nature",
+      "confidence": 0.25067129731178284
+    }
+  ],
+  "image457.png": [
+    {
+      "theme": "geometric",
+      "confidence": 0.25787636637687683
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.2569245398044586
+    }
+  ],
+  "image480.png": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.25652679800987244
+    },
+    {
+      "theme": "minimal",
+      "confidence": 0.2549949288368225
+    }
+  ],
+  "image494.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24871259927749634
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.23871009051799774
+    }
+  ],
+  "image482.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.2361229658126831
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23473607003688812
+    }
+  ],
+  "image496.png": [
+    {
+      "theme": "symmetrical",
+      "confidence": 0.2416180968284607
+    },
+    {
+      "theme": "organic",
+      "confidence": 0.24024449288845062
+    }
+  ],
+  "image441.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.24856774508953094
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24559400975704193
+    }
+  ],
+  "image455.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.2720903754234314
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.2661566138267517
+    }
+  ],
+  "image469.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.22875334322452545
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.22209423780441284
+    }
+  ],
+  "image468.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.2403288632631302
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.23615708947181702
+    }
+  ],
+  "image454.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.2532106339931488
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.2504836320877075
+    }
+  ],
+  "image440.png": [
+    {
+      "theme": "modernity",
+      "confidence": 0.24709849059581757
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.23941737413406372
+    }
+  ],
+  "image497.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25785818696022034
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2529206871986389
+    }
+  ],
+  "image483.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23286929726600647
+    },
+    {
+      "theme": "anger",
+      "confidence": 0.23217983543872833
+    }
+  ],
+  "image382.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23381361365318298
+    },
+    {
+      "theme": "loneliness",
+      "confidence": 0.2320639193058014
+    }
+  ],
+  "image396.png": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.24917170405387878
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23927085101604462
+    }
+  ],
+  "image369.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2970474362373352
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.25916731357574463
+    }
+  ],
+  "image427.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.27011939883232117
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2663348615169525
+    }
+  ],
+  "image433.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25850075483322144
+    },
+    {
+      "theme": "society",
+      "confidence": 0.2439505010843277
+    }
+  ],
+  "image432.png": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.240290567278862
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.22687563300132751
+    }
+  ],
+  "image426.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.2496810257434845
+    },
+    {
+      "theme": "sadness",
+      "confidence": 0.23468707501888275
+    }
+  ],
+  "image368.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.28266340494155884
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2571631669998169
+    }
+  ],
+  "image397.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2596905827522278
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2522726058959961
+    }
+  ],
+  "image383.png": [
+    {
+      "theme": "harmony",
+      "confidence": 0.24100729823112488
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.24007104337215424
+    }
+  ],
+  "image395.png": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.24265216290950775
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23526066541671753
+    }
+  ],
+  "image381.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2557292878627777
+    },
+    {
+      "theme": "intimate",
+      "confidence": 0.2504197359085083
+    }
+  ],
+  "image418.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.2491944581270218
+    },
+    {
+      "theme": "society",
+      "confidence": 0.24447602033615112
+    }
+  ],
+  "image430.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24359385669231415
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23875944316387177
+    }
+  ],
+  "image424.png": [
+    {
+      "theme": "sadness",
+      "confidence": 0.2415228635072708
+    },
+    {
+      "theme": "mysterious",
+      "confidence": 0.23687371611595154
+    }
+  ],
+  "image425.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.2662872076034546
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.2372545301914215
+    }
+  ],
+  "image431.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.21918724477291107
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2146039605140686
+    }
+  ],
+  "image419.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.23926998674869537
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23236075043678284
+    }
+  ],
+  "image380.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.22636954486370087
+    },
+    {
+      "theme": "serene",
+      "confidence": 0.21998369693756104
+    }
+  ],
+  "image394.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.27510643005371094
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2633312940597534
+    }
+  ],
+  "image390.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23610693216323853
+    },
+    {
+      "theme": "loneliness",
+      "confidence": 0.23231211304664612
+    }
+  ],
+  "image384.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.23606647551059723
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23090068995952606
+    }
+  ],
+  "image435.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.26190316677093506
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24556751549243927
+    }
+  ],
+  "image421.png": [
+    {
+      "theme": "sadness",
+      "confidence": 0.25066643953323364
+    },
+    {
+      "theme": "anger",
+      "confidence": 0.24393387138843536
+    }
+  ],
+  "image409.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.26319122314453125
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.25183650851249695
+    }
+  ],
+  "image408.png": [
+    {
+      "theme": "technology",
+      "confidence": 0.24024128913879395
+    },
+    {
+      "theme": "order",
+      "confidence": 0.22894325852394104
+    }
+  ],
+  "image420.png": [
+    {
+      "theme": "static",
+      "confidence": 0.24222628772258759
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.2411375641822815
+    }
+  ],
+  "image434.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24098947644233704
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.2247115671634674
+    }
+  ],
+  "image385.png": [
+    {
+      "theme": "mythology",
+      "confidence": 0.23288540542125702
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23186905682086945
+    }
+  ],
+  "image391.png": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.23562514781951904
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23512767255306244
+    }
+  ],
+  "image387.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.26294225454330444
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2564936876296997
+    }
+  ],
+  "image393.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.22903379797935486
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.22365950047969818
+    }
+  ],
+  "image422.png": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.22609320282936096
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.22079269587993622
+    }
+  ],
+  "image436.png": [
+    {
+      "theme": "harmony",
+      "confidence": 0.2380056381225586
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23185940086841583
+    }
+  ],
+  "image378.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.24450445175170898
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.23634454607963562
+    }
+  ],
+  "image379.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.24935562908649445
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.24531030654907227
+    }
+  ],
+  "image437.png": [
+    {
+      "theme": "tradition",
+      "confidence": 0.23090681433677673
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2281189262866974
+    }
+  ],
+  "image423.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24062283337116241
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.23454901576042175
+    }
+  ],
+  "image392.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24274247884750366
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.2299472540616989
+    }
+  ],
+  "image386.png": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.22911736369132996
+    },
+    {
+      "theme": "urban life",
+      "confidence": 0.2262689471244812
+    }
+  ],
+  "image406.png": [
+    {
+      "theme": "technology",
+      "confidence": 0.22539252042770386
+    },
+    {
+      "theme": "mythology",
+      "confidence": 0.2224254459142685
+    }
+  ],
+  "image412.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.21813488006591797
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.2145562767982483
+    }
+  ],
+  "image374.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2719683051109314
+    },
+    {
+      "theme": "anger",
+      "confidence": 0.2575750946998596
+    }
+  ],
+  "image413.png": [
+    {
+      "theme": "flowing",
+      "confidence": 0.2365712821483612
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23289445042610168
+    }
+  ],
+  "image375.png": [
+    {
+      "theme": "isolation",
+      "confidence": 0.23586587607860565
+    },
+    {
+      "theme": "loneliness",
+      "confidence": 0.23449063301086426
+    }
+  ],
+  "image407.png": [
+    {
+      "theme": "digital culture",
+      "confidence": 0.22627583146095276
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.2160000056028366
+    }
+  ],
+  "image388.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.26416221261024475
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.26271486282348633
+    }
+  ],
+  "image439.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24311470985412598
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.24184638261795044
+    }
+  ],
+  "image377.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.27057796716690063
+    },
+    {
+      "theme": "spirituality",
+      "confidence": 0.24776925146579742
+    }
+  ],
+  "image411.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2509784400463104
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2355772852897644
+    }
+  ],
+  "image405.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2339572310447693
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.22750720381736755
+    }
+  ],
+  "image404.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.24692562222480774
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.23257939517498016
+    }
+  ],
+  "image376.png": [
+    {
+      "theme": "organic",
+      "confidence": 0.25749465823173523
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2430017739534378
+    }
+  ],
+  "image410.png": [
+    {
+      "theme": "abstract",
+      "confidence": 0.227316215634346
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.2237972766160965
+    }
+  ],
+  "image438.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24982978403568268
+    },
+    {
+      "theme": "urban life",
+      "confidence": 0.24374280869960785
+    }
+  ],
+  "image389.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.23261664807796478
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.2248993217945099
+    }
+  ],
+  "image399.png": [
+    {
+      "theme": "complex",
+      "confidence": 0.22643820941448212
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.2239762842655182
+    }
+  ],
+  "image414.png": [
+    {
+      "theme": "identity",
+      "confidence": 0.2229321300983429
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.22106781601905823
+    }
+  ],
+  "image372.png": [
+    {
+      "theme": "monumental",
+      "confidence": 0.24369002878665924
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.23925554752349854
+    }
+  ],
+  "image366.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24780946969985962
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2357448786497116
+    }
+  ],
+  "image400.png": [
+    {
+      "theme": "abstract",
+      "confidence": 0.25987786054611206
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2501826882362366
+    }
+  ],
+  "image428.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2285228967666626
+    },
+    {
+      "theme": "sadness",
+      "confidence": 0.22657376527786255
+    }
+  ],
+  "image429.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24276702105998993
+    },
+    {
+      "theme": "memory",
+      "confidence": 0.23682990670204163
+    }
+  ],
+  "image367.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.29167160391807556
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.25897449254989624
+    }
+  ],
+  "image401.png": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.24087141454219818
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23993639647960663
+    }
+  ],
+  "image415.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2383790761232376
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.23208418488502502
+    }
+  ],
+  "image373.png": [
+    {
+      "theme": "identity",
+      "confidence": 0.2357102781534195
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2345089614391327
+    }
+  ],
+  "image398.png": [
+    {
+      "theme": "abstract",
+      "confidence": 0.2565750777721405
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2538101077079773
+    }
+  ],
+  "image403.png": [
+    {
+      "theme": "rhythmic",
+      "confidence": 0.23857176303863525
+    },
+    {
+      "theme": "power",
+      "confidence": 0.23142202198505402
+    }
+  ],
+  "image365.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.2503463327884674
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.24064674973487854
+    }
+  ],
+  "image371.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.28579089045524597
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.25911518931388855
+    }
+  ],
+  "image417.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24726448953151703
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2437770962715149
+    }
+  ],
+  "image370.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2699519097805023
+    },
+    {
+      "theme": "anger",
+      "confidence": 0.2694908082485199
+    }
+  ],
+  "image416.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.272930383682251
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.2342841923236847
+    }
+  ],
+  "image402.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2651868164539337
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.24651643633842468
+    }
+  ],
+  "image364.png": [
+    {
+      "theme": "identity",
+      "confidence": 0.23626859486103058
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23258863389492035
+    }
+  ],
+  "image459.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.24360574781894684
+    },
+    {
+      "theme": "love",
+      "confidence": 0.24118159711360931
+    }
+  ],
+  "image465.png": [
+    {
+      "theme": "social justice",
+      "confidence": 0.23707543313503265
+    },
+    {
+      "theme": "society",
+      "confidence": 0.23596367239952087
+    }
+  ],
+  "image471.png": [
+    {
+      "theme": "conflict",
+      "confidence": 0.23122072219848633
+    },
+    {
+      "theme": "mythology",
+      "confidence": 0.22868166863918304
+    }
+  ],
+  "image470.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.24197527766227722
+    },
+    {
+      "theme": "society",
+      "confidence": 0.23405839502811432
+    }
+  ],
+  "image464.png": [
+    {
+      "theme": "environmental",
+      "confidence": 0.2400604635477066
+    },
+    {
+      "theme": "nature",
+      "confidence": 0.225181445479393
+    }
+  ],
+  "image458.png": [
+    {
+      "theme": "chaos",
+      "confidence": 0.26328369975090027
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.2583473324775696
+    }
+  ],
+  "image472.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.22482801973819733
+    },
+    {
+      "theme": "static",
+      "confidence": 0.2242584377527237
+    }
+  ],
+  "image466.png": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.23396539688110352
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.23384596407413483
+    }
+  ],
+  "image467.png": [
+    {
+      "theme": "complex",
+      "confidence": 0.22072559595108032
+    },
+    {
+      "theme": "order",
+      "confidence": 0.22029829025268555
+    }
+  ],
+  "image473.png": [
+    {
+      "theme": "geometric",
+      "confidence": 0.22792832553386688
+    },
+    {
+      "theme": "serene",
+      "confidence": 0.22607557475566864
+    }
+  ],
+  "image498.png": [
+    {
+      "theme": "rural life",
+      "confidence": 0.25264331698417664
+    },
+    {
+      "theme": "order",
+      "confidence": 0.241507425904274
+    }
+  ],
+  "image488.png": [
+    {
+      "theme": "harmony",
+      "confidence": 0.23764610290527344
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.23578257858753204
+    }
+  ],
+  "image477.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2506740987300873
+    },
+    {
+      "theme": "chaos",
+      "confidence": 0.24629561603069305
+    }
+  ],
+  "image463.png": [
+    {
+      "theme": "anger",
+      "confidence": 0.2444581538438797
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.22264857590198517
+    }
+  ],
+  "image462.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2407359629869461
+    },
+    {
+      "theme": "mythology",
+      "confidence": 0.23497594892978668
+    }
+  ],
+  "image476.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24532389640808105
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.24517492949962616
+    }
+  ],
+  "image489.png": [
+    {
+      "theme": "geometric",
+      "confidence": 0.2624601721763611
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.25600582361221313
+    }
+  ],
+  "image460.png": [
+    {
+      "theme": "connection",
+      "confidence": 0.2501188814640045
+    },
+    {
+      "theme": "geometric",
+      "confidence": 0.2498973309993744
+    }
+  ],
+  "image474.png": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.25085943937301636
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23754963278770447
+    }
+  ],
+  "image448.png": [
+    {
+      "theme": "asymmetrical",
+      "confidence": 0.2488410621881485
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.24793177843093872
+    }
+  ],
+  "image528.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.25424671173095703
+    },
+    {
+      "theme": "abstract",
+      "confidence": 0.24597060680389404
+    }
+  ],
+  "image529.png": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24808412790298462
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.2424716055393219
+    }
+  ],
+  "image449.png": [
+    {
+      "theme": "conflict",
+      "confidence": 0.2595292329788208
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.256320059299469
+    }
+  ],
+  "image475.png": [
+    {
+      "theme": "technology",
+      "confidence": 0.2276928573846817
+    },
+    {
+      "theme": "digital culture",
+      "confidence": 0.22571344673633575
+    }
+  ],
+  "image461.png": [
+    {
+      "theme": "symmetrical",
+      "confidence": 0.244503453373909
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.23808227479457855
+    }
+  ],
+  "image505.gif": [
+    {
+      "theme": "conceptual",
+      "confidence": 0.23992393910884857
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.23588939011096954
+    }
+  ],
+  "image504.gif": [
+    {
+      "theme": "tradition",
+      "confidence": 0.21063336730003357
+    },
+    {
+      "theme": "power",
+      "confidence": 0.20687711238861084
+    }
+  ],
+  "image499.gif": [
+    {
+      "theme": "anger",
+      "confidence": 0.23932145535945892
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.22428183257579803
+    }
+  ],
+  "image506.gif": [
+    {
+      "theme": "identity",
+      "confidence": 0.24113743007183075
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.24042321741580963
+    }
+  ],
+  "image507.gif": [
+    {
+      "theme": "chaos",
+      "confidence": 0.22357329726219177
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.22271493077278137
+    }
+  ],
+  "image503.gif": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2373826503753662
+    },
+    {
+      "theme": "identity",
+      "confidence": 0.2332565188407898
+    }
+  ],
+  "image502.gif": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24075233936309814
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.23891925811767578
+    }
+  ],
+  "image500.gif": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.2614758014678955
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2535584568977356
+    }
+  ],
+  "image501.gif": [
+    {
+      "theme": "order",
+      "confidence": 0.2327885627746582
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.22768636047840118
+    }
+  ],
+  "image509.gif": [
+    {
+      "theme": "environmental",
+      "confidence": 0.24057583510875702
+    },
+    {
+      "theme": "nature",
+      "confidence": 0.2255135327577591
+    }
+  ],
+  "image508.gif": [
+    {
+      "theme": "chaos",
+      "confidence": 0.22357329726219177
+    },
+    {
+      "theme": "conflict",
+      "confidence": 0.22271493077278137
+    }
+  ],
+  "image527.webp": [
+    {
+      "theme": "anger",
+      "confidence": 0.2351597100496292
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.23299629986286163
+    }
+  ],
+  "image511.webp": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2435149997472763
+    },
+    {
+      "theme": "technology",
+      "confidence": 0.2412586361169815
+    }
+  ],
+  "image510.webp": [
+    {
+      "theme": "mythology",
+      "confidence": 0.23591899871826172
+    },
+    {
+      "theme": "complex",
+      "confidence": 0.23073674738407135
+    }
+  ],
+  "image526.webp": [
+    {
+      "theme": "chaos",
+      "confidence": 0.2836152911186218
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.2696000039577484
+    }
+  ],
+  "image517.webp": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2579854130744934
+    },
+    {
+      "theme": "anger",
+      "confidence": 0.2484552562236786
+    }
+  ],
+  "image521.webp": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.23120833933353424
+    },
+    {
+      "theme": "figurative",
+      "confidence": 0.22570031881332397
+    }
+  ],
+  "image520.webp": [
+    {
+      "theme": "minimal",
+      "confidence": 0.2576393187046051
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.25686755776405334
+    }
+  ],
+  "image516.webp": [
+    {
+      "theme": "technology",
+      "confidence": 0.25702038407325745
+    },
+    {
+      "theme": "minimalist",
+      "confidence": 0.2519533336162567
+    }
+  ],
+  "image515.webp": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24278844892978668
+    },
+    {
+      "theme": "constraint",
+      "confidence": 0.2368616759777069
+    }
+  ],
+  "image519.webp": [
+    {
+      "theme": "organic",
+      "confidence": 0.2662724256515503
+    },
+    {
+      "theme": "environmental",
+      "confidence": 0.248356431722641
+    }
+  ],
+  "image523.webp": [
+    {
+      "theme": "figurative",
+      "confidence": 0.2459939420223236
+    },
+    {
+      "theme": "expressionist",
+      "confidence": 0.2452276200056076
+    }
+  ],
+  "image522.webp": [
+    {
+      "theme": "expressionist",
+      "confidence": 0.20466656982898712
+    },
+    {
+      "theme": "modernity",
+      "confidence": 0.20283269882202148
+    }
+  ],
+  "image518.webp": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.2456975132226944
+    },
+    {
+      "theme": "organic",
+      "confidence": 0.2383759617805481
+    }
+  ],
+  "image514.webp": [
+    {
+      "theme": "figurative",
+      "confidence": 0.23695498704910278
+    },
+    {
+      "theme": "connection",
+      "confidence": 0.229446142911911
+    }
+  ],
+  "image525.webp": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24906495213508606
+    },
+    {
+      "theme": "conceptual",
+      "confidence": 0.24448278546333313
+    }
+  ],
+  "image513.webp": [
+    {
+      "theme": "minimalist",
+      "confidence": 0.25716179609298706
+    },
+    {
+      "theme": "isolation",
+      "confidence": 0.25569894909858704
+    }
+  ],
+  "image512.webp": [
+    {
+      "theme": "figurative",
+      "confidence": 0.24313917756080627
+    },
+    {
+      "theme": "peace",
+      "confidence": 0.23963281512260437
+    }
+  ],
+  "image524.webp": [
+    {
+      "theme": "connection",
+      "confidence": 0.25058504939079285
+    },
+    {
+      "theme": "rhythmic",
+      "confidence": 0.24145179986953735
+    }
+  ]
+}
