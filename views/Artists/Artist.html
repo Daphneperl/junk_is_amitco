@@ -82,29 +82,78 @@
         let targetY = 0;
         let currentY = 0;
         let scrollVelocity = 0;
+        let currentRotation = 0;
+        let targetRotation = 0;
         const SCROLL_SPEED = 0.3;
         const SCROLL_SMOOTHING = 0.95;
         const VELOCITY_DAMPENING = 0.92;
-        const MAX_SCROLL = 150;
+        const MAX_SCROLL = 600;
+        const ROTATION_SPEED = 0.5;
+
+        // Cluster mode variables
+        let isClusterMode = false;
+        let activeCluster = null;
+        let originalClusterPosition = null;
+        let originalClusterRotation = null;
+        let originalCameraPosition = null;
+        let originalHelixY = null;
+        let originalHelixRotation = null;
+        let targetClusterPosition = new THREE.Vector3();
+        const CLUSTER_TRANSITION_DURATION = 1000; // ms
+        let transitionStartTime = 0;
 
         // Function to position clusters in a helix
         function createHelixPosition(index, totalClusters) {
-            const turns = 8; // More turns for a longer helix
-            const heightStep = 300 / totalClusters; // Much taller (300 units instead of 120)
-            const radius = 30; // Slightly smaller radius to focus on vertical movement
+            const turns = 16; // Significantly increased number of turns for an even longer spiral
+            const heightStep = 1200 / totalClusters; // Dramatically taller (1200 units instead of 600)
+            const radius = 40; // Larger radius for better visibility of the extended helix
             
             // Calculate position on helix
             const angle = (index / totalClusters) * Math.PI * 2 * turns;
             const x = radius * Math.cos(angle);
-            const y = (index * heightStep) - 150; // Center vertically (half of 300)
+            const y = (index * heightStep) - 600; // Center vertically (half of 1200)
             const z = radius * Math.sin(angle);
             
             return new THREE.Vector3(x, y, z);
         }
 
+        function createTextSprite(text) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = 256;
+            canvas.height = 64;
+            
+            // Set text style
+            context.font = '24px monospace';
+            context.textAlign = 'center';
+            context.fillStyle = 'white';
+            
+            // Draw text
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+            
+            // Create texture
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            
+            // Create sprite material
+            const spriteMaterial = new THREE.SpriteMaterial({
+                map: texture,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            // Create sprite
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(10, 2.5, 1); // Adjust scale to make text readable
+            
+            return sprite;
+        }
+
         async function loadAndCreateImageClusters() {
             try {
-                helixGroup = new THREE.Group(); // Create container for all clusters
+                helixGroup = new THREE.Group();
                 scene.add(helixGroup);
 
                 const response = await fetch('../../images/images.json');
@@ -117,8 +166,7 @@
                 let loadedImages = 0;
                 const totalImages = imageList.length;
                 
-                // Calculate number of clusters
-                const avgClusterSize = 5; // Average of 3-7 images per cluster
+                const avgClusterSize = 5;
                 const estimatedClusters = Math.ceil(imageList.length / avgClusterSize);
                 let clusterIndex = 0;
                 
@@ -130,6 +178,11 @@
                     // Position cluster on helix
                     const helixPos = createHelixPosition(clusterIndex, estimatedClusters);
                     clusterGroup.position.copy(helixPos);
+                    
+                    // Create container for images
+                    const clusterContainer = new THREE.Object3D();
+                    clusterGroup.add(clusterContainer);
+                    clusterContainer.userData.shouldFaceCamera = true;
                     
                     // Add images to cluster
                     for (let i = 0; i < clusterSize && remainingImages.length > 0; i++) {
@@ -149,41 +202,51 @@
                                     });
                                     const sprite = new THREE.Sprite(spriteMaterial);
                                     
-                                    // Set size maintaining aspect ratio
                                     const baseSize = 5;
                                     sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
                                     
-                                    // Position within cluster (random offset from center)
-                                    const offset = 8;
-                                    sprite.position.set(
-                                        (Math.random() - 0.5) * offset,
-                                        (Math.random() - 0.5) * offset,
-                                        (Math.random() - 0.5) * offset
-                                    );
+                                    // Calculate grid dimensions for proper spacing
+                                    const gridCols = Math.ceil(Math.sqrt(clusterSize));
+                                    const gridRows = Math.ceil(clusterSize / gridCols);
+                                    const spacing = Math.max(8, baseSize * 1.5); // Ensure spacing is larger than image size
                                     
-                                    clusterGroup.add(sprite);
+                                    // Calculate total height of the grid
+                                    const totalGridHeight = gridRows * spacing;
+                                    
+                                    // Add username text under the cluster
+                                    const username = "@User" + (clusterIndex + 1);
+                                    const textSprite = createTextSprite(username);
+                                    // Position the text sprite below the bottom row of images
+                                    textSprite.position.y = -(totalGridHeight / 2 + 1 ); // 5 units padding below the last row
+                                    textSprite.position.z = 0; // Keep on same plane as images
+                                    clusterContainer.add(textSprite);
+                                    
+                                    // Position in a flat grid layout with increased spacing
+                                    const col = i % gridCols;
+                                    const row = Math.floor(i / gridCols);
+                                    const offsetX = (col - (gridCols - 1) / 2) * spacing;
+                                    const offsetY = (row - (gridRows - 1) / 2) * spacing;
+                                    sprite.position.set(offsetX, offsetY, 0); // All sprites at z=0 for flat plane
+                                    
+                                    clusterContainer.add(sprite);
                                     loadedImages++;
                                     updateLoadingUI((loadedImages / totalImages) * 100);
                                     resolve();
                                 },
                                 undefined,
-                                (error) => {
-                                    console.error('Error loading image:', imagePath, error);
-                                    loadedImages++;
-                                    updateLoadingUI((loadedImages / totalImages) * 100);
-                                    resolve();
-                                }
+                                reject
                             );
                         });
                     }
-                    
+
                     helixGroup.add(clusterGroup);
                     imageGroups.push(clusterGroup);
                     clusterIndex++;
                 }
 
                 // Initial camera position
-                camera.position.set(80, 0, 0); // Positioned to see the helix from the side
+                camera.position.set(80, 0, 80); // Moved camera further out
+                camera.lookAt(0, 0, 0);
 
                 // Show visualization
                 document.getElementById('loading-container').style.display = 'none';
@@ -292,6 +355,203 @@
             }, { passive: false });
         }
 
+        // Function to handle cluster mode transition
+        function enterClusterMode(cluster) {
+            if (isClusterMode && activeCluster === cluster) {
+                exitClusterMode();
+                return;
+            }
+
+            isClusterMode = true;
+            activeCluster = cluster;
+            
+            // Store original positions and states
+            originalCameraPosition = camera.position.clone();
+            originalHelixY = helixGroup.position.y;
+            originalHelixRotation = helixGroup.rotation.y;
+            
+            // Store original scale of the cluster container
+            const container = cluster.children[0];
+            if (container) {
+                container.userData.originalScale = container.scale.clone();
+            }
+            
+            // Calculate camera target position based on cluster's current position
+            const clusterWorldPos = cluster.getWorldPosition(new THREE.Vector3());
+            const cameraOffset = new THREE.Vector3(0, 0, 60); // Increased offset from 40 to 60
+            targetClusterPosition = clusterWorldPos.clone().add(cameraOffset);
+            
+            // Start dimming all other clusters
+            helixGroup.children.forEach(otherCluster => {
+                if (otherCluster !== cluster) {
+                    const container = otherCluster.children[0];
+                    if (container) {
+                        container.children.forEach(sprite => {
+                            sprite.userData.originalOpacity = sprite.material.opacity;
+                            sprite.material.opacity = 0;
+                        });
+                    }
+                }
+            });
+            
+            // Ensure active cluster is fully visible
+            if (container) {
+                container.renderOrder = 999;
+                container.children.forEach(sprite => {
+                    sprite.renderOrder = 999;
+                    sprite.material.depthTest = false;
+                    sprite.material.opacity = 1;
+                });
+            }
+            
+            // Start transition
+            transitionStartTime = Date.now();
+            
+            // Disable scrolling during cluster mode
+            isDragging = false;
+            scrollVelocity = 0;
+        }
+
+        function exitClusterMode() {
+            if (!isClusterMode || !activeCluster) return;
+            
+            // Reset render order and depth testing for active cluster
+            const container = activeCluster.children[0];
+            if (container) {
+                container.renderOrder = 0;
+                container.children.forEach(sprite => {
+                    sprite.renderOrder = 0;
+                    sprite.material.depthTest = true;
+                });
+                
+                // Restore original scale
+                if (container.userData.originalScale) {
+                    container.scale.copy(container.userData.originalScale);
+                    delete container.userData.originalScale;
+                }
+            }
+            
+            // Restore opacity for all clusters
+            helixGroup.children.forEach(cluster => {
+                const container = cluster.children[0];
+                if (container) {
+                    container.children.forEach(sprite => {
+                        if (sprite.userData.originalOpacity !== undefined) {
+                            sprite.material.opacity = sprite.userData.originalOpacity;
+                            delete sprite.userData.originalOpacity;
+                        }
+                    });
+                }
+            });
+            
+            // Start transition back
+            transitionStartTime = Date.now();
+            targetClusterPosition.copy(originalCameraPosition);
+            
+            // Reset after animation
+            setTimeout(() => {
+                isClusterMode = false;
+                activeCluster = null;
+                originalClusterPosition = null;
+                originalClusterRotation = null;
+                originalCameraPosition = null;
+            }, CLUSTER_TRANSITION_DURATION);
+        }
+
+        function updateClusterTransition() {
+            if (!isClusterMode || !activeCluster) return;
+            
+            const elapsed = Date.now() - transitionStartTime;
+            const progress = Math.min(elapsed / CLUSTER_TRANSITION_DURATION, 1);
+            
+            // Smooth easing function
+            const eased = 1 - Math.pow(1 - progress, 3);
+            
+            // Move camera to cluster
+            if (originalCameraPosition) {
+                camera.position.lerpVectors(originalCameraPosition, targetClusterPosition, eased);
+                
+                // Make camera look at the cluster
+                const clusterWorldPos = activeCluster.getWorldPosition(new THREE.Vector3());
+                camera.lookAt(clusterWorldPos);
+            }
+            
+            // Scale up the entire cluster container uniformly
+            const container = activeCluster.children[0];
+            if (container && container.userData.originalScale) {
+                const targetScale = 1.5; // Reduced from 2.5x to 1.5x for smaller appearance
+                const currentScale = 1 + (targetScale - 1) * eased;
+                container.scale.setScalar(currentScale);
+                
+                // Ensure all sprites are on the same plane and facing camera
+                container.children.forEach(sprite => {
+                    if (sprite instanceof THREE.Sprite) {
+                        sprite.position.z = 0; // Force all sprites to same z-plane
+                    }
+                });
+            }
+            
+            // If exiting cluster mode, restore helix position and rotation
+            if (!isClusterMode && originalHelixY !== null && originalHelixRotation !== null) {
+                helixGroup.position.y = originalHelixY;
+                helixGroup.rotation.y = originalHelixRotation;
+            }
+            
+            if (progress === 1) {
+                transitionStartTime = 0;
+                if (!isClusterMode) {
+                    originalHelixY = null;
+                    originalHelixRotation = null;
+                }
+            }
+        }
+
+        // Add double click handler to renderer
+        function initClusterInteraction() {
+            const container = renderer.domElement;
+            
+            // Add double click handler
+            container.addEventListener('dblclick', (event) => {
+                event.preventDefault();
+                
+                // Calculate mouse position in normalized device coordinates (-1 to +1)
+                const mouse = new THREE.Vector2();
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                // Setup raycaster
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Check for intersections with cluster sprites
+                const intersects = [];
+                helixGroup.children.forEach(cluster => {
+                    const container = cluster.children[0];
+                    if (container) {
+                        container.children.forEach(sprite => {
+                            const intersection = raycaster.intersectObject(sprite);
+                            if (intersection.length > 0) {
+                                intersects.push({ cluster, distance: intersection[0].distance });
+                            }
+                        });
+                    }
+                });
+                
+                // Sort intersections by distance and select the closest
+                if (intersects.length > 0) {
+                    intersects.sort((a, b) => a.distance - b.distance);
+                    enterClusterMode(intersects[0].cluster);
+                }
+            });
+
+            // Add escape key handler
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && isClusterMode) {
+                    exitClusterMode();
+                }
+            });
+        }
+
         function init() {
             // Create scene
             scene = new THREE.Scene();
@@ -323,14 +583,14 @@
             // Set as background
             scene.background = noiseTexture;
 
-            // Create camera with larger far plane
+            // Create camera with larger far plane and wider FOV
             camera = new THREE.PerspectiveCamera(
-                60, // Slightly narrower FOV
+                45, // Increased FOV from 35 to 45 for better visibility with margins
                 window.innerWidth / window.innerHeight,
                 0.1,
                 2000 // Much larger far plane to see the entire helix
             );
-            camera.position.set(80, 0, 0);
+            camera.position.set(80, 0, 80); // Moved camera further out
             camera.lookAt(0, 0, 0);
 
             // Create renderer
@@ -400,6 +660,9 @@
 
             // Load and create image clusters
             loadAndCreateImageClusters();
+
+            // Initialize cluster interaction after renderer setup
+            initClusterInteraction();
         }
 
         function onWindowResize() {
@@ -413,7 +676,8 @@
             if (!isInitialized) return;
             requestAnimationFrame(animate);
 
-            // Apply velocity when not dragging
+            // Only update helix position and rotation when not in cluster mode
+            if (!isClusterMode) {
             if (!isDragging) {
                 targetY += scrollVelocity * 12;
                 scrollVelocity *= VELOCITY_DAMPENING;
@@ -425,13 +689,42 @@
                 targetY = Math.max(-MAX_SCROLL, Math.min(MAX_SCROLL, targetY));
             }
 
-            // Smooth scrolling animation with variable smoothing
             const delta = targetY - currentY;
             const smoothing = Math.abs(delta) > 1 ? SCROLL_SMOOTHING : 0.8;
             currentY += delta * (1 - smoothing);
             
+                targetRotation = (currentY / MAX_SCROLL) * Math.PI * 2 * ROTATION_SPEED;
+                const rotationDelta = targetRotation - currentRotation;
+                currentRotation += rotationDelta * (1 - SCROLL_SMOOTHING);
+                
+                if (helixGroup) {
+                    helixGroup.position.y = -currentY;
+                    helixGroup.rotation.y = currentRotation;
+                }
+            }
+
+            // Update cluster transition if active
+            updateClusterTransition();
+
+            // Update camera-facing behavior for all clusters
             if (helixGroup) {
-                helixGroup.position.y = -currentY;
+                helixGroup.children.forEach(cluster => {
+                    const container = cluster.children[0];
+                    if (container && container.userData.shouldFaceCamera) {
+                        const clusterPosition = cluster.getWorldPosition(new THREE.Vector3());
+                        const cameraPosition = camera.position.clone();
+                        const direction = cameraPosition.sub(clusterPosition);
+                        
+                        const lookMatrix = new THREE.Matrix4();
+                        lookMatrix.lookAt(
+                            new THREE.Vector3(0, 0, 0),
+                            direction,
+                            new THREE.Vector3(0, 1, 0)
+                        );
+                        
+                        container.quaternion.setFromRotationMatrix(lookMatrix);
+                    }
+                });
             }
 
             // Animate particles
