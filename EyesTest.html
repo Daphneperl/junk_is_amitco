@@ -14,10 +14,97 @@
             font-family: 'Pixel';
             src: url('../../assets/pixel.ttf') format('truetype');
         }
-        body {
+        html, body {
+            width: 100vw;
+            height: 100vh;
             margin: 0;
-            background-color: black;
+            padding: 0;
             overflow: hidden;
+            background: #000;
+        }
+        #main-viewport {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 1920px;
+            height: 1080px;
+            transform: translate(-50%, -50%) scale(1);
+            background: transparent;
+            transform-origin: center center;
+        }
+        #eyes-interface {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 50vh;
+            pointer-events: none;
+            z-index: 2000;
+            background: rgba(255,0,0,0.12); /* DEBUG: red background */
+        }
+        .eye-blob {
+            position: absolute;
+            pointer-events: auto;
+            cursor: pointer;
+            user-select: none;
+        }
+        #search-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 4vw;
+            transform: translateX(-50%);
+            width: 28vw;
+            min-width: 320px;
+            max-width: 600px;
+            height: 54px;
+            background: #fff;
+            border-radius: 32px;
+            box-shadow: 0 2px 16px #0003;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-family: 'VT323', monospace, sans-serif;
+            color: #222;
+            border: none;
+            outline: none;
+            padding: 0 32px;
+            z-index: 2100;
+        }
+        #upload-hand-btn {
+            position: fixed;
+            right: 2vw;
+            bottom: 3vw;
+            width: 160px;
+            height: 54px;
+            background: #fff;
+            border-radius: 32px;
+            border: none;
+            cursor: pointer;
+            z-index: 2100;
+            font-size: 18px;
+            font-family: 'VT323', monospace, sans-serif;
+            color: #222;
+            box-shadow: 0 2px 16px #0003;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #upload-hand-btn svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        #upload-hand-label {
+            position: absolute;
+            left: 50%;
+            top: 60%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            font-family: 'VT323', monospace, sans-serif;
+            color: #222;
+            pointer-events: none;
+            white-space: nowrap;
         }
         #visualization {
             width: 100vw;
@@ -69,9 +156,15 @@
         </div>
         <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
     </div>
-    <div id="visualization"></div>
-    <!-- Eyes Interface Overlay -->
+    <div id="main-viewport">
+        <div id="visualization"></div>
+    </div>
+    <!-- Eyes Interface Overlay (fixed) -->
     <div id="eyes-interface"></div>
+    <!-- Search Bar (fixed) -->
+    <input id="search-bar" type="text" placeholder="I want to see" />
+    <!-- Upload Placeholder Button (fixed) -->
+    <button id="upload-hand-btn">Upload your junk</button>
     <script>
         let scene, camera, renderer, controls;
         let composer;
@@ -338,161 +431,49 @@
         window.addEventListener('load', startVisualization);
 
         // --- Eyes Interface Logic (with PNGs) ---
-        const EYE_VIEWS = [
-          { name: 'Rhizome', key: 'Rhizome' },
-          { name: 'Artist', key: 'Artist' },
-          { name: 'Secret gallery', key: 'SecretGallery' },
-          { name: 'Temperament', key: 'Temperament' },
-          { name: 'Intimacy', key: 'Intimacy' },
-          { name: 'Completeness', key: 'Completeness' }
+        // Arrange eyes in a cluster matching the reference screenshot
+        const EYE_FIXED_POSITIONS = [
+          { x: 10,  y: 120, scale: 1.0 },   // leftmost
+          { x: 70,  y: 30,  scale: 1.13 },  // top
+          { x: 180, y: 10,  scale: 1.0 },   // top right
+          { x: 250, y: 60,  scale: 1.0 },   // rightmost
+          { x: 210, y: 150, scale: 1.0 },   // bottom right
+          { x: 90,  y: 170, scale: 1.0 }    // bottom left
         ];
-        const EYE_COUNT = 6;
-        const EYE_MIN_SCALE = 1.05, EYE_MAX_SCALE = 1.32;
-        const EYE_AREA_RADIUS = 210; // tighter grouping
-        const EYE_CENTER_X = window.innerWidth/2;
-        const EYE_CENTER_Y = window.innerHeight/2;
-        const EYE_SIZE = 148; // larger base px
-        let selectedEye = null;
-        let hoverEye = null;
-        let labelTimeout = null;
-        let floatingLabelIdx = null;
-        // Generate organic, non-overlapping positions ONCE
-        let eyePositions = null;
-        function generateEyePositions() {
-          // Try up to 10 times to find a non-overlapping layout
-          for (let attempt = 0; attempt < 10; attempt++) {
-            const positions = [];
-            let tries = 0;
-            while (positions.length < EYE_COUNT && tries < 1000) {
-              const angle = Math.random() * Math.PI * 2;
-              const r = EYE_AREA_RADIUS * (0.45 + 0.55 * Math.random());
-              const x = EYE_CENTER_X + Math.cos(angle) * r + (Math.random()-0.5)*30;
-              const y = EYE_CENTER_Y + Math.sin(angle) * r + (Math.random()-0.5)*30;
-              const scale = EYE_MIN_SCALE + Math.random()*(EYE_MAX_SCALE-EYE_MIN_SCALE);
-              // Strict overlap check
-              let ok = true;
-              for (const p of positions) {
-                const minDist = (EYE_SIZE*scale + EYE_SIZE*p.scale) * 0.52; // 0.5+ buffer
-                const dist = Math.hypot(p.x-x, p.y-y);
-                if (dist < minDist) { ok = false; break; }
-              }
-              if (ok) positions.push({x, y, scale});
-              tries++;
-            }
-            if (positions.length === EYE_COUNT) return positions;
-            // else, try again from scratch
-          }
-          // fallback: spread in a circle, guaranteed no overlap
-          const positions = [];
-          for (let i = 0; i < EYE_COUNT; i++) {
-            const angle = (2*Math.PI*i)/EYE_COUNT + Math.random()*0.2;
-            const scale = EYE_MIN_SCALE + Math.random()*(EYE_MAX_SCALE-EYE_MIN_SCALE);
-            const r = EYE_AREA_RADIUS * 0.95;
-            const x = EYE_CENTER_X + Math.cos(angle) * r;
-            const y = EYE_CENTER_Y + Math.sin(angle) * r;
-            positions.push({x, y, scale});
-          }
-          return positions;
-        }
-        // Curved text under eye using SVG textPath
-        function curvedLabel(label, id, visible, fade, rotation=0) {
-          return `<svg width="158" height="28" style="position:absolute;left:-5px;top:120px;pointer-events:none;overflow:visible;transform:rotate(${rotation}deg);">
-            <defs>
-              <path id="arc${id}" d="M20,14 Q79,34 138,14" fill="none"/>
-            </defs>
-            <text fill="#fff" font-size="11" font-family="sans-serif" font-weight="bold" letter-spacing="1" style="opacity:${visible?1:0};transition:opacity 0.7s;${fade?`filter:blur(2px);`:''};text-shadow:0 2px 8px #000a;">
-              <textPath href="#arc${id}" startOffset="50%" text-anchor="middle" dominant-baseline="middle" alignment-baseline="middle">${label}</textPath>
-            </text>
-          </svg>`;
-        }
         function renderEyes() {
-          if (!eyePositions) eyePositions = generateEyePositions();
-          const positions = eyePositions;
+          console.log('Rendering eyes');
           const container = document.getElementById('eyes-interface');
+          const positions = EYE_FIXED_POSITIONS;
           container.innerHTML = '';
-          container.style.position = 'fixed';
-          container.style.left = '0';
-          container.style.top = '0';
-          container.style.width = '100vw';
-          container.style.height = '100vh';
-          container.style.pointerEvents = 'none'; // let 3D viz get events unless over eyes
-          container.style.zIndex = '2000';
-          // Add each eye
           positions.forEach((pos, i) => {
             const eyeDiv = document.createElement('div');
             eyeDiv.className = 'eye-blob';
-            eyeDiv.style.position = 'absolute';
-            eyeDiv.style.left = (pos.x - EYE_SIZE*pos.scale/2) + 'px';
-            eyeDiv.style.top = (pos.y - EYE_SIZE*pos.scale/2) + 'px';
-            eyeDiv.style.width = (EYE_SIZE*pos.scale) + 'px';
-            eyeDiv.style.height = (EYE_SIZE*pos.scale) + 'px';
-            eyeDiv.style.transition = 'filter 0.5s, box-shadow 0.5s';
-            eyeDiv.style.pointerEvents = 'auto';
-            eyeDiv.style.cursor = 'pointer';
-            eyeDiv.style.userSelect = 'none';
+            // Place all eyes in the center for debug
+            const size = 80;
+            eyeDiv.style.left = 'calc(50vw - 40px)';
+            eyeDiv.style.top = (60 + i * 90) + 'px';
+            eyeDiv.style.width = size + 'px';
+            eyeDiv.style.height = size + 'px';
             eyeDiv.style.filter = (selectedEye===i||hoverEye===i)?'drop-shadow(0 0 16px #fff8)':'drop-shadow(0 0 6px #fff4)';
-            // Soft background circle
-            eyeDiv.innerHTML = `<div style="position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;">
-              <svg width="100%" height="100%" viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="rgba(0,0,0,0.82)"/></svg>
-            </div>`;
-            // Eye image (open/closed)
             const viewKey = EYE_VIEWS[i].key;
-            // Only open if selected or hovered
             const isOpen = (selectedEye===i||hoverEye===i);
             const imgSrc = `Eyes/${viewKey}_${isOpen?'open':'closed'}.png`;
-            eyeDiv.innerHTML += `<img src="${imgSrc}" style="width:100%;height:100%;display:block;position:relative;z-index:1;transition:filter 0.5s;image-rendering:auto;object-fit:contain;" draggable="false" alt="${EYE_VIEWS[i].name} eye"/>`;
-            // Add label if needed
-            let showLabel = (selectedEye===i||hoverEye===i);
-            let fade = false, rotation = 0;
-            if (!showLabel && floatingLabelIdx===i) {
-              showLabel = true; fade = true;
-              rotation = -18 + Math.random()*36;
-            }
-            if (showLabel) {
-              eyeDiv.innerHTML += curvedLabel(EYE_VIEWS[i].name, i, true, fade, rotation);
-            }
+            console.log(`Eye ${i} img src:`, imgSrc);
+            eyeDiv.innerHTML = `<img src="${imgSrc}" style="width:100%;height:100%;display:block;position:relative;z-index:1;transition:filter 0.5s;image-rendering:auto;object-fit:contain;" draggable="false" alt="${EYE_VIEWS[i].name} eye"/>`;
             container.appendChild(eyeDiv);
-            // Interactivity
-            eyeDiv.addEventListener('mouseenter',()=>{
-              hoverEye = i;
-              floatingLabelIdx = null;
-              renderEyes();
-            });
-            eyeDiv.addEventListener('mouseleave',()=>{
-              hoverEye = null;
-              renderEyes();
-            });
-            eyeDiv.addEventListener('click',()=>{
-              selectedEye = i;
-              floatingLabelIdx = null;
-              renderEyes();
-            });
           });
         }
-        // Floating label logic
-        function startFloatingLabels() {
-          function nextLabel() {
-            if (selectedEye!==null || hoverEye!==null) { labelTimeout = setTimeout(nextLabel, 2000); return; }
-            let idx = Math.floor(Math.random()*EYE_COUNT);
-            floatingLabelIdx = idx;
-            renderEyes();
-            setTimeout(()=>{
-              if (floatingLabelIdx===idx) floatingLabelIdx = null;
-              renderEyes();
-              labelTimeout = setTimeout(nextLabel, 1800+Math.random()*1200);
-            }, 1400+Math.random()*600);
-          }
-          nextLabel();
+
+        // Responsive scaling for #main-viewport
+        function scaleMainViewport() {
+          const vw = window.innerWidth;
+          const vh = window.innerHeight;
+          const scale = Math.min(vw / 1920, vh / 1080);
+          const main = document.getElementById('main-viewport');
+          main.style.transform = `translate(-50%, -50%) scale(${scale})`;
         }
-        // Responsive: only reposition on first load, not on resize
-        // Start after load
-        window.addEventListener('load', ()=>{
-          setTimeout(()=>{
-            eyePositions = generateEyePositions();
-            renderEyes();
-            startFloatingLabels();
-          }, 1200); // let 3D viz load first
-        });
+        window.addEventListener('resize', scaleMainViewport);
+        window.addEventListener('load', scaleMainViewport);
     </script>
 </body>
 </html>
