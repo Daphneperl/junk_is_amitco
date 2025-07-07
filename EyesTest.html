@@ -34,77 +34,81 @@
         }
         #eyes-interface {
             position: fixed;
-            left: 0;
-            bottom: 0;
-            width: 100vw;
-            height: 50vh;
+            left: 2vw;
+            bottom: 3vw;
+            width: 340px;
+            height: 220px;
             pointer-events: none;
             z-index: 2000;
-            background: rgba(255,0,0,0.12); /* DEBUG: red background */
+            /* background: rgba(255,0,0,0.12); */
         }
         .eye-blob {
             position: absolute;
             pointer-events: auto;
             cursor: pointer;
             user-select: none;
+            border: 2px solid #f00; /* DEBUG: visible border */
         }
         #search-bar {
             position: fixed;
             left: 50%;
-            bottom: 4vw;
+            bottom: 3vw;
             transform: translateX(-50%);
-            width: 28vw;
-            min-width: 320px;
-            max-width: 600px;
+            width: 420px;
+            max-width: 80vw;
+            min-width: 280px;
             height: 54px;
             background: #fff;
             border-radius: 32px;
             box-shadow: 0 2px 16px #0003;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
+            font-size: 18px;
             font-family: 'VT323', monospace, sans-serif;
-            color: #222;
+            color: #888;
             border: none;
             outline: none;
             padding: 0 32px;
-            z-index: 2100;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         #upload-hand-btn {
             position: fixed;
             right: 2vw;
-            bottom: 3vw;
-            width: 160px;
-            height: 54px;
-            background: #fff;
-            border-radius: 32px;
+            bottom: 2vw;
+            width: 210px;
+            height: 210px;
+            background: none;
             border: none;
             cursor: pointer;
             z-index: 2100;
-            font-size: 18px;
-            font-family: 'VT323', monospace, sans-serif;
-            color: #222;
-            box-shadow: 0 2px 16px #0003;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: none;
+            flex-direction: unset;
         }
-        #upload-hand-btn svg {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        #upload-hand-label {
+        #upload-hand-btn-text {
             position: absolute;
-            left: 50%;
-            top: 60%;
+            left: 57%;
+            top: 66%;
             transform: translate(-50%, -50%);
             font-size: 16px;
             font-family: 'VT323', monospace, sans-serif;
-            color: #222;
+            color: #888;
+            background: none;
+            border: none;
+            text-align: center;
             pointer-events: none;
-            white-space: nowrap;
+            width: 130px;
+            line-height: 1.1;
+        }
+        #upload-hand-btn-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
         }
         #visualization {
             width: 100vw;
@@ -146,6 +150,38 @@
             background: #ffffff;
             transition: width 0.3s ease;
         }
+        #eyes-menu {
+            position: fixed;
+            left: 2vw;
+            bottom: 3vw;
+            width: 260px;
+            height: 180px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .eye-btn {
+            position: absolute;
+            width: 64px;
+            height: 48px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            pointer-events: auto;
+            background-color: transparent;
+            transition: filter 0.2s;
+        }
+        .eye-btn:hover, .eye-btn:focus {
+            filter: brightness(1.2) drop-shadow(0 0 8px #fff8);
+        }
+        #eye-artist       { left: 98px;  top: 0px;   }
+        #eye-temperament  { left: 200px; top: 38px;  }
+        #eye-intimacy     { left: 130px; top: 80px;  }
+        #eye-rhizome      { left: 0px;   top: 38px;  }
+        #eye-completeness { left: 30px;  top: 110px; }
+        #eye-secret       { left: 98px;  top: 140px; }
     </style>
 </head>
 <body>
@@ -163,8 +199,19 @@
     <div id="eyes-interface"></div>
     <!-- Search Bar (fixed) -->
     <input id="search-bar" type="text" placeholder="I want to see" />
-    <!-- Upload Placeholder Button (fixed) -->
-    <button id="upload-hand-btn">Upload your junk</button>
+    <!-- Upload Hand Button (fixed, with image and overlaid text) -->
+    <button id="upload-hand-btn">
+        <img id="upload-hand-btn-img" src="UploadButton/HandButton.png" alt="Upload hand" />
+    </button>
+    <!-- Eyes Menu (fixed, bottom left) -->
+    <div id="eyes-menu">
+        <button class="eye-btn" id="eye-artist"     title="Artist"></button>
+        <button class="eye-btn" id="eye-temperament" title="Temperament"></button>
+        <button class="eye-btn" id="eye-intimacy"   title="Intimacy"></button>
+        <button class="eye-btn" id="eye-rhizome"    title="Rhizome"></button>
+        <button class="eye-btn" id="eye-completeness" title="Completeness"></button>
+        <button class="eye-btn" id="eye-secret"     title="Secret Gallery"></button>
+    </div>
     <script>
         let scene, camera, renderer, controls;
         let composer;
@@ -448,10 +495,9 @@
           positions.forEach((pos, i) => {
             const eyeDiv = document.createElement('div');
             eyeDiv.className = 'eye-blob';
-            // Place all eyes in the center for debug
-            const size = 80;
-            eyeDiv.style.left = 'calc(50vw - 40px)';
-            eyeDiv.style.top = (60 + i * 90) + 'px';
+            eyeDiv.style.left = pos.x + 'px';
+            eyeDiv.style.top = pos.y + 'px';
+            const size = Math.round(70 * pos.scale);
             eyeDiv.style.width = size + 'px';
             eyeDiv.style.height = size + 'px';
             eyeDiv.style.filter = (selectedEye===i||hoverEye===i)?'drop-shadow(0 0 16px #fff8)':'drop-shadow(0 0 6px #fff4)';
@@ -474,6 +520,27 @@
         }
         window.addEventListener('resize', scaleMainViewport);
         window.addEventListener('load', scaleMainViewport);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const eyes = [
+                { id: 'eye-artist',       closed: 'Eyes/Artist_closed.png',       open: 'Eyes/Artist_open.png' },
+                { id: 'eye-temperament',  closed: 'Eyes/Temperament_closed.png',  open: 'Eyes/Temperament_open.png' },
+                { id: 'eye-intimacy',     closed: 'Eyes/Intimacy_closed.png',     open: 'Eyes/Intimacy_open.png' },
+                { id: 'eye-rhizome',      closed: 'Eyes/Rhizome_closed.png',      open: 'Eyes/Rhizome_open.png' },
+                { id: 'eye-completeness', closed: 'Eyes/Completeness_closed.png', open: 'Eyes/Completeness_open.png' },
+                { id: 'eye-secret',       closed: 'Eyes/SecretGallery_closed.png',open: 'Eyes/SecretGallery_open.png' }
+            ];
+            eyes.forEach(eye => {
+                const btn = document.getElementById(eye.id);
+                btn.style.backgroundImage = `url('${eye.closed}')`;
+                btn.addEventListener('mouseenter', () => btn.style.backgroundImage = `url('${eye.open}')`);
+                btn.addEventListener('mouseleave', () => btn.style.backgroundImage = `url('${eye.closed}')`);
+                btn.addEventListener('click', () => {
+                    // Navigation logic here
+                    alert(`Clicked: ${btn.title}`);
+                });
+            });
+        });
     </script>
 </body>
 </html>
