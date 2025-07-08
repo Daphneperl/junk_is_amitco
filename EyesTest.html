@@ -354,7 +354,7 @@
             const material = new THREE.LineBasicMaterial({
                 color: 0xffffff,
                 transparent: true,
-                opacity: 1,
+                opacity: 0.3, // Reduced opacity for better performance
                 linewidth: 1
             });
             const geometry = new THREE.BufferGeometry();
@@ -364,24 +364,37 @@
         }
 
         function updateConnectionLines() {
+            // Only update every 120 frames (about twice per second at 60fps) for better performance
+            if (Date.now() % 120 !== 0) return;
+            
             // Remove old lines
-            connectionLines.forEach(line => scene.remove(line));
+            connectionLines.forEach(line => {
+                scene.remove(line);
+                line.geometry.dispose();
+                line.material.dispose();
+            });
             connectionLines = [];
 
-            // Create new lines
-            imageSprites.forEach((sprite, index) => {
+            // Limit the number of connection lines to prevent performance issues
+            const maxConnections = Math.min(imageSprites.length, 50);
+            const connectionsToCreate = Math.min(maxConnections, imageSprites.length);
+
+            // Create new lines only for a subset of sprites
+            for (let i = 0; i < connectionsToCreate; i++) {
+                const sprite = imageSprites[i];
                 let closestDistance = Infinity;
                 let closestSprite = null;
 
-                // Find closest sprite
+                // Find closest sprite within a reasonable distance
+                const maxConnectionDistance = 100; // Limit connection distance
                 imageSprites.forEach((otherSprite, otherIndex) => {
-                    if (index !== otherIndex) {
+                    if (i !== otherIndex) {
                         const dx = sprite.position.x - otherSprite.position.x;
                         const dy = sprite.position.y - otherSprite.position.y;
                         const dz = sprite.position.z - otherSprite.position.z;
                         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-                        if (distance < closestDistance) {
+                        if (distance < closestDistance && distance < maxConnectionDistance) {
                             closestDistance = distance;
                             closestSprite = otherSprite;
                         }
@@ -397,7 +410,7 @@
                     line.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
                     connectionLines.push(line);
                 }
-            });
+            }
         }
 
         function createParticleSystem() {
@@ -418,10 +431,13 @@
                 particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
                 particlePositions[i * 3 + 2] = radius * Math.cos(phi);
 
+                // Set particle sizes
+                particleSizes[i] = 4; // Make particles larger and more visible
+
                 // More vibrant colors
-                const hue = Math.random();
-                const saturation = 0.3 + Math.random() * 0.2;
-                const lightness = 0.5 + Math.random() * 0.3;
+                const hue = Math.random(); // Random hue
+                const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+                const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
                 
                 // Convert HSL to RGB
                 const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
@@ -443,12 +459,12 @@
                     r = c; g = 0; b = x;
                 }
                 
-                particleColors[i * 3] = r + m;
-                particleColors[i * 3 + 1] = g + m;
-                particleColors[i * 3 + 2] = b + m;
+                particleColors[i * 3] = r + m;     // R
+                particleColors[i * 3 + 1] = g + m; // G
+                particleColors[i * 3 + 2] = b + m; // B
 
+                // Random speeds between 0.02 and 0.08 (much slower than before)
                 particleSpeeds[i] = Math.random() * 0.06;
-                particleSizes[i] = 2; // Slightly larger particles
             }
 
             particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
@@ -456,18 +472,18 @@
             particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
 
             const particleMaterial = new THREE.PointsMaterial({
-                size: 0.5,
+                size: 2.0, // Increased size to make particles more visible
                 vertexColors: true,
                 transparent: true,
-                opacity: 0.6,
+                opacity: 0.6, // Increased opacity to make particles more visible
                 sizeAttenuation: true,
-                depthWrite: false
+                depthWrite: false // Allow particles to be transparent when in front
             });
 
             particles = new THREE.Points(particleGeometry, particleMaterial);
             particles.userData = { 
                 speeds: particleSpeeds,
-                opacities: new Float32Array(particleCount)
+                opacities: new Float32Array(particleCount) // Store individual opacities
             };
             scene.add(particles);
         }
@@ -563,8 +579,8 @@
             };
 
             const vignettePass = new THREE.ShaderPass(vignetteShader);
-            vignettePass.uniforms.offset.value = 0.5;
-            vignettePass.uniforms.darkness.value = 0.5;
+            vignettePass.uniforms.offset.value = 1.0;
+            vignettePass.uniforms.darkness.value = 1.0;
             composer.addPass(vignettePass);
 
             // Add orbit controls with adjusted settings
@@ -600,20 +616,27 @@
             if (particles) {
                 const positions = particles.geometry.attributes.position.array;
                 const speeds = particles.userData.speeds;
+                const opacities = particles.userData.opacities;
                 
                 for (let i = 0; i < positions.length; i += 3) {
+                    // Move particles in a circular motion
                     const speed = speeds[i / 3];
                     const time = Date.now() * 0.001 * speed;
                     
                     positions[i] += Math.sin(time) * 0.01;
                     positions[i + 1] += Math.cos(time) * 0.01;
                     positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+                    // Check if particle is in front of images (z > 0)
+                    const z = positions[i + 2];
+                    opacities[i / 3] = 0.6; // Temporarily disable depth-based transparency to make particles visible
                 }
                 
                 particles.geometry.attributes.position.needsUpdate = true;
+                particles.material.opacity = 0.3; // Base opacity
             }
 
-            // Animate images
+            // Animate images with simplified movement (no repulsion)
             imageSprites.forEach((sprite, index) => {
                 const floatTime = time * 0.0001 + sprite.userData.timeOffset;
                 const distanceFromCenter = Math.sqrt(
@@ -622,28 +645,17 @@
                     sprite.userData.originalZ ** 2
                 );
                 
-                // Adjust float radius based on new maximum distance
-                const floatRadius = 0.8 + (distanceFromCenter / 200) * 0.4;
+                // Simplified float radius
+                const floatRadius = 0.5 + (distanceFromCenter / 200) * 0.3;
                 
-                // Use Perlin-like compound sine waves for more organic movement
-                const floatX = (
-                    Math.sin(floatTime * 0.2) * 0.7 +
-                    Math.sin(floatTime * 0.5) * 0.3
-                ) * floatRadius;
-                
-                const floatY = (
-                    Math.cos(floatTime * 0.3) * 0.7 +
-                    Math.cos(floatTime * 0.4) * 0.3
-                ) * floatRadius;
-                
-                const floatZ = (
-                    Math.sin(floatTime * 0.25) * 0.7 +
-                    Math.sin(floatTime * 0.6) * 0.3
-                ) * floatRadius;
+                // Simplified movement patterns
+                const floatX = Math.sin(floatTime * 0.2) * floatRadius;
+                const floatY = Math.cos(floatTime * 0.3) * floatRadius;
+                const floatZ = Math.sin(floatTime * 0.25) * floatRadius;
 
-                // Add micro-movements for organic jittering
-                const microMove = 0.15;
-                const microTime = time * 0.0005 + sprite.userData.timeOffset;
+                // Reduced micro-movements
+                const microMove = 0.1;
+                const microTime = time * 0.0003 + sprite.userData.timeOffset;
                 const microX = Math.sin(microTime * 1.5) * microMove;
                 const microY = Math.cos(microTime * 1.7) * microMove;
                 const microZ = Math.sin(microTime * 1.6) * microMove;
@@ -651,28 +663,10 @@
                 sprite.position.x = sprite.userData.originalX + floatX + microX;
                 sprite.position.y = sprite.userData.originalY + floatY + microY;
                 sprite.position.z = sprite.userData.originalZ + floatZ + microZ;
-
-                // Apply gentler repulsion between sprites with increased minimum distance
-                imageSprites.forEach((otherSprite, otherIndex) => {
-                    if (index !== otherIndex) {
-                        const dx = sprite.position.x - otherSprite.position.x;
-                        const dy = sprite.position.y - otherSprite.position.y;
-                        const dz = sprite.position.z - otherSprite.position.z;
-                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                        
-                        const minDistance = 25;
-                        if (distance < minDistance) {
-                            const repulsionForce = (minDistance - distance) / minDistance;
-                            sprite.position.x += dx * repulsionForce * 0.03;
-                            sprite.position.y += dy * repulsionForce * 0.03;
-                            sprite.position.z += dz * repulsionForce * 0.03;
-                        }
-                    }
-                });
             });
 
-            // Update connection lines every few frames for performance
-            if (time % 3 === 0) {
+            // Update connection lines much less frequently (every 120 frames = twice per second)
+            if (time % 120 === 0) {
                 updateConnectionLines();
             }
             
@@ -698,34 +692,72 @@
             document.getElementById('black-overlay').style.opacity = '1';
             document.getElementById('visualization').style.display = 'none';
 
-            // Initialize the scene
-            await init();
-            
-            // Hide loading page and show visualization
-            document.getElementById('loading-container').style.display = 'none';
-            document.getElementById('visualization').style.display = 'block';
-            document.getElementById('black-overlay').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('black-overlay').style.display = 'none';
+            try {
+                // Initialize the scene
+                await init();
                 
-                // Show UI elements with fade-in effect
-                const uiElements = [
-                    document.getElementById('eyes-interface'),
-                    document.getElementById('search-bar'),
-                    document.getElementById('upload-hand-btn'),
-                    document.getElementById('eyes-menu')
-                ];
+                // Hide loading page and show visualization
+                document.getElementById('loading-container').style.display = 'none';
+                document.getElementById('visualization').style.display = 'block';
+                document.getElementById('black-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('black-overlay').style.display = 'none';
+                    
+                    // Show UI elements with fade-in effect
+                    const uiElements = [
+                        document.getElementById('eyes-interface'),
+                        document.getElementById('search-bar'),
+                        document.getElementById('upload-hand-btn'),
+                        document.getElementById('eyes-menu')
+                    ];
+                    
+                    uiElements.forEach(element => {
+                        if (element) {
+                            element.style.opacity = '1';
+                        }
+                    });
+                }, 500);
                 
-                uiElements.forEach(element => {
-                    if (element) {
-                        element.style.opacity = '1';
-                    }
-                });
-            }, 500);
-            
-            // Start animation
-            animate();
+                // Start animation
+                animate();
+            } catch (error) {
+                console.error('Error starting visualization:', error);
+                document.getElementById('loading-text').textContent = 'Error loading visualization. Please refresh the page.';
+            }
         }
+
+        // Cleanup function to prevent memory leaks
+        function cleanup() {
+            // Dispose of geometries and materials
+            if (particles) {
+                particles.geometry.dispose();
+                particles.material.dispose();
+            }
+            
+            connectionLines.forEach(line => {
+                line.geometry.dispose();
+                line.material.dispose();
+            });
+            
+            imageSprites.forEach(sprite => {
+                if (sprite.material) {
+                    sprite.material.dispose();
+                }
+            });
+            
+            // Dispose of renderer
+            if (renderer) {
+                renderer.dispose();
+            }
+            
+            // Dispose of composer
+            if (composer) {
+                composer.dispose();
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', cleanup);
 
         // Start the visualization when the page loads
         window.addEventListener('load', startVisualization);
