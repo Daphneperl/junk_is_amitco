@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Base Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Pixel';
+            src: url('../../assets/pixel.ttf') format('truetype');
+        }
+        @font-face {
+            font-family: 'VT323';
+            src: url('assets/VT323-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
+        }
+        #visualization {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #rings-container {
+            position: fixed;
+            bottom: -90px;
+            left: -10px;
+            width: 500px;
+            height: 500px;
+            z-index: 2;
+            pointer-events: auto;
+        }
+        #black-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
+        #loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+        }
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            background: #ffffff;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="black-overlay"></div>
+    <div id="loading-container">
+        <div class="loading-bar">
+            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
+        </div>
+        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+    </div>
+    <div id="visualization"></div>
+    <div id="rings-container"></div>
+    <script>
+        let scene, camera, renderer, controls;
+        let composer;
+        let particles;
+        
+        // Separate variables for rings
+        let ringsScene, ringsCamera, ringsRenderer;
+        let rings;
+        let ringsRotation = {
+            isDragging: false,
+            previousX: 0,
+            previousY: 0,
+            rotationSpeedX: 0.001,
+            rotationSpeedY: 0.002,
+            manualRotationX: 0,
+            manualRotationY: 0
+        };
+
+        // Store references to eye-label groups for hover detection
+        let eyeLabelGroups = [];
+        let ringsRaycaster, ringsMouse;
+
+        function createEyeSprite(imagePath) {
+            const textureLoader = new THREE.TextureLoader();
+            const texture = textureLoader.load(imagePath);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+
+            const spriteMaterial = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                opacity: 1.0
+            });
+
+            const sprite = new THREE.Sprite(spriteMaterial);
+
+            // Set scale based on image aspect ratio
+            const img = new window.Image();
+            img.src = imagePath;
+            img.onload = function() {
+                const baseHeight = 2; // units
+                const aspect = img.width / img.height;
+                sprite.scale.set(baseHeight * aspect, baseHeight, 1);
+            };
+            // Fallback scale until image loads
+            sprite.scale.set(2, 2, 1);
+            return sprite;
+        }
+
+        // Helper to create a horizontal text sprite (label above the eye)
+        function createArcTextSprite(text, fontSize = 100) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            // Ensure full transparency
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.globalAlpha = 1.0;
+            ctx.save();
+            ctx.globalCompositeOperation = 'copy';
+            ctx.fillStyle = 'rgba(0,0,0,0)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            ctx.font = `bold ${fontSize}px VT323, monospace`;
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Draw the text as a single horizontal line
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            ctx.fillText(text, centerX, centerY);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            const spriteMaterial = new THREE.SpriteMaterial({
+                map: texture,
+                transparent: true,
+                opacity: 1.0,
+                depthTest: false,
+                depthWrite: false
+            });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(7, 1.5, 1);
+            sprite.material.renderOrder = 9999;
+            return sprite;
+        }
+
+        function createEyeWithLabel(eyePath, labelText, eyePos, upVector) {
+            const group = new THREE.Group();
+            const eye = createEyeSprite(eyePath);
+            eye.position.copy(eyePos);
+            group.add(eye);
+            // Place label along the upVector from the eye
+            const labelOffset = 2.2; // units above the eye
+            const labelPos = eyePos.clone().add(upVector.clone().normalize().multiplyScalar(labelOffset));
+            const label = createArcTextSprite(labelText);
+            label.position.copy(labelPos);
+            label.visible = false; // Hide label by default
+            group.add(label);
+            // Store for raycasting
+            eye.userData.label = label;
+            eyeLabelGroups.push({ eye, label });
+            return group;
+        }
+
+        function createRings() {
+            // Create an elliptical curve for the oblong ring
+            class CustomEllipseCurve extends THREE.Curve {
+                constructor() {
+                    super();
+                }
+                getPoint(t) {
+                    const a = 8;  // major axis
+                    const b = 5;  // minor axis
+                    const tx = Math.cos(2 * Math.PI * t) * a;
+                    const ty = Math.sin(2 * Math.PI * t) * b;
+                    return new THREE.Vector3(tx, ty, 0);
+                }
+            }
+
+            const ringsGroup = new THREE.Group(); // <-- ensure this is defined
+            eyeLabelGroups = [];
+            // Create the oblong ring geometry
+            const path = new CustomEllipseCurve();
+            const ringGeometry = new THREE.TubeGeometry(path, 100, 0.05, 16, false);
+
+            // Create materials with different render orders
+            const ringMaterial1 = new THREE.MeshBasicMaterial({ 
+                color: 0xffffff,
+                transparent: false,
+                side: THREE.DoubleSide,
+                depthWrite: true,
+                depthTest: true,
+                renderOrder: 1
+            });
+            const ringMaterial2 = ringMaterial1.clone();
+            ringMaterial2.renderOrder = 2;
+            const ringMaterial3 = ringMaterial1.clone();
+            ringMaterial3.renderOrder = 3;
+
+            // Ring 1 (horizontal, up is +Y)
+            const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
+            const group1a = createEyeWithLabel("Eyes/Temperament_open.png", "Temperament", new THREE.Vector3(9, 0, 0), new THREE.Vector3(0, 1, 0));
+            const group1b = createEyeWithLabel("Eyes/Rhizome_open.png", "Rhizome", new THREE.Vector3(-9, 0, 0), new THREE.Vector3(0, 1, 0));
+            ring1.add(group1a);
+            ring1.add(group1b);
+            ring1.position.z = 1;
+
+            // Ring 2 (vertical, up is +Z)
+            const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
+            const group2a = createEyeWithLabel("Eyes/Artist_open.png", "Artist", new THREE.Vector3(0, 9, 0), new THREE.Vector3(0, 0, 1));
+            const group2b = createEyeWithLabel("Eyes/Completeness_open.png", "Completeness", new THREE.Vector3(0, -9, 0), new THREE.Vector3(0, 0, 1));
+            ring2.rotation.x = Math.PI / 2;
+            ring2.position.z = 0;
+            ring2.add(group2a);
+            ring2.add(group2b);
+
+            // Ring 3 (side, up is +X)
+            const ring3 = new THREE.Mesh(ringGeometry, ringMaterial3);
+            const group3a = createEyeWithLabel("Eyes/SecretGallery_open.png", "Secret Gallery", new THREE.Vector3(0, 6, 0), new THREE.Vector3(1, 0, 0));
+            const group3b = createEyeWithLabel("Eyes/Intimacy_open.png", "Intimacy", new THREE.Vector3(0, -6, 0), new THREE.Vector3(1, 0, 0));
+            ring3.rotation.y = Math.PI / 2;
+            ring3.position.z = -1;
+            ring3.add(group3a);
+            ring3.add(group3b);
+
+            ringsGroup.add(ring1);
+            ringsGroup.add(ring2);
+            ringsGroup.add(ring3);
+            return ringsGroup;
+        }
+
+        function initRings() {
+            // Create separate scene for rings
+            ringsScene = new THREE.Scene();
+            ringsCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 2000);
+            ringsCamera.position.z = 20;
+
+            // Create separate renderer for rings
+            ringsRenderer = new THREE.WebGLRenderer({ 
+                antialias: true, 
+                alpha: true,
+                logarithmicDepthBuffer: true,
+                preserveDrawingBuffer: true
+            });
+            ringsRenderer.setSize(500, 500);
+            ringsRenderer.setClearColor(0x000000, 0);
+            ringsRenderer.sortObjects = false; // Disable automatic sorting
+            document.getElementById('rings-container').appendChild(ringsRenderer.domElement);
+
+            // Create and add rings
+            rings = createRings();
+            ringsScene.add(rings);
+
+            // Add event listeners for rings rotation
+            ringsRenderer.domElement.addEventListener('mousedown', onRingsMouseDown);
+            ringsRenderer.domElement.addEventListener('mousemove', onRingsMouseMove);
+            ringsRenderer.domElement.addEventListener('mouseup', onRingsMouseUp);
+            ringsRenderer.domElement.addEventListener('mouseleave', onRingsMouseUp);
+            ringsRaycaster = new THREE.Raycaster();
+            ringsMouse = new THREE.Vector2();
+            ringsRenderer.domElement.addEventListener('mousemove', onRingsMouseHover);
+        }
+
+        function init() {
+            // Create main scene
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 2000);
+            camera.position.z = 30;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 1);
+            document.getElementById('visualization').appendChild(renderer.domElement);
+
+            // Set up composer for postprocessing (if needed)
+            composer = new THREE.EffectComposer(renderer);
+            const renderPass = new THREE.RenderPass(scene, camera);
+            composer.addPass(renderPass);
+
+            // Add event listener for resizing
+            window.addEventListener('resize', onWindowResize);
+
+            // Initialize rings
+            initRings();
+        }
+
+        function onRingsMouseDown(event) {
+            ringsRotation.isDragging = true;
+            ringsRotation.previousX = event.clientX;
+            ringsRotation.previousY = event.clientY;
+        }
+
+        function onRingsMouseMove(event) {
+            if (ringsRotation.isDragging) {
+                const deltaX = event.clientX - ringsRotation.previousX;
+                const deltaY = event.clientY - ringsRotation.previousY;
+                
+                rings.rotation.y += deltaX * 0.01;
+                rings.rotation.x += deltaY * 0.01;
+                
+                ringsRotation.previousX = event.clientX;
+                ringsRotation.previousY = event.clientY;
+            }
+        }
+
+        function onRingsMouseUp() {
+            ringsRotation.isDragging = false;
+        }
+
+        function onRingsMouseHover(event) {
+            // Calculate mouse position in normalized device coordinates
+            const rect = ringsRenderer.domElement.getBoundingClientRect();
+            ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            // Raycast
+            ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+            // Collect all eye meshes
+            const eyes = eyeLabelGroups.map(g => g.eye);
+            const intersects = ringsRaycaster.intersectObjects(eyes, false);
+            // Hide all labels
+            eyeLabelGroups.forEach(g => g.label.visible = false);
+            // Show label for hovered eye
+            if (intersects.length > 0) {
+                const hoveredEye = intersects[0].object;
+                if (hoveredEye.userData.label) hoveredEye.userData.label.visible = true;
+            }
+        }
+
+        function onWindowResize() {
+            // Update main scene
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Animate particles
+            if (particles) {
+                const positions = particles.geometry.attributes.position.array;
+                const speeds = particles.userData.speeds;
+                const opacities = particles.userData.opacities;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    // Move particles in a circular motion
+                    const speed = speeds[i / 3];
+                    const time = Date.now() * 0.001 * speed;
+                    
+                    positions[i] += Math.sin(time) * 0.01;
+                    positions[i + 1] += Math.cos(time) * 0.01;
+                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+                    // Check if particle is in front of images (z > 0)
+                    const z = positions[i + 2];
+                    opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+                }
+                
+                particles.geometry.attributes.position.needsUpdate = true;
+                particles.material.opacity = 0.3; // Base opacity
+            }
+            
+            // Animate rings
+            if (rings && !ringsRotation.isDragging) {
+                rings.rotation.x += ringsRotation.rotationSpeedX;
+                rings.rotation.y += ringsRotation.rotationSpeedY;
+            }
+            
+            // Render both scenes
+            composer.render();
+            ringsRenderer.render(ringsScene, ringsCamera);
+        }
+
+        function updateLoadingUI(progress) {
+            const progressBar = document.getElementById('loading-progress');
+            const loadingText = document.getElementById('loading-text');
+            
+            if (progressBar && loadingText) {
+                progressBar.style.width = `${progress}%`;
+                loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+            }
+        }
+
+        // Initialize the visualization
+        function startVisualization() {
+            // Ensure loading page is visible
+            document.getElementById('loading-container').style.display = 'block';
+            document.getElementById('black-overlay').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '1';
+            document.getElementById('visualization').style.display = 'none';
+
+            // Simulate loading progress
+            let progress = 0;
+            const loadingInterval = setInterval(() => {
+                progress += 2;
+                updateLoadingUI(progress);
+                
+                if (progress >= 100) {
+                    clearInterval(loadingInterval);
+                    
+                    // Initialize the scene
+                    init();
+                    
+                    // Hide loading page and show visualization
+                    document.getElementById('loading-container').style.display = 'none';
+                    document.getElementById('visualization').style.display = 'block';
+                    document.getElementById('black-overlay').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('black-overlay').style.display = 'none';
+                    }, 500);
+                    
+                    // Start animation
+                    animate();
+                }
+            }, 50);
+        }
+
+        // Start the visualization when the page loads
+        window.addEventListener('load', startVisualization);
+    </script>
+</body>
+</html>
