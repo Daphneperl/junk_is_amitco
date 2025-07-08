@@ -12,7 +12,7 @@
     <style>
         @font-face {
             font-family: 'Pixel';
-            src: url('../../assets/pixel.ttf') format('truetype');
+            src: url('assets/VT323-Regular.ttf') format('truetype');
         }
         body {
             margin: 0;
@@ -489,40 +489,58 @@
 
         // Initialize the visualization
         function startVisualization() {
-            // Ensure loading page is visible
-            document.getElementById('loading-container').style.display = 'block';
-            document.getElementById('black-overlay').style.display = 'block';
-            document.getElementById('black-overlay').style.opacity = '1';
-            document.getElementById('visualization').style.display = 'none';
+            try {
+                // Ensure loading page is visible
+                document.getElementById('loading-container').style.display = 'block';
+                document.getElementById('black-overlay').style.display = 'block';
+                document.getElementById('black-overlay').style.opacity = '1';
+                document.getElementById('visualization').style.display = 'none';
 
-            // Simulate loading progress
-            let progress = 0;
-            const loadingInterval = setInterval(() => {
-                progress += 2;
-                updateLoadingUI(progress);
-                
-                if (progress >= 100) {
-                    clearInterval(loadingInterval);
+                // Simulate loading progress
+                let progress = 0;
+                const loadingInterval = setInterval(() => {
+                    progress += 2;
+                    updateLoadingUI(progress);
                     
-                    // Initialize the scene
-                    init();
-                    
-                    // Hide loading page and show visualization
-                    document.getElementById('loading-container').style.display = 'none';
-                    document.getElementById('visualization').style.display = 'block';
-                    document.getElementById('black-overlay').style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('black-overlay').style.display = 'none';
-                    }, 500);
-                    
-                    // Start animation
-                    animate();
-                }
-            }, 50);
+                    if (progress >= 100) {
+                        clearInterval(loadingInterval);
+                        
+                        try {
+                            // Initialize the scene
+                            init();
+                            
+                            // Hide loading page and show visualization
+                            document.getElementById('loading-container').style.display = 'none';
+                            document.getElementById('visualization').style.display = 'block';
+                            document.getElementById('black-overlay').style.opacity = '0';
+                            setTimeout(() => {
+                                document.getElementById('black-overlay').style.display = 'none';
+                            }, 500);
+                            
+                            // Start animation
+                            animate();
+                        } catch (error) {
+                            console.error('Error during initialization:', error);
+                            document.getElementById('loading-text').textContent = 'ERROR: ' + error.message;
+                        }
+                    }
+                }, 50);
+            } catch (error) {
+                console.error('Error starting visualization:', error);
+                document.getElementById('loading-text').textContent = 'ERROR: ' + error.message;
+            }
         }
 
         // Start the visualization when the page loads
-        window.addEventListener('load', startVisualization);
+        window.addEventListener('load', () => {
+            // Check if Three.js is loaded
+            if (typeof THREE === 'undefined') {
+                console.error('Three.js not loaded');
+                document.getElementById('loading-text').textContent = 'ERROR: Three.js failed to load';
+                return;
+            }
+            startVisualization();
+        });
     </script>
 </body>
 </html>
