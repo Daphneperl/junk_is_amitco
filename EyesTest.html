@@ -26,9 +26,9 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 1920px;
-            height: 1080px;
-            transform: translate(-50%, -50%) scale(1);
+            width: 3840px;
+            height: 2160px;
+            transform: translate(-50%, -50%);
             background: transparent;
             transform-origin: center center;
         }
@@ -80,8 +80,8 @@
             position: fixed;
             right: 2vw;
             bottom: 2vw;
-            width: 210px;
-            height: 210px;
+            width: 280px;
+            height: 280px;
             background: none;
             border: none;
             cursor: pointer;
@@ -96,22 +96,27 @@
         }
         #upload-hand-btn-text {
             position: absolute;
-            left: 57%;
-            top: 66%;
+            left: 30%;
+            top: 60%;
             transform: translate(-50%, -50%);
-            font-size: 16px;
+            font-size: 18px;
             font-family: 'VT323', monospace, sans-serif;
             color: #888;
             background: none;
             border: none;
             text-align: center;
             pointer-events: none;
-            width: 130px;
-            line-height: 1.1;
+            width: 180px;
+            line-height: 1.2;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-shadow: 0 0 1px rgba(0,0,0,0.1);
+            letter-spacing: 0.5px;
         }
         #upload-hand-btn-img {
-            width: 200px;
-            height: 200px;
+            width: 270px;
+            height: 270px;
             object-fit: contain;
             display: block;
             pointer-events: none;
@@ -206,10 +211,11 @@
     <!-- Eyes Interface Overlay (fixed) -->
     <div id="eyes-interface"></div>
     <!-- Search Bar (fixed) -->
-    <input id="search-bar" type="text" placeholder="I want to see" />
+    <input id="search-bar" type="text" placeholder="I want to see..." />
     <!-- Upload Hand Button (fixed, with image and overlaid text) -->
     <button id="upload-hand-btn">
-        <img id="upload-hand-btn-img" src="UploadButton/HandButton.png" alt="Upload hand" />
+        <img id="upload-hand-btn-img" src="UploadButton/BiggerHand.png" alt="Upload hand" />
+        <div id="upload-hand-btn-text">Upload your junk</div>
     </button>
     <!-- Eyes Menu (fixed, bottom left) -->
     <div id="eyes-menu">
@@ -232,8 +238,8 @@
             
             // Create noise texture
             const canvas = document.createElement('canvas');
-            canvas.width = 1920;
-            canvas.height = 1080;
+            canvas.width = 3840;
+            canvas.height = 2160;
             const ctx = canvas.getContext('2d');
             
             // Generate noise
@@ -329,12 +335,12 @@
             scene.add(particles);
 
             // Create camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(75, 3840 / 2160, 0.1, 1000);
             camera.position.z = 100;
 
             // Create renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(3840, 2160);
             renderer.setClearColor(0x000000, 1); // Set black background color immediately
             document.getElementById('visualization').appendChild(renderer.domElement);
 
@@ -396,15 +402,15 @@
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
             scene.add(ambientLight);
 
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize, false);
+            // Fixed size - no window resize handling
+            // window.addEventListener('resize', onWindowResize, false);
         }
 
         function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.aspect = 3840 / 2160;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(3840, 2160);
+            composer.setSize(3840, 2160);
         }
 
         function animate() {
@@ -532,16 +538,12 @@
           });
         }
 
-        // Responsive scaling for #main-viewport
-        function scaleMainViewport() {
-          const vw = window.innerWidth;
-          const vh = window.innerHeight;
-          const scale = Math.min(vw / 1920, vh / 1080);
+        // Fixed size for #main-viewport - no responsive scaling
+        function setupMainViewport() {
           const main = document.getElementById('main-viewport');
-          main.style.transform = `translate(-50%, -50%) scale(${scale})`;
+          main.style.transform = `translate(-50%, -50%)`;
         }
-        window.addEventListener('resize', scaleMainViewport);
-        window.addEventListener('load', scaleMainViewport);
+        window.addEventListener('load', setupMainViewport);
 
         document.addEventListener('DOMContentLoaded', function() {
             const eyes = [
