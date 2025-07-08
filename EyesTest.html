@@ -26,9 +26,9 @@
             position: absolute;
             left: 50%;
             top: 50%;
-            width: 1920px;
-            height: 1080px;
-            transform: translate(-50%, -50%) scale(1);
+            width: 2560px;
+            height: 1440px;
+            transform: translate(-50%, -50%);
             background: transparent;
             transform-origin: center center;
         }
@@ -76,8 +76,8 @@
             position: fixed;
             right: 2vw;
             bottom: 2vw;
-            width: 210px;
-            height: 210px;
+            width: 250px;
+            height: 250px;
             background: none;
             border: none;
             cursor: pointer;
@@ -90,8 +90,8 @@
         }
         #upload-hand-btn-text {
             position: absolute;
-            left: 57%;
-            top: 66%;
+            left: 27%;
+            top: 56%;
             transform: translate(-50%, -50%);
             font-size: 16px;
             font-family: 'VT323', monospace, sans-serif;
@@ -104,8 +104,8 @@
             line-height: 1.1;
         }
         #upload-hand-btn-img {
-            width: 200px;
-            height: 200px;
+            width: 270px;
+            height: 270px;
             object-fit: contain;
             display: block;
             pointer-events: none;
@@ -198,10 +198,11 @@
     <!-- Eyes Interface Overlay (fixed) -->
     <div id="eyes-interface"></div>
     <!-- Search Bar (fixed) -->
-    <input id="search-bar" type="text" placeholder="I want to see" />
+    <input id="search-bar" type="text" placeholder="I want to see..." />
     <!-- Upload Hand Button (fixed, with image and overlaid text) -->
     <button id="upload-hand-btn">
-        <img id="upload-hand-btn-img" src="UploadButton/HandButton.png" alt="Upload hand" />
+        <img id="upload-hand-btn-img" src="UploadButton/BiggerHand.png" alt="Upload hand" />
+        <div id="upload-hand-btn-text">Upload your junk</div>
     </button>
     <!-- Eyes Menu (fixed, bottom left) -->
     <div id="eyes-menu">
@@ -224,8 +225,8 @@
             
             // Create noise texture
             const canvas = document.createElement('canvas');
-            canvas.width = 1920;
-            canvas.height = 1080;
+            canvas.width = 2560;
+            canvas.height = 1440;
             const ctx = canvas.getContext('2d');
             
             // Generate noise
@@ -321,12 +322,12 @@
             scene.add(particles);
 
             // Create camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera = new THREE.PerspectiveCamera(75, 2560 / 1440, 0.1, 1000);
             camera.position.z = 100;
 
             // Create renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(2560, 1440);
             renderer.setClearColor(0x000000, 1); // Set black background color immediately
             document.getElementById('visualization').appendChild(renderer.domElement);
 
@@ -393,10 +394,10 @@
         }
 
         function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.aspect = 2560 / 1440;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(2560, 1440);
+            composer.setSize(2560, 1440);
         }
 
         function animate() {
@@ -510,16 +511,12 @@
           });
         }
 
-        // Responsive scaling for #main-viewport
-        function scaleMainViewport() {
-          const vw = window.innerWidth;
-          const vh = window.innerHeight;
-          const scale = Math.min(vw / 1920, vh / 1080);
+        // Fixed size for #main-viewport - no responsive scaling
+        function setupMainViewport() {
           const main = document.getElementById('main-viewport');
-          main.style.transform = `translate(-50%, -50%) scale(${scale})`;
+          main.style.transform = `translate(-50%, -50%)`;
         }
-        window.addEventListener('resize', scaleMainViewport);
-        window.addEventListener('load', scaleMainViewport);
+        window.addEventListener('load', setupMainViewport);
 
         document.addEventListener('DOMContentLoaded', function() {
             const eyes = [
