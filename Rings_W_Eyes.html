@@ -217,7 +217,8 @@
             // Create materials with different render orders
             const ringMaterial1 = new THREE.MeshBasicMaterial({ 
                 color: 0xffffff,
-                transparent: false,
+                transparent: true,
+                opacity: 0.2,
                 side: THREE.DoubleSide,
                 depthWrite: true,
                 depthTest: true,
