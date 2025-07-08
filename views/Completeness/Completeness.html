@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Completeness Visualization - Particle System</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Pixel';
+            src: url('../../assets/pixel.ttf') format('truetype');
+        }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        #main-viewport {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 100vw;
+            height: 100vh;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            transform-origin: center center;
+        }
+        #eyes-interface {
+            position: fixed;
+            left: 2vw;
+            bottom: 3vw;
+            width: 340px;
+            height: 220px;
+            pointer-events: none;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .eye-blob {
+            position: absolute;
+            pointer-events: auto;
+            cursor: pointer;
+            user-select: none;
+            border: 2px solid #f00; /* DEBUG: visible border */
+        }
+        #search-bar {
+            position: fixed;
+            left: 50%;
+            bottom: 3vw;
+            transform: translateX(-50%);
+            width: 420px;
+            max-width: 80vw;
+            min-width: 280px;
+            height: 54px;
+            background: #fff;
+            border-radius: 32px;
+            box-shadow: 0 2px 16px #0003;
+            font-size: 18px;
+            font-family: 'VT323', monospace, sans-serif;
+            color: #888;
+            border: none;
+            outline: none;
+            padding: 0 32px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #upload-hand-btn {
+            position: fixed;
+            right: 2vw;
+            bottom: 2vw;
+            width: 280px;
+            height: 280px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 2100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+            flex-direction: unset;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #upload-hand-btn-text {
+            position: absolute;
+            left: 30%;
+            top: 60%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-family: 'VT323', monospace, sans-serif;
+            color: #888;
+            background: none;
+            border: none;
+            text-align: center;
+            pointer-events: none;
+            width: 180px;
+            line-height: 1.2;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-shadow: 0 0 1px rgba(0,0,0,0.1);
+            letter-spacing: 0.5px;
+        }
+        #upload-hand-btn-img {
+            width: 270px;
+            height: 270px;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+        #visualization {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #black-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
+        #loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+        }
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            background: #ffffff;
+            transition: width 0.3s ease;
+        }
+        #eyes-menu {
+            position: fixed;
+            left: 2vw;
+            bottom: 3vw;
+            width: 260px;
+            height: 180px;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .eye-btn {
+            position: absolute;
+            width: 64px;
+            height: 48px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            pointer-events: auto;
+            background-color: transparent;
+            transition: filter 0.2s;
+        }
+        .eye-btn:hover, .eye-btn:focus {
+            filter: brightness(1.2) drop-shadow(0 0 8px #fff8);
+        }
+        #eye-artist       { left: 98px;  top: 0px;   }
+        #eye-temperament  { left: 200px; top: 38px;  }
+        #eye-intimacy     { left: 130px; top: 80px;  }
+        #eye-rhizome      { left: 0px;   top: 38px;  }
+        #eye-completeness { left: 30px;  top: 110px; }
+        #eye-secret       { left: 98px;  top: 140px; }
+        
+        /* Score overlays for each image */
+        .score-overlay {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 10000;
+            pointer-events: none;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            transform: translate(-50%, -100%);
+            margin-top: -10px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div id="black-overlay"></div>
+    <div id="loading-container" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+        <div class="loading-bar">
+            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
+        </div>
+        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+    </div>
+    <div id="main-viewport">
+        <div id="visualization"></div>
+    </div>
+    
+    <!-- Score overlays container -->
+    <div id="score-overlays-container"></div>
+
+    <!-- Eyes Interface Overlay (fixed) -->
+    <div id="eyes-interface"></div>
+    <!-- Search Bar (fixed) -->
+    <input id="search-bar" type="text" placeholder="I want to see..." />
+    <!-- Upload Hand Button (fixed, with image and overlaid text) -->
+    <button id="upload-hand-btn">
+        <img id="upload-hand-btn-img" src="../../UploadButton/BiggerHand.png" alt="Upload hand" />
+        <div id="upload-hand-btn-text">Upload your junk</div>
+    </button>
+    <!-- Eyes Menu (fixed, bottom left) -->
+    <div id="eyes-menu">
+        <button class="eye-btn" id="eye-artist"     title="Artist"></button>
+        <button class="eye-btn" id="eye-temperament" title="Temperament"></button>
+        <button class="eye-btn" id="eye-intimacy"   title="Intimacy"></button>
+        <button class="eye-btn" id="eye-rhizome"    title="Rhizome"></button>
+        <button class="eye-btn" id="eye-completeness" title="Completeness"></button>
+        <button class="eye-btn" id="eye-secret"     title="Secret Gallery"></button>
+    </div>
+    <script>
+        // Global variables
+        let scene, camera, renderer, controls;
+        let composer;
+        let particles;
+        let completenessData = {};
+        let imageSprites = [];
+        let sortedScores = [];
+        let loadingComplete = false;
+        let animationComplete = false;
+        let scoreOverlays = [];
+        let hoveredSprite = null;
+        let mouseX = 0, mouseY = 0;
+        let raycaster, mouse;
+
+        // Animation constants
+        const GRAVITY = 0.3;
+        const BOUNCE_DAMPING = 0.7;
+        const TRANSITION_DURATION = 2000; // 2 seconds
+        const OSCILLATION_AMPLITUDE = 0.8; // Reduced from 3 to 0.8 for less jitter
+        const OSCILLATION_SPEED = 0.01; // Reduced from 0.02 to 0.01 for slower oscillation
+        const HOVER_SCALE = 1.5;
+        const HOVER_LERP_SPEED = 0.1;
+
+        // Zone boundaries (adjusted for 3D coordinate system)
+        const TOP_ZONE_Y = { min: 50, max: 100 };
+        const MID_ZONE_Y = { min: -25, max: 25 };
+        const BOTTOM_ZONE_Y = { min: -100, max: -50 };
+
+        // ImageSprite class for 3D sprites
+        class ImageSprite {
+            constructor(imageFile, score, rank, totalImages) {
+                this.imageFile = imageFile;
+                this.score = score;
+                this.rank = rank;
+                this.totalImages = totalImages;
+                
+                // Position and velocity (3D coordinate system)
+                this.x = (Math.random() - 0.5) * 600; // was 200, now 800 for wider spread
+                this.y = (Math.random() - 0.5) * 200;
+                this.z = (Math.random() - 0.5) * 2; // was 200, now 800 for wider spread
+                this.vx = 0;
+                this.vy = 0;
+                this.vz = 0;
+                
+                // Target position
+                this.targetX = this.x;
+                this.targetY = this.getTargetY();
+                this.targetZ = this.z;
+                
+                // Animation state
+                this.transitionStartTime = null;
+                this.transitionDuration = TRANSITION_DURATION;
+                this.isTransitioning = true;
+                this.isSettled = false;
+                
+                // Visual properties
+                this.scale = 1;
+                this.targetScale = 1;
+                this.opacity = 1;
+                this.sprite = null;
+                
+                // Physics properties
+                this.mass = this.getMass();
+                this.bounceCount = 0;
+                this.maxBounces = 3;
+                
+                // Load image and create sprite
+                this.loadImage();
+            }
+
+            getTargetY() {
+                const totalImages = this.totalImages;
+                const rank = this.rank;
+                
+                if (rank <= 100) {
+                    // Low rank (top 100) - float in top zone
+                    const progress = rank / 100;
+                    return TOP_ZONE_Y.min + (TOP_ZONE_Y.max - TOP_ZONE_Y.min) * progress;
+                } else if (rank >= totalImages - 100) {
+                    // High rank (bottom 100) - fall to bottom zone
+                    const progress = (rank - (totalImages - 100)) / 100;
+                    return BOTTOM_ZONE_Y.min + (BOTTOM_ZONE_Y.max - BOTTOM_ZONE_Y.min) * progress;
+                } else {
+                    // Mid rank - position in middle zone
+                    const midRank = rank - 100;
+                    const midTotal = totalImages - 200;
+                    const progress = midRank / midTotal;
+                    return MID_ZONE_Y.min + (MID_ZONE_Y.max - MID_ZONE_Y.min) * progress;
+                }
+            }
+
+            getMass() {
+                const rank = this.rank;
+                const totalImages = this.totalImages;
+                
+                if (rank <= 100) {
+                    // Low rank - very light (floating)
+                    return 0.1;
+                } else if (rank >= totalImages - 100) {
+                    // High rank - heavy (falling)
+                    return 2.0;
+                } else {
+                    // Mid rank - medium mass
+                    return 0.5;
+                }
+            }
+
+            loadImage() {
+                const textureLoader = new THREE.TextureLoader();
+                textureLoader.load(`../../images/${this.imageFile}`, (texture) => {
+                    const spriteMaterial = new THREE.SpriteMaterial({ 
+                        map: texture,
+                        transparent: true,
+                        opacity: this.opacity
+                    });
+                    this.sprite = new THREE.Sprite(spriteMaterial);
+                    this.sprite.scale.set(10, 10, 1);
+                    this.sprite.position.set(this.x, this.y, this.z);
+                    this.sprite.userData = { instance: this };
+                    scene.add(this.sprite);
+                });
+            }
+
+            update(deltaTime) {
+                const rank = this.rank;
+                const totalImages = this.totalImages;
+                
+                if (rank <= 100) {
+                    this.updateLowRank(deltaTime);
+                } else if (rank >= totalImages - 100) {
+                    this.updateHighRank(deltaTime);
+                } else {
+                    this.updateMidRank(deltaTime);
+                }
+                
+                // Update hover scaling
+                this.scale += (this.targetScale - this.scale) * HOVER_LERP_SPEED;
+                
+                // Update sprite position and scale
+                if (this.sprite) {
+                    this.sprite.position.set(this.x, this.y, this.z);
+                    this.sprite.scale.set(10 * this.scale, 10 * this.scale, 1);
+                }
+            }
+
+            updateLowRank(deltaTime) {
+                // Gentle vertical oscillation with sine wave motion
+                const time = Date.now() * OSCILLATION_SPEED;
+                const oscillation = Math.sin(time + this.rank) * OSCILLATION_AMPLITUDE;
+                
+                this.y = this.targetY + oscillation;
+                
+                // Horizontal drift using sine waves
+                this.x += Math.sin(time * 0.5 + this.rank) * 0.5;
+                
+                // Bounce off boundaries
+                if (this.x < -100 || this.x > 100) {
+                    this.vx *= -BOUNCE_DAMPING;
+                    this.x = Math.max(-100, Math.min(100, this.x));
+                }
+                
+                if (this.y < TOP_ZONE_Y.min || this.y > TOP_ZONE_Y.max) {
+                    this.vy *= -BOUNCE_DAMPING;
+                    this.y = Math.max(TOP_ZONE_Y.min, Math.min(TOP_ZONE_Y.max, this.y));
+                }
+            }
+
+            updateMidRank(deltaTime) {
+                if (this.isTransitioning) {
+                    // Smooth transition to final position
+                    if (!this.transitionStartTime) {
+                        this.transitionStartTime = Date.now();
+                    }
+                    
+                    const elapsed = Date.now() - this.transitionStartTime;
+                    const progress = Math.min(elapsed / this.transitionDuration, 1);
+                    
+                    // Cubic easing for natural motion
+                    const easedProgress = this.cubicEaseInOut(progress);
+                    
+                    this.x = this.x + (this.targetX - this.x) * easedProgress;
+                    this.y = this.y + (this.targetY - this.y) * easedProgress;
+                    this.z = this.z + (this.targetZ - this.z) * easedProgress;
+                    
+                    if (progress >= 1) {
+                        this.isTransitioning = false;
+                        this.isSettled = true;
+                    }
+                } else {
+                    // Very subtle vertical oscillation after settling
+                    const time = Date.now() * OSCILLATION_SPEED;
+                    const oscillation = Math.sin(time + this.rank) * (OSCILLATION_AMPLITUDE * 0.2);
+                    this.y = this.targetY + oscillation;
+                }
+            }
+
+            updateHighRank(deltaTime) {
+                if (!this.isSettled) {
+                    // Physics-based falling animation
+                    this.vy -= GRAVITY * this.mass;
+                    this.y += this.vy;
+                    
+                    // Bounce off bottom boundary
+                    if (this.y < BOTTOM_ZONE_Y.min && this.bounceCount < this.maxBounces) {
+                        this.y = BOTTOM_ZONE_Y.min;
+                        this.vy *= -BOUNCE_DAMPING;
+                        this.bounceCount++;
+                    } else if (this.y < BOTTOM_ZONE_Y.min) {
+                        // Settle into final position
+                        this.y = this.targetY;
+                        this.vy = 0;
+                        this.isSettled = true;
+                    }
+                } else {
+                    // Very gentle oscillation in settled position
+                    const time = Date.now() * OSCILLATION_SPEED;
+                    const oscillation = Math.sin(time + this.rank) * (OSCILLATION_AMPLITUDE * 0.1);
+                    this.y = this.targetY + oscillation;
+                }
+            }
+
+            cubicEaseInOut(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            checkHover(mouseX, mouseY) {
+                if (!this.sprite) return false;
+                
+                // Convert mouse position to normalized device coordinates
+                mouse.x = (mouseX / window.innerWidth) * 2 - 1;
+                mouse.y = -(mouseY / window.innerHeight) * 2 + 1;
+                
+                // Update the picking ray with the camera and mouse position
+                raycaster.setFromCamera(mouse, camera);
+                
+                // Calculate objects intersecting the picking ray
+                const intersects = raycaster.intersectObject(this.sprite);
+                
+                if (intersects.length > 0) {
+                    this.targetScale = HOVER_SCALE;
+                    return true;
+                } else {
+                    this.targetScale = 1;
+                    return false;
+                }
+            }
+        }
+
+        // Initialize the visualization
+        function init() {
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            
+            // Create noise texture
+            const canvas = document.createElement('canvas');
+            canvas.width = 1920;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+            
+            // Generate noise
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const value = Math.random() * 50;
+                data[i] = value;     // R
+                data[i + 1] = value; // G
+                data[i + 2] = value; // B
+                data[i + 3] = 20;    // A
+            }
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Create texture from canvas
+            const noiseTexture = new THREE.CanvasTexture(canvas);
+            noiseTexture.wrapS = THREE.RepeatWrapping;
+            noiseTexture.wrapT = THREE.RepeatWrapping;
+            
+            // Set as background
+            scene.background = noiseTexture;
+                
+            // Create background particles
+            const particleCount = 300;
+            const particleGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            const particleSizes = new Float32Array(particleCount);
+            const particleColors = new Float32Array(particleCount * 3);
+            const particleSpeeds = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                // Random positions within a sphere
+                const radius = 80;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+                
+                // More vibrant colors
+                const hue = Math.random();
+                const saturation = 0.3 + Math.random() * 0.2;
+                const lightness = 0.5 + Math.random() * 0.3;
+                
+                // Convert HSL to RGB
+                const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+                const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
+                const m = lightness - c/2;
+                
+                let r, g, b;
+                if (hue < 1/6) {
+                    r = c; g = x; b = 0;
+                } else if (hue < 2/6) {
+                    r = x; g = c; b = 0;
+                } else if (hue < 3/6) {
+                    r = 0; g = c; b = x;
+                } else if (hue < 4/6) {
+                    r = 0; g = x; b = c;
+                } else if (hue < 5/6) {
+                    r = x; g = 0; b = c;
+                } else {
+                    r = c; g = 0; b = x;
+                }
+                
+                particleColors[i * 3] = r + m;
+                particleColors[i * 3 + 1] = g + m;
+                particleColors[i * 3 + 2] = b + m;
+
+                particleSizes[i] = Math.random() * 2 + 0.5;
+                particleSpeeds[i] = Math.random() * 0.06;
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.3,
+                sizeAttenuation: true,
+                depthWrite: false
+            });
+
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            particles.userData = { 
+                speeds: particleSpeeds,
+                opacities: new Float32Array(particleCount)
+            };
+            scene.add(particles);
+
+            // Create camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 250; // was 100, now 300 for more zoomed-out
+
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 1);
+            document.getElementById('visualization').appendChild(renderer.domElement);
+
+            // Setup post-processing
+            composer = new THREE.EffectComposer(renderer);
+            const renderPass = new THREE.RenderPass(scene, camera);
+            composer.addPass(renderPass);
+
+            // Add vignette effect
+            const vignetteShader = {
+                uniforms: {
+                    "tDiffuse": { value: null },
+                    "offset": { value: 1.0 },
+                    "darkness": { value: 1.0 }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform sampler2D tDiffuse;
+                    uniform float offset;
+                    uniform float darkness;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec2 uv = vUv;
+                        vec4 color = texture2D(tDiffuse, uv);
+                        
+                        // Calculate distance from center
+                        vec2 center = vec2(0.5, 0.5);
+                        float dist = distance(uv, center);
+                        
+                        // Create vignette effect
+                        float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                        
+                        // Apply vignette
+                        color.rgb *= vignette;
+                        
+                        gl_FragColor = color;
+                    }
+                `
+            };
+
+            const vignettePass = new THREE.ShaderPass(vignetteShader);
+            vignettePass.uniforms.offset.value = 0.5;
+            vignettePass.uniforms.darkness.value = 0.5;
+            composer.addPass(vignettePass);
+
+            // Add orbit controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            // Initialize raycaster for mouse interaction
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Load completeness data
+            loadCompletenessData();
+            
+            // Event listeners
+            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('click', onMouseClick);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        async function loadCompletenessData() {
+            try {
+                const response = await fetch('inverted_sketchiness_scores.json');
+                completenessData = await response.json();
+                
+                // Sort scores to determine rankings
+                sortedScores = Object.entries(completenessData)
+                    .sort(([,a], [,b]) => a - b) // Ascending order
+                    .map(([imageFile, score], index) => ({
+                        imageFile,
+                        score,
+                        rank: index + 1
+                    }));
+                
+                createImageSprites();
+            } catch (error) {
+                console.error('Error loading completeness data:', error);
+            }
+        }
+
+        function createImageSprites() {
+            const totalImages = sortedScores.length;
+            let loadedCount = 0;
+            
+            sortedScores.forEach((item, index) => {
+                const sprite = new ImageSprite(
+                    item.imageFile,
+                    item.score,
+                    item.rank,
+                    totalImages
+                );
+                
+                imageSprites.push(sprite);
+                
+                // Simulate loading progress
+                setTimeout(() => {
+                    loadedCount++;
+                    updateLoadingUI((loadedCount / totalImages) * 100);
+                    
+                    if (loadedCount === totalImages) {
+                        loadingComplete = true;
+                        createScoreOverlays();
+                        startAnimation();
+                    }
+                }, index * 10); // Stagger loading
+            });
+        }
+
+        function createScoreOverlays() {
+            const container = document.getElementById('score-overlays-container');
+            container.innerHTML = '';
+            scoreOverlays = [];
+            
+            imageSprites.forEach((sprite, index) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'score-overlay';
+                overlay.id = `overlay-${index}`;
+                
+                const category = sprite.rank <= 100 ? 'Low Rank' : 
+                               sprite.rank >= imageSprites.length - 100 ? 'High Rank' : 'Mid Rank';
+                overlay.textContent = `${sprite.score} (${category})`;
+                
+                container.appendChild(overlay);
+                scoreOverlays.push(overlay);
+            });
+        }
+
+        function startAnimation() {
+            // Hide loading and show visualization
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('visualization').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('black-overlay').style.display = 'none';
+                
+                // Show UI elements
+                const uiElements = [
+                    document.getElementById('eyes-interface'),
+                    document.getElementById('search-bar'),
+                    document.getElementById('upload-hand-btn'),
+                    document.getElementById('eyes-menu')
+                ];
+                
+                uiElements.forEach(element => {
+                    if (element) {
+                        element.style.opacity = '1';
+                    }
+                });
+            }, 500);
+            
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Animate background particles
+            if (particles) {
+                const positions = particles.geometry.attributes.position.array;
+                const speeds = particles.userData.speeds;
+                const opacities = particles.userData.opacities;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    // Move particles in a circular motion
+                    const speed = speeds[i / 3];
+                    const time = Date.now() * 0.001 * speed;
+                    
+                    positions[i] += Math.sin(time) * 0.01;
+                    positions[i + 1] += Math.cos(time) * 0.01;
+                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+            
+                    // Check if particle is in front of images (z > 0)
+                    const z = positions[i + 2];
+                    opacities[i / 3] = z > 0 ? 0 : 0.3;
+                }
+                
+                particles.geometry.attributes.position.needsUpdate = true;
+                particles.material.opacity = 0.3;
+            }
+            
+            // Update controls
+            controls.update();
+            
+            // Check if all sprites are in final positions
+            const allSettled = imageSprites.every(sprite => 
+                sprite.isSettled || sprite.rank <= 100
+            );
+            
+            if (allSettled && !animationComplete) {
+                animationComplete = true;
+                console.log('Animation complete - all sprites settled');
+            }
+            
+            // Update and draw sprites
+            imageSprites.forEach(sprite => {
+                sprite.update(16); // Assume 60fps
+            });
+            
+            // Update overlay positions
+            updateOverlayPositions();
+            
+            // Render scene
+            composer.render();
+        }
+
+        function updateOverlayPositions() {
+            imageSprites.forEach((sprite, index) => {
+                if (scoreOverlays[index] && sprite.sprite) {
+                    const isHovered = sprite.checkHover(mouseX, mouseY);
+                    
+                    // Convert 3D position to screen coordinates
+                    const vector = new THREE.Vector3(sprite.x, sprite.y, sprite.z);
+                    vector.project(camera);
+                    
+                    const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                    const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+                    
+                    scoreOverlays[index].style.left = x + 'px';
+                    scoreOverlays[index].style.top = (y - 30) + 'px';
+                    scoreOverlays[index].style.opacity = isHovered ? '1' : '0';
+                }
+            });
+        }
+
+        function updateLoadingUI(progress) {
+            const progressBar = document.getElementById('loading-progress');
+            const loadingText = document.getElementById('loading-text');
+            
+            if (progressBar && loadingText) {
+                progressBar.style.width = `${progress}%`;
+                loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+            }
+        }
+
+        function onMouseMove(event) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        }
+
+        function onMouseClick(event) {
+            const clickedSprite = imageSprites.find(sprite => 
+                sprite.checkHover(event.clientX, event.clientY)
+            );
+            
+            if (clickedSprite) {
+                console.log(`Clicked on: ${clickedSprite.imageFile}`);
+                console.log(`Score: ${clickedSprite.score}, Rank: ${clickedSprite.rank}`);
+            }
+        }
+
+        // Initialize the visualization
+        function startVisualization() {
+            document.getElementById('loading-container').style.display = 'block';
+            document.getElementById('black-overlay').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '1';
+            document.getElementById('visualization').style.display = 'block';
+
+            init();
+        }
+
+        // Event listeners
+        window.addEventListener('load', startVisualization);
+        
+        // Fixed size for #main-viewport
+        function setupMainViewport() {
+            const main = document.getElementById('main-viewport');
+            main.style.transform = `translate(-50%, -50%)`;
+        }
+        window.addEventListener('load', setupMainViewport);
+
+        // Eyes interface logic
+        const EYE_FIXED_POSITIONS = [
+            { x: 10,  y: 120, scale: 1.0 },
+            { x: 70,  y: 30,  scale: 1.13 },
+            { x: 180, y: 10,  scale: 1.0 },
+            { x: 250, y: 60,  scale: 1.0 },
+            { x: 210, y: 150, scale: 1.0 },
+            { x: 90,  y: 170, scale: 1.0 }
+        ];
+
+        function renderEyes() {
+            console.log('Rendering eyes');
+            const container = document.getElementById('eyes-interface');
+            const positions = EYE_FIXED_POSITIONS;
+            const eyeNames = ['Artist', 'Temperament', 'Intimacy', 'Rhizome', 'Completeness', 'SecretGallery'];
+            container.innerHTML = '';
+            positions.forEach((pos, i) => {
+                const eyeDiv = document.createElement('div');
+                eyeDiv.className = 'eye-blob';
+                eyeDiv.style.left = pos.x + 'px';
+                eyeDiv.style.top = pos.y + 'px';
+                const size = Math.round(70 * pos.scale);
+                eyeDiv.style.width = size + 'px';
+                eyeDiv.style.height = size + 'px';
+                eyeDiv.style.filter = 'drop-shadow(0 0 6px #fff4)';
+                const viewKey = eyeNames[i];
+                const imgSrc = `../../Eyes/${viewKey}_closed.png`;
+                console.log(`Eye ${i} img src:`, imgSrc);
+                eyeDiv.innerHTML = `<img src="${imgSrc}" style="width:100%;height:100%;display:block;position:relative;z-index:1;transition:filter 0.5s;image-rendering:auto;object-fit:contain;" draggable="false" alt="${viewKey} eye"/>`;
+                container.appendChild(eyeDiv);
+            });
+        }
+
+        // Eyes menu setup
+        document.addEventListener('DOMContentLoaded', function() {
+            const eyes = [
+                { id: 'eye-artist',       closed: '../../Eyes/Artist_closed.png',       open: '../../Eyes/Artist_open.png' },
+                { id: 'eye-temperament',  closed: '../../Eyes/Temperament_closed.png',  open: '../../Eyes/Temperament_open.png' },
+                { id: 'eye-intimacy',     closed: '../../Eyes/Intimacy_closed.png',     open: '../../Eyes/Intimacy_open.png' },
+                { id: 'eye-rhizome',      closed: '../../Eyes/Rhizome_closed.png',      open: '../../Eyes/Rhizome_open.png' },
+                { id: 'eye-completeness', closed: '../../Eyes/Completeness_closed.png', open: '../../Eyes/Completeness_open.png' },
+                { id: 'eye-secret',       closed: '../../Eyes/SecretGallery_closed.png',open: '../../Eyes/SecretGallery_open.png' }
+            ];
+            eyes.forEach(eye => {
+                const btn = document.getElementById(eye.id);
+                btn.style.backgroundImage = `url('${eye.closed}')`;
+                btn.addEventListener('mouseenter', () => btn.style.backgroundImage = `url('${eye.open}')`);
+                btn.addEventListener('mouseleave', () => btn.style.backgroundImage = `url('${eye.closed}')`);
+                btn.addEventListener('click', () => {
+                    alert(`Clicked: ${btn.title}`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
