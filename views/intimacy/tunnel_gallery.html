@@ -3,7 +3,6 @@
 <head>
     <title>3D Intimacy Tunnel Gallery</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         body { margin: 0; background: #000; overflow: hidden; }
         #visualization { width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
@@ -68,7 +67,7 @@
     }
 
     // 4. Place artworks in tunnel
-    let scene, camera, renderer, controls, tunnelWire;
+    let scene, camera, renderer, tunnelWire;
     let visibleMeshes = [];
     let visibleLabels = [];
     let artworksByStation = [];
@@ -173,13 +172,16 @@
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.getElementById('visualization').appendChild(renderer.domElement);
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.08;
-        controls.enablePan = false;
-        controls.minDistance = 30;
-        controls.maxDistance = imageRingRadius * 2;
-        controls.target.set(0, 0, 0);
+        // Remove OrbitControls completely - we only want Z-axis movement
+        // controls = new THREE.OrbitControls(camera, renderer.domElement);
+        // controls.enableDamping = true;
+        // controls.dampingFactor = 0.08;
+        // controls.enablePan = false;
+        // controls.enableZoom = false; // Disable zoom since we're using scroll
+        // controls.enableRotate = false; // Disable rotation to keep tunnel orientation
+        // controls.minDistance = 30;
+        // controls.maxDistance = imageRingRadius * 2;
+        // controls.target.set(0, 0, 0);
         scene.add(new THREE.AmbientLight(0xffffff, 1.0));
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -196,39 +198,57 @@
         });
     }
 
-    // 7. Animate: move camera along Z with W/S or Up/Down
-    let cameraSpeed = 0;
+    // 7. Animate: smooth camera movement with mouse scroll
+    let targetZ = 200; // Start position
+    let currentZ = 200;
+    const scrollSpeed = 200; // How much to move per scroll unit
+    const minZ = zEnd - 100; // Deepest layer
+    const maxZ = zStart + 200; // Start position
+    
     function animate() {
         requestAnimationFrame(animate);
-        // Move camera
-        if (cameraSpeed !== 0) {
-            camera.position.z += cameraSpeed;
-            camera.position.z = Math.max(zEnd - 100, Math.min(zStart + 200, camera.position.z));
+        
+        // Smooth camera movement towards target
+        const diff = targetZ - currentZ;
+        if (Math.abs(diff) > 0.1) {
+            currentZ += diff * 0.1; // Smooth interpolation
         }
-        controls.update();
+        
+        camera.position.z = currentZ;
+        // Keep camera looking straight down the tunnel
+        camera.lookAt(0, 0, currentZ - 100);
         updateArtworkOrientations();
         renderer.render(scene, camera);
+        
         // Update station labels
         visibleLabels.forEach(({label, z, labelY}) => {
-            // Place label at (0, labelY, z)
-            const pos = new THREE.Vector3(0, labelY, z);
+            // Place label at (0, labelY, z) - moved up
+            const pos = new THREE.Vector3(0, labelY + imageRingRadius * 0.2, z);
             const vector = pos.clone().project(camera);
             const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
             const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+            // Calculate distance-based font size
+            const distance = Math.abs(currentZ - z);
+            const baseFontSize = 24;
+            const maxDistance = tunnelLength;
+            const fontSize = Math.max(12, baseFontSize * (1 - distance / maxDistance));
+            
             label.style.left = `${x}px`;
             label.style.top = `${y}px`;
+            label.style.transform = 'translateX(-50%)'; // Center horizontally
+            label.style.textAlign = 'center';
+            label.style.fontSize = `${fontSize}px`;
             label.style.display = (vector.z > 1 || vector.z < -1) ? 'none' : 'block';
         });
     }
 
-    // 8. Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyW' || e.code === 'ArrowUp') cameraSpeed = -20;
-        if (e.code === 'KeyS' || e.code === 'ArrowDown') cameraSpeed = 20;
-    });
-    document.addEventListener('keyup', (e) => {
-        if (["KeyW","ArrowUp","KeyS","ArrowDown"].includes(e.code)) cameraSpeed = 0;
-    });
+    // 8. Mouse wheel navigation
+    document.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = e.deltaY;
+        targetZ += delta * scrollSpeed * 0.01;
+        targetZ = Math.max(minZ, Math.min(maxZ, targetZ));
+    }, { passive: false });
 
     window.addEventListener('load', main);
     </script>
