@@ -3,18 +3,70 @@
 <head>
     <title>3D Intimacy Tunnel Gallery</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; }
-        #visualization { width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
+        @font-face {
+            font-family: 'Pixel';
+            src: url('../../../assets/pixel.ttf') format('truetype');
+        }
+        body {
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
+        }
+        #visualization {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #black-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
         #loading-container {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; z-index: 1001;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+        }
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            background: #ffffff;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
 <body>
+    <div id="black-overlay"></div>
     <div id="loading-container">
-        <h2>Loading Intimacy Tunnel...</h2>
-        <div id="loading-text">Loading artworks...</div>
+        <div class="loading-bar">
+            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
+        </div>
+        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
     </div>
     <div id="visualization"></div>
     <script>
@@ -67,18 +119,20 @@
     }
 
     // 4. Place artworks in tunnel
-    let scene, camera, renderer, tunnelWire;
+    let scene, camera, renderer, tunnelWire, composer, particles;
     let visibleMeshes = [];
     let visibleLabels = [];
     let artworksByStation = [];
     let stationZs = [];
     let artworksData = [];
+    
     function clearVisible() {
         visibleMeshes.forEach(mesh => scene.remove(mesh));
         visibleMeshes = [];
         visibleLabels.forEach(label => label.remove());
         visibleLabels = [];
     }
+    
     function showTunnelRings() {
         clearVisible();
         for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
@@ -101,8 +155,16 @@
             label.style.fontFamily = 'monospace';
             label.style.pointerEvents = 'none';
             label.style.textShadow = '0 0 4px #000, 0 0 2px #000';
+            label.style.zIndex = '1002'; // Higher than black overlay (1000) and loading container (1001)
             document.body.appendChild(label);
             visibleLabels.push({label, z, labelY});
+            
+            // Create a group for this ring to enable rotation
+            const ringGroup = new THREE.Group();
+            ringGroup.position.set(0, 0, z);
+            ringGroup.userData = { stationIdx, baseRotation: 0 };
+            scene.add(ringGroup);
+            
             for (let i = 0; i < N; i++) {
                 const angle = (i / N) * Math.PI * 2;
                 const art = arts[i];
@@ -123,20 +185,22 @@
                 }
                 const x = Math.cos(angle) * imageRingRadius;
                 const y = Math.sin(angle) * imageRingRadius;
-                mesh.position.set(x, y, z);
+                mesh.position.set(x, y, 0);
                 // Face the tunnel center
-                mesh.lookAt(0, 0, z);
-                scene.add(mesh);
+                mesh.lookAt(0, 0, 0);
+                ringGroup.add(mesh);
                 visibleMeshes.push(mesh);
             }
         }
     }
+    
     function updateArtworkOrientations() {
         // Make all images face the camera
         visibleMeshes.forEach(mesh => {
             mesh.lookAt(camera.position);
         });
     }
+    
     function preloadTextures(artworks, onDone) {
         const textureLoader = new THREE.TextureLoader();
         let loaded = 0;
@@ -145,12 +209,23 @@
         artworks.forEach(art => {
             textureLoader.load(
                 `../../images/${art.image}`,
-                (texture) => { art._texture = texture; loaded++; if (loaded === total) onDone(); },
+                (texture) => { 
+                    art._texture = texture; 
+                    loaded++; 
+                    updateLoadingUI((loaded / total) * 100);
+                    if (loaded === total) onDone(); 
+                },
                 undefined,
-                () => { art._texture = null; loaded++; if (loaded === total) onDone(); }
+                () => { 
+                    art._texture = null; 
+                    loaded++; 
+                    updateLoadingUI((loaded / total) * 100);
+                    if (loaded === total) onDone(); 
+                }
             );
         });
     }
+    
     function placeArtworksTunnel(artworks) {
         // Group artworks by station
         artworksByStation = Array.from({length: stations.length}, () => []);
@@ -165,37 +240,197 @@
     // 5. Camera, scene, controls
     async function main() {
         scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
         scene.fog = new THREE.Fog(0x000000, 100, tunnelLength + 400);
+        
+        // Create noise texture background
+        const canvas = document.createElement('canvas');
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext('2d');
+        
+        // Generate noise
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const value = Math.random() * 50;
+            data[i] = value;     // R
+            data[i + 1] = value; // G
+            data[i + 2] = value; // B
+            data[i + 3] = 20;    // A
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Create texture from canvas
+        const noiseTexture = new THREE.CanvasTexture(canvas);
+        noiseTexture.wrapS = THREE.RepeatWrapping;
+        noiseTexture.wrapT = THREE.RepeatWrapping;
+        
+        // Set as background
+        scene.background = noiseTexture;
+
+        // Create particles
+        const particleCount = 300;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleSizes = new Float32Array(particleCount);
+        const particleColors = new Float32Array(particleCount * 3);
+        const particleSpeeds = new Float32Array(particleCount);
+
+        for (let i = 0; i < particleCount; i++) {
+            // Random positions within a sphere
+            const radius = 80;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            
+            particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+            particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+            particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+
+            // More vibrant colors
+            const hue = Math.random(); // Random hue
+            const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+            const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
+            
+            // Convert HSL to RGB
+            const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+            const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
+            const m = lightness - c/2;
+            
+            let r, g, b;
+            if (hue < 1/6) {
+                r = c; g = x; b = 0;
+            } else if (hue < 2/6) {
+                r = x; g = c; b = 0;
+            } else if (hue < 3/6) {
+                r = 0; g = c; b = x;
+            } else if (hue < 4/6) {
+                r = 0; g = x; b = c;
+            } else if (hue < 5/6) {
+                r = x; g = 0; b = c;
+            } else {
+                r = c; g = 0; b = x;
+            }
+            
+            particleColors[i * 3] = r + m;     // R
+            particleColors[i * 3 + 1] = g + m; // G
+            particleColors[i * 3 + 2] = b + m; // B
+
+            // Random speeds between 0.02 and 0.08 (much slower than before)
+            particleSpeeds[i] = Math.random() * 0.06;
+        }
+
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+        particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+        particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            size: 0.5,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.3,
+            sizeAttenuation: true,
+            depthWrite: false // Allow particles to be transparent when in front
+        });
+
+        particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.userData = { 
+            speeds: particleSpeeds,
+            opacities: new Float32Array(particleCount) // Store individual opacities
+        };
+        scene.add(particles);
+
         camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
         camera.position.set(0, 0, 200); // Start outside tunnel, looking at z=0
         camera.lookAt(0, 0, 0);
+        
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
         document.getElementById('visualization').appendChild(renderer.domElement);
-        // Remove OrbitControls completely - we only want Z-axis movement
-        // controls = new THREE.OrbitControls(camera, renderer.domElement);
-        // controls.enableDamping = true;
-        // controls.dampingFactor = 0.08;
-        // controls.enablePan = false;
-        // controls.enableZoom = false; // Disable zoom since we're using scroll
-        // controls.enableRotate = false; // Disable rotation to keep tunnel orientation
-        // controls.minDistance = 30;
-        // controls.maxDistance = imageRingRadius * 2;
-        // controls.target.set(0, 0, 0);
+
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Add vignette effect
+        const vignetteShader = {
+            uniforms: {
+                "tDiffuse": { value: null },
+                "offset": { value: 1.0 },
+                "darkness": { value: 1.0 }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tDiffuse;
+                uniform float offset;
+                uniform float darkness;
+                varying vec2 vUv;
+                
+                void main() {
+                    vec2 uv = vUv;
+                    vec4 color = texture2D(tDiffuse, uv);
+                    
+                    // Calculate distance from center
+                    vec2 center = vec2(0.5, 0.5);
+                    float dist = distance(uv, center);
+                    
+                    // Create vignette effect
+                    float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                    
+                    // Apply vignette
+                    color.rgb *= vignette;
+                    
+                    gl_FragColor = color;
+                }
+            `
+        };
+
+        const vignettePass = new THREE.ShaderPass(vignetteShader);
+        vignettePass.uniforms.offset.value = 0.5;
+        vignettePass.uniforms.darkness.value = 0.5;
+        composer.addPass(vignettePass);
+
         scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+        
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
         });
+        
         // Load artworks and textures
         const artworks = await loadArtworks();
         artworksData = artworks;
         preloadTextures(artworks, () => {
             placeArtworksTunnel(artworks);
+            // Hide loading page and show visualization
             document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('visualization').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('black-overlay').style.display = 'none';
+            }, 500);
             animate();
         });
+    }
+
+    function updateLoadingUI(progress) {
+        const progressBar = document.getElementById('loading-progress');
+        const loadingText = document.getElementById('loading-text');
+        
+        if (progressBar && loadingText) {
+            progressBar.style.width = `${progress}%`;
+            loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+        }
     }
 
     // 7. Animate: smooth camera movement with mouse scroll
@@ -208,6 +443,30 @@
     function animate() {
         requestAnimationFrame(animate);
         
+        // Animate particles
+        if (particles) {
+            const positions = particles.geometry.attributes.position.array;
+            const speeds = particles.userData.speeds;
+            const opacities = particles.userData.opacities;
+            
+            for (let i = 0; i < positions.length; i += 3) {
+                // Move particles in a circular motion
+                const speed = speeds[i / 3];
+                const time = Date.now() * 0.001 * speed;
+                
+                positions[i] += Math.sin(time) * 0.01;
+                positions[i + 1] += Math.cos(time) * 0.01;
+                positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+                // Check if particle is in front of images (z > 0)
+                const z = positions[i + 2];
+                opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+            }
+            
+            particles.geometry.attributes.position.needsUpdate = true;
+            particles.material.opacity = 0.3; // Base opacity
+        }
+        
         // Smooth camera movement towards target
         const diff = targetZ - currentZ;
         if (Math.abs(diff) > 0.1) {
@@ -217,8 +476,21 @@
         camera.position.z = currentZ;
         // Keep camera looking straight down the tunnel
         camera.lookAt(0, 0, currentZ - 100);
+        
+        // Rotate image rings based on camera position
+        scene.children.forEach(child => {
+            if (child.type === 'Group' && child.userData.stationIdx !== undefined) {
+                const stationIdx = child.userData.stationIdx;
+                const z = stationZ(stationIdx);
+                const distance = Math.abs(currentZ - z);
+                const rotationSpeed = 0.002; // Adjust for faster/slower rotation
+                const rotationAmount = (currentZ - z) * rotationSpeed;
+                child.rotation.z = rotationAmount; // Clockwise rotation around Z-axis
+            }
+        });
+        
         updateArtworkOrientations();
-        renderer.render(scene, camera);
+        composer.render();
         
         // Update station labels
         visibleLabels.forEach(({label, z, labelY}) => {
@@ -250,6 +522,7 @@
         targetZ = Math.max(minZ, Math.min(maxZ, targetZ));
     }, { passive: false });
 
+    // Start the visualization when the page loads
     window.addEventListener('load', main);
     </script>
 </body>
