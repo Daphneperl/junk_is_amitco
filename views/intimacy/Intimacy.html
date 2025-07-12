@@ -13,6 +13,12 @@
             font-family: 'Pixel';
             src: url('../../../assets/pixel.ttf') format('truetype');
         }
+        @font-face {
+            font-family: 'VT323';
+            src: url('../../assets/VT323-Regular.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
         body {
             margin: 0;
             background-color: black;
@@ -107,6 +113,22 @@
         })
     );
 
+    // 1. Add the custom shader for vertical lines at the top of the script section:
+    const verticalLineVertexShader = `
+        attribute float alpha;
+        varying float vAlpha;
+        void main() {
+            vAlpha = alpha;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `;
+    const verticalLineFragmentShader = `
+        varying float vAlpha;
+        void main() {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, vAlpha);
+        }
+    `;
+
     // 2. Load images from JSON and assign stations
     async function loadArtworks() {
         let imageList = [];
@@ -155,8 +177,10 @@
 
     // 4. Place artworks in tunnel
     let scene, camera, renderer, tunnelWire, composer, particles;
+    // Add these arrays to store references and t values
     let visibleMeshes = [];
     let visibleLabels = [];
+    let ringObjects = [];
     let artworksByStation = [];
     let stationZs = [];
     let artworksData = [];
@@ -189,12 +213,29 @@
                     .add(binormal.clone().multiplyScalar(y));
                 points.push(pos);
             }
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
-            wireGroup.add(new THREE.Line(geometry, material));
+            // Create geometry with per-vertex alpha
+            const positions = new Float32Array(points.length * 3);
+            const alphas = new Float32Array(points.length);
+            for (let i = 0; i < points.length; i++) {
+                positions[i * 3] = points[i].x;
+                positions[i * 3 + 1] = points[i].y;
+                positions[i * 3 + 2] = points[i].z;
+                alphas[i] = 1.0; // default, will be updated each frame
+            }
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+            const material = new THREE.ShaderMaterial({
+                vertexShader: verticalLineVertexShader,
+                fragmentShader: verticalLineFragmentShader,
+                transparent: true,
+            });
+            const line = new THREE.Line(geometry, material);
+            line.userData = { type: 'vertical', points: points, geometry: geometry, alphas: alphas };
+            wireGroup.add(line);
         }
 
-        // Horizontal rings (latitudes)
+        // Horizontal rings (latitudes) - unchanged except for userData
         for (let i = 0; i < numHorizontalRings; i++) {
             const t = i / (numHorizontalRings - 1);
             const center = tunnelCurve.getPoint(t);
@@ -215,8 +256,10 @@
                 ringPoints.push(pos);
             }
             const geometry = new THREE.BufferGeometry().setFromPoints(ringPoints);
-            const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
-            wireGroup.add(new THREE.Line(geometry, material));
+            const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1.0 });
+            const line = new THREE.Line(geometry, material);
+            line.userData = { type: 'horizontal', points: ringPoints };
+            wireGroup.add(line);
         }
 
         tunnelWire = wireGroup;
@@ -234,18 +277,18 @@
         // Create a temporary canvas to measure text
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.font = 'bold 100px monospace'; // Increased font size
+        tempCtx.font = 'bold 120px VT323, monospace'; // Cool monotype font, bigger
         const metrics = tempCtx.measureText(text);
         const textWidth = Math.ceil(metrics.width);
-        const textHeight = 130; // Increased for larger font
+        const textHeight = 180; // Bigger height for bigger font
 
         // Now create the actual canvas
         const canvas = document.createElement('canvas');
-        canvas.width = textWidth + 60; // More padding for bigger text
-        canvas.height = textHeight;
+        canvas.width = textWidth + 80; // More padding for bigger text
+        canvas.height = textHeight + 60; // More vertical padding
         const context = canvas.getContext('2d');
         context.clearRect(0, 0, canvas.width, canvas.height);
-        context.font = 'bold 100px monospace'; // Increased font size
+        context.font = 'bold 120px VT323, monospace';
         context.fillStyle = 'rgba(255,255,255,1)';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
@@ -263,23 +306,24 @@
             alphaTest: 0.5 // Discard low-alpha pixels
         });
         const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.scale.set(60, 18, 1); // Increased scale for bigger title
+        // Set scale to match the canvas aspect ratio for natural look, but bigger
+        const scaleX = 0.7 * canvas.width / 10;
+        const scaleY = 0.7 * canvas.height / 10;
+        sprite.scale.set(scaleX, scaleY, 1);
         return sprite;
     }
 
     function showTunnelRings() {
         clearVisible();
+        ringObjects = [];
         for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
-            // Compute t for this station (0=start, 1=end)
             const t = stationIdx / (stations.length - 1);
             const center = tunnelCurve.getPoint(t);
             let arts = artworksByStation[stationIdx];
-            // Ensure each ring has the same number of images (8 max for visual balance)
             const maxImagesPerRing = 8;
             if (arts.length > maxImagesPerRing) {
                 arts = arts.slice(0, maxImagesPerRing).sort(() => Math.random() - 0.5);
             } else if (arts.length < maxImagesPerRing) {
-                // If we have fewer images, duplicate some to fill the ring
                 const originalArts = [...arts];
                 while (arts.length < maxImagesPerRing) {
                     arts.push(...originalArts.slice(0, Math.min(maxImagesPerRing - arts.length, originalArts.length)));
@@ -287,16 +331,16 @@
                 arts = arts.slice(0, maxImagesPerRing).sort(() => Math.random() - 0.5);
             }
             const N = arts.length;
-            // Create a group for this ring
             const ringGroup = new THREE.Group();
             ringGroup.position.copy(center);
-            // Do NOT orient the ring group here; will be done dynamically in animate()
-            ringGroup.userData = { stationIdx, baseRotation: 0 };
+            ringGroup.userData = { stationIdx, t };
             scene.add(ringGroup);
-            // Add 3D text sprite for the station title at the center
+            // Title sprite
             const titleSprite = createTextSprite(stations[stationIdx]);
             titleSprite.position.set(0, 0, 0);
             ringGroup.add(titleSprite);
+            // Store for dynamic opacity, now with center
+            ringObjects.push({ t, center: center.clone(), titleSprite, imageMeshes: [] });
             for (let i = 0; i < N; i++) {
                 const angle = (i / N) * Math.PI * 2;
                 const art = arts[i];
@@ -312,17 +356,19 @@
                 } else {
                     const geometry = new THREE.BoxGeometry(30, 20, 2);
                     const color = `hsl(${Math.floor(360 * Math.random())},70%,60%)`;
-                    const material = new THREE.MeshPhongMaterial({ color });
+                    const material = new THREE.MeshPhongMaterial({ color, transparent: true });
                     mesh = new THREE.Mesh(geometry, material);
                 }
-                // Place image in a circle around the local axis (XY plane of group)
+                // Ensure images render above the grid
+                mesh.renderOrder = 10;
+                mesh.material.depthTest = false;
                 const x = Math.cos(angle) * imageRingRadius;
                 const y = Math.sin(angle) * imageRingRadius;
                 mesh.position.set(x, y, 0);
-                // Make image stand up straight (no tilt)
                 mesh.rotation.set(0, 0, 0);
                 ringGroup.add(mesh);
                 visibleMeshes.push(mesh);
+                ringObjects[ringObjects.length - 1].imageMeshes.push(mesh);
             }
         }
     }
@@ -569,6 +615,52 @@
         }
     }
 
+    function updateTunnelWireOpacity() {
+        if (!tunnelWire) return;
+        
+        const minOpacity = 0.01;
+        const maxOpacity = 1.0;
+        const fadeStart = 200;
+        const fadeEnd = 1200;
+        
+        tunnelWire.children.forEach(line => {
+            if (line.userData && line.userData.type === 'vertical') {
+                // Per-vertex alpha for vertical lines
+                const geometry = line.userData.geometry;
+                const alphas = line.userData.alphas;
+                const positions = geometry.attributes.position;
+                for (let i = 0; i < positions.count; i++) {
+                    const x = positions.getX(i);
+                    const y = positions.getY(i);
+                    const z = positions.getZ(i);
+                    const pos = new THREE.Vector3(x, y, z);
+                    const dist = camera.position.distanceTo(pos);
+                    let opacity = maxOpacity;
+                    if (dist > fadeStart) {
+                        opacity = maxOpacity - (maxOpacity - minOpacity) * ((dist - fadeStart) / (fadeEnd - fadeStart));
+                    }
+                    opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+                    alphas[i] = opacity; // direct value for shader
+                }
+                geometry.attributes.alpha.needsUpdate = true;
+            } else if (line.userData && line.userData.type === 'horizontal' && line.material) {
+                // Horizontal rings: single opacity for whole ring
+                let totalDistance = 0;
+                const points = line.userData.points;
+                for (let i = 0; i < points.length; i++) {
+                    totalDistance += camera.position.distanceTo(points[i]);
+                }
+                const avgDistance = totalDistance / points.length;
+                let opacity = maxOpacity;
+                if (avgDistance > fadeStart) {
+                    opacity = maxOpacity - (maxOpacity - minOpacity) * ((avgDistance - fadeStart) / (fadeEnd - fadeStart));
+                }
+                opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+                line.material.opacity = opacity;
+            }
+        });
+    }
+
     // 7. Animate: smooth camera movement with mouse scroll
     // Camera movement along the curve
     let cameraT = 0; // 0=start, 1=end
@@ -605,10 +697,32 @@
         
         // Camera follows the curve
         const camPos = tunnelCurve.getPoint(cameraT);
-        const camTangent = tunnelCurve.getTangent(cameraT);
+        // Opacity gradient update using 3D distance
+        const minOpacity = 0.01;
+        const maxOpacity = 1.0;
+        const fadeStart = 200;
+        const fadeEnd = 1200;
+        ringObjects.forEach(({ center, titleSprite, imageMeshes }) => {
+            const dist = camPos.distanceTo(center);
+            let opacity = maxOpacity;
+            if (dist > fadeStart) {
+                opacity = maxOpacity - (maxOpacity - minOpacity) * ((dist - fadeStart) / (fadeEnd - fadeStart));
+            }
+            opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+            if (titleSprite.material) {
+                titleSprite.material.opacity = opacity;
+            }
+            imageMeshes.forEach(mesh => {
+                if (mesh.material) mesh.material.opacity = opacity;
+            });
+        });
         camera.position.copy(camPos);
         camera.up.set(0, 1, 0);
+        const camTangent = tunnelCurve.getTangent(cameraT);
         camera.lookAt(camPos.clone().add(camTangent));
+        
+        // Update tunnel wire opacity based on distance from camera
+        updateTunnelWireOpacity();
         // --- DYNAMICALLY ORIENT RINGS TO FACE CAMERA ---
         scene.traverse((obj) => {
             if (obj.type === 'Group' && obj.userData.stationIdx !== undefined) {
