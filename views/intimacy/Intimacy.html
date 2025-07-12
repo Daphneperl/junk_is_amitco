@@ -72,20 +72,40 @@
     <script>
     // 1. Define stations and Z mapping
     const stations = [
-        "Park",
-        "Coffee shop",
+        "Beach",
+        "Park bench",
+        "Museum",
+        "Cafe",
+        "Pub",
+        "Class",
         "Studio",
-        "Bed"
+        "Living room",
+        "Bedroom",
+        "Toilet"
     ];
     const imageRingRadius = 75;
     const tunnelMargin = 3;
     const tunnelRadius = imageRingRadius + tunnelMargin;
     const minRingRadius = 55;
     const maxRingRadius = 75;
-    const tunnelLength = 2000; // total Z length
+    const tunnelLength = 5000; // total Z length (increased for larger station spacing)
     const zStart = 0;
     const zEnd = -tunnelLength;
     const stationStep = tunnelLength / (stations.length - 1);
+
+    // Define a left-turning curve using CatmullRomCurve3
+    const tunnelCurve = new THREE.CatmullRomCurve3(
+        Array.from({length: 200}, (_, i) => {
+            const t = i / 199;
+            const angle = t * Math.PI * 1.8; // 1.8 radians = ~103 degrees (increased turn for longer tunnel)
+            const radius = 1500; // Increased radius for smoother curve with longer distance
+            return new THREE.Vector3(
+                Math.sin(angle) * radius,
+                0,
+                -Math.cos(angle) * radius
+            );
+        })
+    );
 
     // 2. Load images from JSON and assign stations
     async function loadArtworks() {
@@ -97,16 +117,31 @@
             document.getElementById('loading-text').textContent = 'Error loading images.json';
             return [];
         }
-        // Assign each image a random station
-        return imageList.map((img, i) => {
-            const stationIdx = Math.floor(Math.random() * stations.length);
-            return {
-                id: i,
-                stationIdx,
-                station: stations[stationIdx],
-                image: img
-            };
-        });
+        
+        // Shuffle the image list to randomize selection
+        const shuffledImages = [...imageList].sort(() => Math.random() - 0.5);
+        
+        // Calculate how many images per station (ensure equal distribution)
+        const imagesPerStation = Math.floor(shuffledImages.length / stations.length);
+        const totalImagesToUse = imagesPerStation * stations.length;
+        
+        // Distribute images evenly across stations
+        const artworks = [];
+        for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
+            for (let i = 0; i < imagesPerStation; i++) {
+                const imageIndex = stationIdx * imagesPerStation + i;
+                if (imageIndex < shuffledImages.length) {
+                    artworks.push({
+                        id: imageIndex,
+                        stationIdx,
+                        station: stations[stationIdx],
+                        image: shuffledImages[imageIndex]
+                    });
+                }
+            }
+        }
+        
+        return artworks;
     }
 
     // 3. Map station index to Z and ring radius
@@ -126,6 +161,68 @@
     let stationZs = [];
     let artworksData = [];
     
+    // Create wire grid for the tunnel
+    function createTunnelWireGrid() {
+        const wireGroup = new THREE.Group();
+        const numVerticalLines = 48;
+        const numHorizontalRings = 60;
+        const numCurveSamples = 200;
+        const numRingSegments = 48;
+
+        // Precompute Frenet frames along the curve
+        const frames = tunnelCurve.computeFrenetFrames(numCurveSamples, false);
+
+        // Vertical lines (meridians)
+        for (let v = 0; v < numVerticalLines; v++) {
+            const angle = (v / numVerticalLines) * Math.PI * 2;
+            const points = [];
+            for (let i = 0; i < numCurveSamples; i++) {
+                const t = i / (numCurveSamples - 1);
+                const center = tunnelCurve.getPoint(t);
+                const normal = frames.normals[i];
+                const binormal = frames.binormals[i];
+                const x = Math.cos(angle) * tunnelRadius;
+                const y = Math.sin(angle) * tunnelRadius;
+                // Local position in the ring's frame
+                const pos = center.clone()
+                    .add(normal.clone().multiplyScalar(x))
+                    .add(binormal.clone().multiplyScalar(y));
+                points.push(pos);
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
+            wireGroup.add(new THREE.Line(geometry, material));
+        }
+
+        // Horizontal rings (latitudes)
+        for (let i = 0; i < numHorizontalRings; i++) {
+            const t = i / (numHorizontalRings - 1);
+            const center = tunnelCurve.getPoint(t);
+            const tangent = tunnelCurve.getTangent(t).clone().normalize();
+            // Find a perpendicular vector for the ring's plane
+            let up = new THREE.Vector3(0, 1, 0);
+            if (Math.abs(tangent.dot(up)) > 0.99) up = new THREE.Vector3(1, 0, 0);
+            const binormal = new THREE.Vector3().crossVectors(tangent, up).normalize();
+            const ringPoints = [];
+            for (let j = 0; j <= numRingSegments; j++) {
+                const angle = (j / numRingSegments) * Math.PI * 2;
+                const x = Math.cos(angle) * tunnelRadius;
+                const y = Math.sin(angle) * tunnelRadius;
+                // Local position in the ring's frame
+                const pos = center.clone()
+                    .add(up.clone().multiplyScalar(x))
+                    .add(binormal.clone().multiplyScalar(y));
+                ringPoints.push(pos);
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(ringPoints);
+            const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.4 });
+            wireGroup.add(new THREE.Line(geometry, material));
+        }
+
+        tunnelWire = wireGroup;
+        scene.add(tunnelWire);
+    }
+    
     function clearVisible() {
         visibleMeshes.forEach(mesh => scene.remove(mesh));
         visibleMeshes = [];
@@ -133,38 +230,73 @@
         visibleLabels = [];
     }
     
+    function createTextSprite(text) {
+        // Create a temporary canvas to measure text
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.font = 'bold 100px monospace'; // Increased font size
+        const metrics = tempCtx.measureText(text);
+        const textWidth = Math.ceil(metrics.width);
+        const textHeight = 130; // Increased for larger font
+
+        // Now create the actual canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = textWidth + 60; // More padding for bigger text
+        canvas.height = textHeight;
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.font = 'bold 100px monospace'; // Increased font size
+        context.fillStyle = 'rgba(255,255,255,1)';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.premultiplyAlpha = true;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            opacity: 1.0,
+            alphaTest: 0.5 // Discard low-alpha pixels
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(60, 18, 1); // Increased scale for bigger title
+        return sprite;
+    }
+
     function showTunnelRings() {
         clearVisible();
         for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
-            const z = stationZ(stationIdx);
-            const r = stationRadius(stationIdx);
+            // Compute t for this station (0=start, 1=end)
+            const t = stationIdx / (stations.length - 1);
+            const center = tunnelCurve.getPoint(t);
             let arts = artworksByStation[stationIdx];
-            // Only show up to 8 images per station
-            if (arts.length > 8) {
-                arts = arts.slice(0, 8).sort(() => Math.random() - 0.5);
+            // Ensure each ring has the same number of images (8 max for visual balance)
+            const maxImagesPerRing = 8;
+            if (arts.length > maxImagesPerRing) {
+                arts = arts.slice(0, maxImagesPerRing).sort(() => Math.random() - 0.5);
+            } else if (arts.length < maxImagesPerRing) {
+                // If we have fewer images, duplicate some to fill the ring
+                const originalArts = [...arts];
+                while (arts.length < maxImagesPerRing) {
+                    arts.push(...originalArts.slice(0, Math.min(maxImagesPerRing - arts.length, originalArts.length)));
+                }
+                arts = arts.slice(0, maxImagesPerRing).sort(() => Math.random() - 0.5);
             }
             const N = arts.length;
-            // Place a single station label at the top of the ring
-            const labelY = imageRingRadius + 0.2 * imageRingRadius;
-            const fontSize = Math.max(16, Math.round(imageRingRadius * 0.3));
-            const label = document.createElement('div');
-            label.textContent = stations[stationIdx];
-            label.style.position = 'absolute';
-            label.style.color = 'white';
-            label.style.fontSize = fontSize + 'px';
-            label.style.fontFamily = 'monospace';
-            label.style.pointerEvents = 'none';
-            label.style.textShadow = '0 0 4px #000, 0 0 2px #000';
-            label.style.zIndex = '1002'; // Higher than black overlay (1000) and loading container (1001)
-            document.body.appendChild(label);
-            visibleLabels.push({label, z, labelY});
-            
-            // Create a group for this ring to enable rotation
+            // Create a group for this ring
             const ringGroup = new THREE.Group();
-            ringGroup.position.set(0, 0, z);
+            ringGroup.position.copy(center);
+            // Do NOT orient the ring group here; will be done dynamically in animate()
             ringGroup.userData = { stationIdx, baseRotation: 0 };
             scene.add(ringGroup);
-            
+            // Add 3D text sprite for the station title at the center
+            const titleSprite = createTextSprite(stations[stationIdx]);
+            titleSprite.position.set(0, 0, 0);
+            ringGroup.add(titleSprite);
             for (let i = 0; i < N; i++) {
                 const angle = (i / N) * Math.PI * 2;
                 const art = arts[i];
@@ -172,22 +304,23 @@
                 let mesh, imageWidth = 18;
                 if (texture) {
                     const aspect = texture.image.width / texture.image.height;
-                    const height = 18;
+                    const height = 30;
                     imageWidth = height * aspect;
                     const geometry = new THREE.PlaneGeometry(imageWidth, height);
                     const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
                     mesh = new THREE.Mesh(geometry, material);
                 } else {
-                    const geometry = new THREE.BoxGeometry(18, 12, 2);
+                    const geometry = new THREE.BoxGeometry(30, 20, 2);
                     const color = `hsl(${Math.floor(360 * Math.random())},70%,60%)`;
                     const material = new THREE.MeshPhongMaterial({ color });
                     mesh = new THREE.Mesh(geometry, material);
                 }
+                // Place image in a circle around the local axis (XY plane of group)
                 const x = Math.cos(angle) * imageRingRadius;
                 const y = Math.sin(angle) * imageRingRadius;
                 mesh.position.set(x, y, 0);
-                // Face the tunnel center
-                mesh.lookAt(0, 0, 0);
+                // Make image stand up straight (no tilt)
+                mesh.rotation.set(0, 0, 0);
                 ringGroup.add(mesh);
                 visibleMeshes.push(mesh);
             }
@@ -241,7 +374,7 @@
     async function main() {
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
-        scene.fog = new THREE.Fog(0x000000, 100, tunnelLength + 400);
+        scene.fog = new THREE.Fog(0x000000, 100, tunnelLength + 800);
         
         // Create noise texture background
         const canvas = document.createElement('canvas');
@@ -339,6 +472,9 @@
             opacities: new Float32Array(particleCount) // Store individual opacities
         };
         scene.add(particles);
+        
+        // Create the wire grid
+        createTunnelWireGrid();
 
         camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
         camera.position.set(0, 0, 200); // Start outside tunnel, looking at z=0
@@ -434,11 +570,11 @@
     }
 
     // 7. Animate: smooth camera movement with mouse scroll
-    let targetZ = 200; // Start position
-    let currentZ = 200;
-    const scrollSpeed = 200; // How much to move per scroll unit
-    const minZ = zEnd - 100; // Deepest layer
-    const maxZ = zStart + 200; // Start position
+    // Camera movement along the curve
+    let cameraT = 0; // 0=start, 1=end
+    const minCameraT = 0;
+    const maxCameraT = 1;
+    const scrollSpeedT = 0.0005; // Adjust for faster/slower scroll
     
     function animate() {
         requestAnimationFrame(animate);
@@ -467,29 +603,19 @@
             particles.material.opacity = 0.3; // Base opacity
         }
         
-        // Smooth camera movement towards target
-        const diff = targetZ - currentZ;
-        if (Math.abs(diff) > 0.1) {
-            currentZ += diff * 0.1; // Smooth interpolation
-        }
-        
-        camera.position.z = currentZ;
-        // Keep camera looking straight down the tunnel
-        camera.lookAt(0, 0, currentZ - 100);
-        
-        // Rotate image rings based on camera position
-        scene.children.forEach(child => {
-            if (child.type === 'Group' && child.userData.stationIdx !== undefined) {
-                const stationIdx = child.userData.stationIdx;
-                const z = stationZ(stationIdx);
-                const distance = Math.abs(currentZ - z);
-                const rotationSpeed = 0.002; // Adjust for faster/slower rotation
-                const rotationAmount = (currentZ - z) * rotationSpeed;
-                child.rotation.z = rotationAmount; // Clockwise rotation around Z-axis
+        // Camera follows the curve
+        const camPos = tunnelCurve.getPoint(cameraT);
+        const camTangent = tunnelCurve.getTangent(cameraT);
+        camera.position.copy(camPos);
+        camera.up.set(0, 1, 0);
+        camera.lookAt(camPos.clone().add(camTangent));
+        // --- DYNAMICALLY ORIENT RINGS TO FACE CAMERA ---
+        scene.traverse((obj) => {
+            if (obj.type === 'Group' && obj.userData.stationIdx !== undefined) {
+                obj.up.set(0, 1, 0);
+                obj.lookAt(camera.position);
             }
         });
-        
-        updateArtworkOrientations();
         composer.render();
         
         // Update station labels
@@ -514,12 +640,11 @@
         });
     }
 
-    // 8. Mouse wheel navigation
+    // 8. Mouse wheel navigation: update cameraT
     document.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const delta = e.deltaY;
-        targetZ += delta * scrollSpeed * 0.01;
-        targetZ = Math.max(minZ, Math.min(maxZ, targetZ));
+        cameraT -= e.deltaY * scrollSpeedT;
+        cameraT = Math.max(minCameraT, Math.min(maxCameraT, cameraT));
     }, { passive: false });
 
     // Start the visualization when the page loads
