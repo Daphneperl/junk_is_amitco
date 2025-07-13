@@ -176,7 +176,7 @@
     }
 
     // 4. Place artworks in tunnel
-    let scene, camera, renderer, tunnelWire, composer, particles;
+    let scene, camera, renderer, tunnelWire, composer, particles, squareParticleGroup;
     // Add these arrays to store references and t values
     let visibleMeshes = [];
     let visibleLabels = [];
@@ -185,6 +185,9 @@
     let stationZs = [];
     let artworksData = [];
     
+    // Store Frenet frames globally for reuse
+    let tunnelFrenetFrames = null;
+
     // Create wire grid for the tunnel
     function createTunnelWireGrid() {
         const wireGroup = new THREE.Group();
@@ -194,7 +197,7 @@
         const numRingSegments = 48;
 
         // Precompute Frenet frames along the curve
-        const frames = tunnelCurve.computeFrenetFrames(numCurveSamples, false);
+        tunnelFrenetFrames = tunnelCurve.computeFrenetFrames(numCurveSamples, false);
 
         // Vertical lines (meridians)
         for (let v = 0; v < numVerticalLines; v++) {
@@ -203,8 +206,8 @@
             for (let i = 0; i < numCurveSamples; i++) {
                 const t = i / (numCurveSamples - 1);
                 const center = tunnelCurve.getPoint(t);
-                const normal = frames.normals[i];
-                const binormal = frames.binormals[i];
+                const normal = tunnelFrenetFrames.normals[i];
+                const binormal = tunnelFrenetFrames.binormals[i];
                 const x = Math.cos(angle) * tunnelRadius;
                 const y = Math.sin(angle) * tunnelRadius;
                 // Local position in the ring's frame
@@ -448,79 +451,131 @@
         // Set as background
         scene.background = noiseTexture;
 
-        // Create particles
-        const particleCount = 300;
-        const particleGeometry = new THREE.BufferGeometry();
-        const particlePositions = new Float32Array(particleCount * 3);
-        const particleSizes = new Float32Array(particleCount);
-        const particleColors = new Float32Array(particleCount * 3);
-        const particleSpeeds = new Float32Array(particleCount);
+        // Create the wire grid FIRST (sets tunnelFrenetFrames)
+        createTunnelWireGrid();
 
-        for (let i = 0; i < particleCount; i++) {
-            // Random positions within a sphere
-            const radius = 80;
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(2 * Math.random() - 1);
-            
-            particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-            particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-            particlePositions[i * 3 + 2] = radius * Math.cos(phi);
-
-            // More vibrant colors
-            const hue = Math.random(); // Random hue
-            const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
-            const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
-            
-            // Convert HSL to RGB
-            const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
-            const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
-            const m = lightness - c/2;
-            
-            let r, g, b;
-            if (hue < 1/6) {
-                r = c; g = x; b = 0;
-            } else if (hue < 2/6) {
-                r = x; g = c; b = 0;
-            } else if (hue < 3/6) {
-                r = 0; g = c; b = x;
-            } else if (hue < 4/6) {
-                r = 0; g = x; b = c;
-            } else if (hue < 5/6) {
-                r = x; g = 0; b = c;
+        // Now create background square particles (after tunnelFrenetFrames is set)
+        const squareParticleCount = 3000;
+        squareParticleGroup = new THREE.Group();
+        const numCurveSamples = tunnelFrenetFrames.normals.length;
+        for (let i = 0; i < squareParticleCount; i++) {
+            // Position particles along the tunnel curve
+            const t = Math.random(); // Random position along the curve
+            const curveIdx = Math.floor(t * (numCurveSamples - 1));
+            const center = tunnelCurve.getPoint(t);
+            // Use Frenet frames for local normal/binormal
+            const normal = tunnelFrenetFrames.normals[curveIdx];
+            const binormal = tunnelFrenetFrames.binormals[curveIdx];
+            // Place outside the tunnel
+            const angle = Math.random() * Math.PI * 2;
+            const radius = tunnelRadius + 20 + Math.random() * 50;
+            const offset = normal.clone().multiplyScalar(Math.cos(angle) * radius)
+                .add(binormal.clone().multiplyScalar(Math.sin(angle) * radius));
+            // Create square geometry
+            const squareSize = 2 + Math.random() * 3; // Random size between 2-5
+            const geometry = new THREE.PlaneGeometry(squareSize, squareSize);
+            // Color gradient from cyan (start) to purple (middle) to red (end) based on t position
+            const cyan = new THREE.Color(0x00ffff); // Cyan
+            const purple = new THREE.Color(0x8000ff); // Purple
+            const red = new THREE.Color(0xff0000);  // Red
+            let color;
+            if (t < 0.5) {
+                color = new THREE.Color().lerpColors(cyan, purple, t * 2);
             } else {
-                r = c; g = 0; b = x;
+                color = new THREE.Color().lerpColors(purple, red, (t - 0.5) * 2);
             }
-            
-            particleColors[i * 3] = r + m;     // R
-            particleColors[i * 3 + 1] = g + m; // G
-            particleColors[i * 3 + 2] = b + m; // B
-
-            // Random speeds between 0.02 and 0.08 (much slower than before)
-            particleSpeeds[i] = Math.random() * 0.06;
+            const material = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.3 + Math.random() * 0.6, // Random opacity between 0.3 and 0.9
+                side: THREE.DoubleSide
+            });
+            const square = new THREE.Mesh(geometry, material);
+            square.position.copy(center.clone().add(offset));
+            // Store original data for animation
+            square.userData = {
+                t: t,
+                angle: angle,
+                radius: radius,
+                speed: 0.001 + Math.random() * 0.002
+            };
+            squareParticleGroup.add(square);
         }
+        scene.add(squareParticleGroup);
 
-        particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-        particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
-        particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+    // Create original spherical particles
+    const particleCount = 300;
+    const particleGeometry = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleSizes = new Float32Array(particleCount);
+    const particleColors = new Float32Array(particleCount * 3);
+    const particleSpeeds = new Float32Array(particleCount);
 
-        const particleMaterial = new THREE.PointsMaterial({
-            size: 0.5,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.3,
-            sizeAttenuation: true,
-            depthWrite: false // Allow particles to be transparent when in front
-        });
+    for (let i = 0; i < particleCount; i++) {
+        // Random positions within a sphere
+        const radius = 80;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+        
+        particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+        particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        particlePositions[i * 3 + 2] = radius * Math.cos(phi);
 
-        particles = new THREE.Points(particleGeometry, particleMaterial);
-        particles.userData = { 
-            speeds: particleSpeeds,
-            opacities: new Float32Array(particleCount) // Store individual opacities
-        };
-        scene.add(particles);
+        // More vibrant colors
+        const hue = Math.random(); // Random hue
+        const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+        const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
+        
+        // Convert HSL to RGB
+        const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+        const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
+        const m = lightness - c/2;
+        
+        let r, g, b;
+        if (hue < 1/6) {
+            r = c; g = x; b = 0;
+        } else if (hue < 2/6) {
+            r = x; g = c; b = 0;
+        } else if (hue < 3/6) {
+            r = 0; g = c; b = x;
+        } else if (hue < 4/6) {
+            r = 0; g = x; b = c;
+        } else if (hue < 5/6) {
+            r = x; g = 0; b = c;
+        } else {
+            r = c; g = 0; b = x;
+        }
+        
+        particleColors[i * 3] = r + m;     // R
+        particleColors[i * 3 + 1] = g + m; // G
+        particleColors[i * 3 + 2] = b + m; // B
+
+        // Random speeds between 0.02 and 0.08 (much slower than before)
+        particleSpeeds[i] = Math.random() * 0.06;
+    }
+
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+    particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+    const particleMaterial = new THREE.PointsMaterial({
+        size: 0.5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.3,
+        sizeAttenuation: true,
+        depthWrite: false // Allow particles to be transparent when in front
+    });
+
+    particles = new THREE.Points(particleGeometry, particleMaterial);
+    particles.userData = { 
+        speeds: particleSpeeds,
+        opacities: new Float32Array(particleCount) // Store individual opacities
+    };
+    scene.add(particles);
         
         // Create the wire grid
-        createTunnelWireGrid();
+        // createTunnelWireGrid(); // This line is now redundant as it's called above
 
         camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
         camera.position.set(0, 0, 200); // Start outside tunnel, looking at z=0
@@ -670,6 +725,35 @@
     
     function animate() {
         requestAnimationFrame(animate);
+        
+        // Animate square particles
+        if (squareParticleGroup && tunnelFrenetFrames) {
+            const numCurveSamples = tunnelFrenetFrames.normals.length;
+            squareParticleGroup.children.forEach((square, idx) => {
+                if (square.userData && square.userData.speed) {
+                    const t = square.userData.t;
+                    const curveIdx = Math.floor(t * (numCurveSamples - 1));
+                    const center = tunnelCurve.getPoint(t);
+                    const normal = tunnelFrenetFrames.normals[curveIdx];
+                    const binormal = tunnelFrenetFrames.binormals[curveIdx];
+                    // Animate angle
+                    const time = Date.now() * 0.001 * square.userData.speed;
+                    const newAngle = square.userData.angle + time;
+                    const offset = normal.clone().multiplyScalar(Math.cos(newAngle) * square.userData.radius)
+                        .add(binormal.clone().multiplyScalar(Math.sin(newAngle) * square.userData.radius));
+                    // Add jitter: small, smooth, unique per particle
+                    const jitterTime = Date.now() * 0.002;
+                    const jitterAmount = 7.0; // max jitter in units (increased for larger effect)
+                    const jitterX = Math.sin(jitterTime + idx) * jitterAmount;
+                    const jitterY = Math.cos(jitterTime + idx * 1.7) * jitterAmount;
+                    // Jitter in the normal/binormal plane
+                    const jitterOffset = normal.clone().multiplyScalar(jitterX).add(binormal.clone().multiplyScalar(jitterY));
+                    square.position.copy(center.clone().add(offset).add(jitterOffset));
+                    // Always face the camera
+                    square.lookAt(camera.position);
+                }
+            });
+        }
         
         // Animate particles
         if (particles) {
