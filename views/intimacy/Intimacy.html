@@ -78,6 +78,7 @@
     <script>
     // 1. Define stations and Z mapping
     const stations = [
+        "", // Empty first layer
         "Beach",
         "Park bench",
         "Museum",
@@ -89,12 +90,14 @@
         "Bedroom",
         "Toilet"
     ];
+    
+
     const imageRingRadius = 75;
     const tunnelMargin = 3;
     const tunnelRadius = imageRingRadius + tunnelMargin;
     const minRingRadius = 55;
     const maxRingRadius = 75;
-    const tunnelLength = 5000; // total Z length (increased for larger station spacing)
+    const tunnelLength = 5500; // total Z length (increased for additional layer)
     const zStart = 0;
     const zEnd = -tunnelLength;
     const stationStep = tunnelLength / (stations.length - 1);
@@ -184,6 +187,9 @@
     let artworksByStation = [];
     let stationZs = [];
     let artworksData = [];
+
+    
+
     
     // Store Frenet frames globally for reuse
     let tunnelFrenetFrames = null;
@@ -274,7 +280,10 @@
         visibleMeshes = [];
         visibleLabels.forEach(label => label.remove());
         visibleLabels = [];
+
     }
+    
+
     
     function createTextSprite(text) {
         // Create a temporary canvas to measure text
@@ -338,12 +347,23 @@
             ringGroup.position.copy(center);
             ringGroup.userData = { stationIdx, t };
             scene.add(ringGroup);
-            // Title sprite
-            const titleSprite = createTextSprite(stations[stationIdx]);
-            titleSprite.position.set(0, 0, 0);
-            ringGroup.add(titleSprite);
-            // Store for dynamic opacity, now with center
-            ringObjects.push({ t, center: center.clone(), titleSprite, imageMeshes: [] });
+            // Title sprite (only create if station name is not empty)
+            if (stations[stationIdx].trim() !== "") {
+                const titleSprite = createTextSprite(stations[stationIdx]);
+                titleSprite.position.set(0, 0, 0);
+                ringGroup.add(titleSprite);
+                // Store for dynamic opacity, now with center
+                ringObjects.push({ t, center: center.clone(), titleSprite, imageMeshes: [] });
+            } else {
+                // For empty first layer, just store the ring object without title
+                ringObjects.push({ t, center: center.clone(), titleSprite: null, imageMeshes: [] });
+            }
+            
+            // Skip creating images for the first (empty) layer
+            if (stationIdx === 0) {
+                continue;
+            }
+            
             for (let i = 0; i < N; i++) {
                 const angle = (i / N) * Math.PI * 2;
                 const art = arts[i];
@@ -369,6 +389,16 @@
                 const y = Math.sin(angle) * imageRingRadius;
                 mesh.position.set(x, y, 0);
                 mesh.rotation.set(0, 0, 0);
+                // Store original position for jitter calculations
+                mesh.userData = {
+                    originalX: x,
+                    originalY: y,
+                    originalZ: 0,
+                    jitterSeed: Math.random() * 1000, // Random seed for unique jitter
+                    jitterSpeed: 0.5 + Math.random() * 2.0, // Random speed between 0.5-1.5
+                    jitterAmplitude: 2 + Math.random() * 3, // Random amplitude between 2-5
+                    jitterPhase: Math.random() * Math.PI * 2 // Random starting phase
+                };
                 ringGroup.add(mesh);
                 visibleMeshes.push(mesh);
                 ringObjects[ringObjects.length - 1].imageMeshes.push(mesh);
@@ -779,6 +809,42 @@
             particles.material.opacity = 0.3; // Base opacity
         }
         
+
+        
+        // Animate image jitter - slow and organic
+        const time = Date.now() * 0.001; // Faster overall time factor
+        visibleMeshes.forEach(mesh => {
+            if (mesh.userData && mesh.userData.jitterSpeed) {
+                const speed = mesh.userData.jitterSpeed;
+                const amplitude = mesh.userData.jitterAmplitude;
+                const phase = mesh.userData.jitterPhase;
+                const seed = mesh.userData.jitterSeed;
+                
+                // Create organic jitter using multiple sine waves with different frequencies
+                const jitterX = Math.sin(time * speed + phase) * amplitude * 0.3 +
+                               Math.sin(time * speed * 0.7 + seed) * amplitude * 0.2 +
+                               Math.sin(time * speed * 0.3 + phase * 2) * amplitude * 0.1;
+                
+                const jitterY = Math.cos(time * speed * 0.8 + phase) * amplitude * 0.3 +
+                               Math.cos(time * speed * 0.5 + seed) * amplitude * 0.2 +
+                               Math.cos(time * speed * 0.2 + phase * 3) * amplitude * 0.1;
+                
+                const jitterZ = Math.sin(time * speed * 0.6 + seed) * amplitude * 0.1 +
+                               Math.cos(time * speed * 0.4 + phase) * amplitude * 0.05;
+                
+                // Apply jitter to original position
+                mesh.position.set(
+                    mesh.userData.originalX + jitterX,
+                    mesh.userData.originalY + jitterY,
+                    mesh.userData.originalZ + jitterZ
+                );
+                
+                // Add subtle rotation jitter
+                const rotationJitter = Math.sin(time * speed * 0.3 + seed) * 0.02;
+                mesh.rotation.z = rotationJitter;
+            }
+        });
+        
         // Camera follows the curve
         const camPos = tunnelCurve.getPoint(cameraT);
         // Opacity gradient update using 3D distance
@@ -793,13 +859,15 @@
                 opacity = maxOpacity - (maxOpacity - minOpacity) * ((dist - fadeStart) / (fadeEnd - fadeStart));
             }
             opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
-            if (titleSprite.material) {
+            if (titleSprite && titleSprite.material) {
                 titleSprite.material.opacity = opacity;
             }
             imageMeshes.forEach(mesh => {
                 if (mesh.material) mesh.material.opacity = opacity;
             });
         });
+        
+
         camera.position.copy(camPos);
         camera.up.set(0, 1, 0);
         const camTangent = tunnelCurve.getTangent(cameraT);
@@ -844,6 +912,10 @@
         cameraT -= e.deltaY * scrollSpeedT;
         cameraT = Math.max(minCameraT, Math.min(maxCameraT, cameraT));
     }, { passive: false });
+
+
+
+
 
     // Start the visualization when the page loads
     window.addEventListener('load', main);
