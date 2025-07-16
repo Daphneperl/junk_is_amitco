@@ -223,6 +223,331 @@
         #eye-rhizome      { left: 0px;   top: 38px;  }
         #eye-completeness { left: 30px;  top: 110px; }
         #eye-secret       { left: 98px;  top: 140px; }
+
+        /* Popup Styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .popup-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: transparent;
+            border-radius: 20px;
+            padding: 0;
+            max-width: 95vw;
+            max-height: 95vh;
+            width: auto;
+            overflow: auto;
+            box-shadow: none;
+        }
+        
+        .popup-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .popup-close:hover {
+            color: #000;
+        }
+        
+        .popup-image {
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+        
+        /* Form Styles */
+        .upload-form-container {
+            background: #000000;
+            color: #FFFFFF;
+            padding: 40px;
+            border-radius: 0;
+            max-width: 95vw;
+            width: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: minmax(350px, 421px) minmax(400px, 471px) minmax(380px, 460px);
+            grid-template-rows: auto auto auto;
+            gap: 40px;
+            position: relative;
+        }
+        
+        .upload-section {
+            grid-column: 1;
+            grid-row: 1 / 3;
+        }
+        
+        .metadata-section {
+            grid-column: 2;
+            grid-row: 1 / 3;
+        }
+        
+        .details-section {
+            grid-column: 3;
+            grid-row: 1 / 3;
+        }
+        
+        .submit-section {
+            grid-column: 3;
+            grid-row: 3;
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        /* Typography */
+        .upload-title {
+            font-family: 'VT323', monospace;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0 0 12px 0;
+            color: #FFFFFF;
+        }
+        
+        .upload-subtitle {
+            font-family: 'Overpass Mono', monospace;
+            font-size: 14px;
+            color: #FFFFFF;
+            margin: 0 0 30px 0;
+            opacity: 0.8;
+        }
+        
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-family: 'Overpass Mono', monospace;
+            font-size: 13px;
+            color: #FFFFFF;
+            margin-bottom: 8px;
+            font-weight: normal;
+        }
+        
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #FFFFFF;
+            background: transparent;
+            color: #FFFFFF;
+            font-family: 'Overpass Mono', monospace;
+            font-size: 13px;
+            box-sizing: border-box;
+            border-radius: 0;
+        }
+        
+        .form-group input[type="text"]::placeholder,
+        .form-group textarea::placeholder {
+            color: #999999;
+            opacity: 1;
+        }
+        
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        /* Drag & Drop Zone */
+        .drag-drop-zone {
+            border: 2px dashed #FFFFFF;
+            background: transparent;
+            padding: 50px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        .drag-drop-zone:hover {
+            border-color: #CCCCCC;
+        }
+        
+        .drag-drop-zone.dragover {
+            border-color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .drag-drop-text {
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            color: #FFFFFF;
+            line-height: 1.5;
+        }
+        
+        /* Location Input */
+        .location-input {
+            position: relative;
+        }
+        
+        .location-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            z-index: 1;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        
+        .location-icon:hover {
+            opacity: 0.7;
+        }
+        
+        .location-input input {
+            padding-left: 30px;
+            cursor: pointer;
+        }
+        
+        /* Time Window Slider */
+        .time-window-slider-container {
+            margin-top: 8px;
+        }
+        
+        .time-window-slider {
+            width: 100%;
+            height: 3px;
+            background: transparent;
+            border: 1px solid #FFFFFF;
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: 8px;
+        }
+        
+        .time-window-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            border: 1px solid #FFFFFF;
+            cursor: pointer;
+        }
+        
+        .time-window-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            border: 1px solid #FFFFFF;
+            cursor: pointer;
+        }
+        
+        .time-icons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+        
+        .time-icon {
+            font-size: 14px;
+            color: #FFFFFF;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .time-icon.active {
+            opacity: 1;
+        }
+        
+        /* Slider */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .slider-label {
+            font-family: 'Overpass Mono', monospace;
+            font-size: 10px;
+            color: #FFFFFF;
+            white-space: nowrap;
+        }
+        
+        .cooked-slider {
+            flex: 1;
+            height: 3px;
+            background: transparent;
+            border: 1px solid #FFFFFF;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .cooked-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            border: 1px solid #FFFFFF;
+            cursor: pointer;
+        }
+        
+        .cooked-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            border: 1px solid #FFFFFF;
+            cursor: pointer;
+        }
+        
+        .slider-value {
+            font-family: 'Overpass Mono', monospace;
+            font-size: 12px;
+            color: #FFFFFF;
+            min-width: 16px;
+            text-align: center;
+        }
+        
+        /* Submit Button - moved to right column */
+        .submit-section {
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        .launch-btn {
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 12px 30px;
+            border: 1px solid #FFFFFF;
+            background: transparent;
+            color: #FFFFFF;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .launch-btn:hover {
+            background: #FFFFFF;
+            color: #000000;
+        }
     </style>
 </head>
 <body>
@@ -254,6 +579,115 @@
         <button class="eye-btn" id="eye-completeness" title="Completeness"></button>
         <button class="eye-btn" id="eye-secret"     title="Secret Gallery"></button>
         <div class="eye-tooltip" id="eye-tooltip"></div>
+    </div>
+    
+    <!-- Upload Popup -->
+    <div id="upload-popup" class="popup-overlay">
+        <div class="popup-content">
+            <button class="popup-close" onclick="closeUploadPopup()">&times;</button>
+            <div class="upload-form-container">
+                <!-- Section 1 - Left Column (File Upload) -->
+                <div class="upload-section">
+                    <h1 class="upload-title">Upload your junk</h1>
+                    <p class="upload-subtitle">Only one thing's required: the junk itself. The rest? Up to you.</p>
+                    
+                    <div class="drag-drop-zone" id="drag-drop-zone">
+                        <div class="drag-drop-text">
+                            Drag & drop<br>
+                            or<br>
+                            click to browse
+                        </div>
+                        <input type="file" id="file-upload" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Name it:</label>
+                        <input type="text" id="name-it" placeholder="Give it a name, or not...">
+                    </div>
+                </div>
+                
+                <!-- Section 2 - Middle Column (Metadata) -->
+                <div class="metadata-section">
+                    <div class="form-group">
+                        <label>From the hands of:</label>
+                        <input type="text" id="from-hands" placeholder="Alter ego / tag name / emoji...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Where in the world?</label>
+                        <div class="location-input">
+                            <span class="location-icon" onclick="openMapPopup()">📍</span>
+                            <input type="text" id="where-world" placeholder="Click to select location" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Where were you, really?</label>
+                        <input type="text" id="where-really" placeholder="Bed / Park / Coffee shop...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Around when?</label>
+                        <input type="text" id="around-when" placeholder="2020, or last winter...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Time window:</label>
+                        <div class="time-window-slider-container">
+                            <input type="range" id="time-window" min="0" max="3" value="0" class="time-window-slider">
+                            <div class="time-icons">
+                                <span class="time-icon" data-value="0">☀️</span>
+                                <span class="time-icon" data-value="1">☕️</span>
+                                <span class="time-icon" data-value="2">🌅</span>
+                                <span class="time-icon" data-value="3">🌙</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Tag your junk:</label>
+                        <input type="text" id="tag-junk" placeholder="Weird, Wrong, Unfinished">
+                    </div>
+                </div>
+                
+                <!-- Section 3 - Right Column (Details) -->
+                <div class="details-section">
+                    <div class="form-group">
+                        <label>How cooked is it?</label>
+                        <div class="slider-container">
+                            <span class="slider-label">Raw</span>
+                            <input type="range" id="how-cooked" min="0" max="100" value="0" class="cooked-slider">
+                            <span class="slider-label">Almost done</span>
+                            <div class="slider-value">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>What is it?</label>
+                        <input type="text" id="what-is" placeholder="Photo / Sketch / note">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Leave a note:</label>
+                        <textarea id="leave-note" placeholder="Made it while stoned in the bathroom last night..."></textarea>
+                    </div>
+                    
+                    <!-- Submit Button moved to bottom of right column -->
+                    <div class="submit-section">
+                        <button type="button" onclick="submitUpload()" class="launch-btn">Launch the junk</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Stub for map popup -->
+    <div id="map-popup" class="popup-overlay" style="z-index:4000;display:none;">
+        <div class="popup-content" style="background:#222;color:#fff;text-align:center;max-width:400px;">
+            <button class="popup-close" onclick="closeMapPopup()">&times;</button>
+            <h3>Map Picker (stub)</h3>
+            <p>This would open a map for location selection.</p>
+            <button onclick="closeMapPopup()" style="margin-top:20px;">Close</button>
+        </div>
     </div>
     <script>
         let scene, camera, renderer, controls;
@@ -899,6 +1333,241 @@
                 });
             });
         });
+        
+        // --- Upload Popup Functions ---
+        function showUploadPopup() {
+            const popup = document.getElementById('upload-popup');
+            popup.style.display = 'block';
+            // Trigger opacity transition
+            setTimeout(() => {
+                popup.style.opacity = '1';
+            }, 10);
+        }
+        
+        function closeUploadPopup() {
+            const popup = document.getElementById('upload-popup');
+            popup.style.opacity = '0';
+            // Hide after transition
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 300);
+        }
+        
+        // Add click event listener to upload button
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadBtn = document.getElementById('upload-hand-btn');
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', showUploadPopup);
+            }
+            
+            // Close popup when clicking outside
+            const popupOverlay = document.getElementById('upload-popup');
+            if (popupOverlay) {
+                popupOverlay.addEventListener('click', function(e) {
+                    if (e.target === popupOverlay) {
+                        closeUploadPopup();
+                    }
+                });
+            }
+            
+            // Close popup with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeUploadPopup();
+                }
+            });
+            
+            // Setup slider interactions
+            setupSliders();
+            setupButtons();
+            setupDragDrop();
+        });
+        
+        // Setup slider functionality
+        function setupSliders() {
+            const cookedSlider = document.getElementById('how-cooked');
+            const sliderValue = document.querySelector('.slider-value');
+            
+            if (cookedSlider && sliderValue) {
+                cookedSlider.addEventListener('input', function() {
+                    sliderValue.textContent = this.value;
+                });
+            }
+        }
+        
+        // Setup interactive buttons
+        function setupButtons() {
+            // Time window slider
+            const timeWindowSlider = document.getElementById('time-window');
+            const timeIcons = document.querySelectorAll('.time-icon');
+            
+            if (timeWindowSlider) {
+                timeWindowSlider.addEventListener('input', function() {
+                    const value = parseInt(this.value);
+                    timeIcons.forEach((icon, index) => {
+                        icon.classList.toggle('active', index === value);
+                    });
+                });
+                
+                // Initialize with first icon active
+                timeIcons[0].classList.add('active');
+            }
+        }
+        
+        // Setup drag & drop
+        function setupDragDrop() {
+            const dragZone = document.getElementById('drag-drop-zone');
+            const fileInput = document.getElementById('file-upload');
+            
+            if (dragZone && fileInput) {
+                // Click to browse
+                dragZone.addEventListener('click', () => {
+                    fileInput.click();
+                });
+                
+                // Drag & drop events
+                dragZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dragZone.classList.add('dragover');
+                });
+                
+                dragZone.addEventListener('dragleave', () => {
+                    dragZone.classList.remove('dragover');
+                });
+                
+                dragZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dragZone.classList.remove('dragover');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        fileInput.files = files;
+                        updateDragDropText(files[0].name);
+                    }
+                });
+                
+                // File input change
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        updateDragDropText(e.target.files[0].name);
+                    }
+                });
+            }
+        }
+        
+        function updateDragDropText(fileName) {
+            const dragText = document.querySelector('.drag-drop-text');
+            if (dragText) {
+                dragText.innerHTML = `File selected:<br>${fileName}`;
+            }
+        }
+        
+        // Map popup functionality
+        function openMapPopup() {
+            // For now, show a simple map selection popup
+            // In a real implementation, you'd integrate with Google Maps, Mapbox, etc.
+            const location = prompt('Enter location (e.g., "New York, NY" or "London, UK"):');
+            if (location) {
+                document.getElementById('where-world').value = location;
+            }
+        }
+        
+        // Handle form submission
+        function submitUpload() {
+            const nameIt = document.getElementById('name-it').value;
+            const fromHands = document.getElementById('from-hands').value;
+            const whereWorld = document.getElementById('where-world').value;
+            const whereReally = document.getElementById('where-really').value;
+            const aroundWhen = document.getElementById('around-when').value;
+            const timeWindow = document.getElementById('time-window').value;
+            const tagJunk = document.getElementById('tag-junk').value;
+            const howCooked = document.getElementById('how-cooked').value;
+            const whatIs = document.getElementById('what-is').value;
+            const leaveNote = document.getElementById('leave-note').value;
+            const fileUpload = document.getElementById('file-upload').files[0];
+            
+            // Validate required field
+            if (!fileUpload) {
+                alert('Please select a file to upload');
+                return;
+            }
+            
+            // Create form data object
+            const formData = {
+                nameIt: nameIt,
+                fromHands: fromHands,
+                whereWorld: whereWorld,
+                whereReally: whereReally,
+                aroundWhen: aroundWhen,
+                timeWindow: timeWindow,
+                tagJunk: tagJunk,
+                howCooked: howCooked,
+                whatIs: whatIs,
+                leaveNote: leaveNote,
+                fileName: fileUpload.name,
+                fileSize: fileUpload.size
+            };
+            
+            // Log the form data (in a real app, you'd send this to a server)
+            console.log('Form submitted:', formData);
+            
+            // Show success message
+            alert('Upload successful! (This is a demo - no actual upload occurred)');
+            
+            // Close popup
+            closeUploadPopup();
+            
+            // Reset form
+            resetForm();
+        }
+        
+        // Reset form to initial state
+        function resetForm() {
+            document.getElementById('name-it').value = '';
+            document.getElementById('from-hands').value = '';
+            document.getElementById('where-world').value = '';
+            document.getElementById('where-really').value = '';
+            document.getElementById('around-when').value = '';
+            document.getElementById('time-window').value = '0';
+            document.getElementById('tag-junk').value = '';
+            document.getElementById('how-cooked').value = '0';
+            document.getElementById('what-is').value = '';
+            document.getElementById('leave-note').value = '';
+            document.getElementById('file-upload').value = '';
+            
+            // Reset time window icons
+            document.querySelectorAll('.time-icon').forEach((icon, index) => {
+                icon.classList.toggle('active', index === 0);
+            });
+            
+            // Reset slider value
+            const sliderValue = document.querySelector('.slider-value');
+            if (sliderValue) sliderValue.textContent = '0';
+            
+            // Reset drag drop text
+            const dragText = document.querySelector('.drag-drop-text');
+            if (dragText) {
+                dragText.innerHTML = 'Drag & drop<br>or<br>click to browse';
+            }
+        }
+
+        // --- Map Popup Functions ---
+        function openMapPopup() {
+            // For now, show a simple map selection popup
+            // In a real implementation, you'd integrate with Google Maps, Mapbox, etc.
+            const location = prompt('Enter location (e.g., "New York, NY" or "London, UK"):');
+            if (location) {
+                document.getElementById('where-world').value = location;
+            }
+        }
+
+        function closeMapPopup() {
+            const mapPopup = document.getElementById('map-popup');
+            mapPopup.style.opacity = '0';
+            setTimeout(() => {
+                mapPopup.style.display = 'none';
+            }, 300);
+        }
     </script>
 </body>
 </html>
+
