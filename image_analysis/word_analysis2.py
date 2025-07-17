@@ -109,7 +109,7 @@ class ArtisticImageAnalyzer:
 
     def _generate_description(self, image: Image.Image) -> str:
         """Generate a vivid, artistic description using BLIP-2, avoiding medium/context words in the output."""
-        medium_words = {"page", "paper", "watercolor", "drawing", "sketch", "painting", "canvas", "piece", "notebook", "document", "text", "scan", "piece of paper", "photo", "image", "picture", "artwork", "illustration"}
+        medium_words = {"page", "paper", "watercolor", "drawing","background", "sketch", "painting", "canvas", "piece", "notebook", "document", "text", "scan", "piece of paper", "photo", "image", "picture", "artwork", "illustration"}
         try:
             # Try multiple generation strategies with different parameters
             generation_configs = [
