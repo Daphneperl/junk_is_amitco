@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>3D Intimacy Tunnel Gallery</title>
+    <link href="https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@400&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -15,7 +16,7 @@
         }
         @font-face {
             font-family: 'VT323';
-            src: url('../../assets/VT323-Regular.ttf') format('truetype');
+            src: url('../../../assets/VT323-Regular.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
@@ -78,17 +79,17 @@
     <script>
     // 1. Define stations and Z mapping
     const stations = [
-        "", // Empty first layer
-        "Beach",
-        "Park bench",
-        "Museum",
-        "Cafe",
-        "Pub",
-        "Class",
-        "Studio",
-        "Living room",
-        "Bedroom",
-        "Toilet"
+        { name: "", flower: "" }, // Empty first layer
+        { name: "The Beach", flower: "Sea Lavender" },
+        { name: "The Park", flower: "Wild Daisy" },
+        { name: "Museum", flower: "Orchid" },
+        { name: "Cafe", flower: "Coffee Flower" },
+        { name: "Pub", flower: "Hop Blossom" },
+        { name: "Class", flower: "Scholar's Rose" },
+        { name: "Studio", flower: "Artist's Iris" },
+        { name: "Living room", flower: "Home Lily" },
+        { name: "Bedroom", flower: "Night Jasmine" },
+        { name: "Toilet", flower: "Bathroom Fern" }
     ];
     
 
@@ -238,8 +239,11 @@
                 vertexShader: verticalLineVertexShader,
                 fragmentShader: verticalLineFragmentShader,
                 transparent: true,
+                depthWrite: false,
+                depthTest: true
             });
             const line = new THREE.Line(geometry, material);
+            line.renderOrder = 1;
             line.userData = { type: 'vertical', points: points, geometry: geometry, alphas: alphas };
             wireGroup.add(line);
         }
@@ -265,8 +269,15 @@
                 ringPoints.push(pos);
             }
             const geometry = new THREE.BufferGeometry().setFromPoints(ringPoints);
-            const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1.0 });
+            const material = new THREE.LineBasicMaterial({ 
+                color: 0xffffff, 
+                transparent: true, 
+                opacity: 1.0,
+                depthWrite: false,
+                depthTest: true
+            });
             const line = new THREE.Line(geometry, material);
+            line.renderOrder = 1;
             line.userData = { type: 'horizontal', points: ringPoints };
             wireGroup.add(line);
         }
@@ -285,26 +296,55 @@
     
 
     
-    function createTextSprite(text) {
+    function createTextSprite(title, subtitle = null) {
         // Create a temporary canvas to measure text
         const tempCanvas = document.createElement('canvas');
         const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.font = 'bold 120px VT323, monospace'; // Cool monotype font, bigger
-        const metrics = tempCtx.measureText(text);
-        const textWidth = Math.ceil(metrics.width);
-        const textHeight = 180; // Bigger height for bigger font
+        
+        // Measure title text
+        tempCtx.font = 'bold 300px VT323, monospace';
+        const titleMetrics = tempCtx.measureText(title);
+        const titleWidth = Math.ceil(titleMetrics.width);
+        const titleHeight = 450; // Bigger height for bigger font
+
+        // Measure subtitle text if provided
+        let subtitleWidth = 0;
+        let subtitleHeight = 0;
+        if (subtitle) {
+            tempCtx.font = '400 120px "Overpass Mono", monospace';
+            const subtitleMetrics = tempCtx.measureText(subtitle);
+            subtitleWidth = Math.ceil(subtitleMetrics.width);
+            subtitleHeight = 150;
+        }
+
+        // Calculate total dimensions
+        const totalWidth = Math.max(titleWidth, subtitleWidth) + 160; // More padding for bigger text
+        const totalHeight = titleHeight + (subtitle ? subtitleHeight - 50 : 0) + 120; // Extremely close - more overlap
 
         // Now create the actual canvas
         const canvas = document.createElement('canvas');
-        canvas.width = textWidth + 80; // More padding for bigger text
-        canvas.height = textHeight + 60; // More vertical padding
+        canvas.width = totalWidth;
+        canvas.height = totalHeight;
         const context = canvas.getContext('2d');
         context.clearRect(0, 0, canvas.width, canvas.height);
-        context.font = 'bold 120px VT323, monospace';
+        
+        // Draw title
+        context.font = 'bold 300px VT323, monospace';
         context.fillStyle = 'rgba(255,255,255,1)';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        const titleY = subtitle ? totalHeight / 2 - subtitleHeight / 2 + 25 : totalHeight / 2;
+        context.fillText(title, canvas.width / 2, titleY);
+
+        // Draw subtitle if provided
+        if (subtitle) {
+            context.font = '400 120px "Overpass Mono", monospace';
+            context.fillStyle = 'rgba(255,255,255,1)'; // Full opacity white
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            const subtitleY = totalHeight / 2 + titleHeight / 2 - 25;
+            context.fillText(subtitle, canvas.width / 2, subtitleY);
+        }
 
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
@@ -348,8 +388,8 @@
             ringGroup.userData = { stationIdx, t };
             scene.add(ringGroup);
             // Title sprite (only create if station name is not empty)
-            if (stations[stationIdx].trim() !== "") {
-                const titleSprite = createTextSprite(stations[stationIdx]);
+            if (stations[stationIdx].name.trim() !== "") {
+                const titleSprite = createTextSprite(stations[stationIdx].name, stations[stationIdx].flower);
                 titleSprite.position.set(0, 0, 0);
                 ringGroup.add(titleSprite);
                 // Store for dynamic opacity, now with center
@@ -382,9 +422,10 @@
                     const material = new THREE.MeshPhongMaterial({ color, transparent: true });
                     mesh = new THREE.Mesh(geometry, material);
                 }
-                // Ensure images render above the grid
-                mesh.renderOrder = 10;
-                mesh.material.depthTest = false;
+                // Ensure images render above the grid but respect depth
+                mesh.renderOrder = 100;
+                mesh.material.depthTest = true;
+                mesh.material.depthWrite = true;
                 const x = Math.cos(angle) * imageRingRadius;
                 const y = Math.sin(angle) * imageRingRadius;
                 mesh.position.set(x, y, 0);
@@ -451,6 +492,10 @@
 
     // 5. Camera, scene, controls
     async function main() {
+        // Ensure fonts are loaded before proceeding
+        await document.fonts.load('bold 300px VT323');
+        await document.fonts.load('400 120px "Overpass Mono"');
+        
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
         scene.fog = new THREE.Fog(0x000000, 100, tunnelLength + 800);
@@ -594,13 +639,13 @@
         transparent: true,
         opacity: 0.3,
         sizeAttenuation: true,
-        depthWrite: false // Allow particles to be transparent when in front
+        depthWrite: true,
+        depthTest: true
     });
 
     particles = new THREE.Points(particleGeometry, particleMaterial);
     particles.userData = { 
-        speeds: particleSpeeds,
-        opacities: new Float32Array(particleCount) // Store individual opacities
+        speeds: particleSpeeds
     };
     scene.add(particles);
         
@@ -789,7 +834,6 @@
         if (particles) {
             const positions = particles.geometry.attributes.position.array;
             const speeds = particles.userData.speeds;
-            const opacities = particles.userData.opacities;
             
             for (let i = 0; i < positions.length; i += 3) {
                 // Move particles in a circular motion
@@ -799,14 +843,9 @@
                 positions[i] += Math.sin(time) * 0.01;
                 positions[i + 1] += Math.cos(time) * 0.01;
                 positions[i + 2] += Math.sin(time * 0.5) * 0.01;
-
-                // Check if particle is in front of images (z > 0)
-                const z = positions[i + 2];
-                opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
             }
             
             particles.geometry.attributes.position.needsUpdate = true;
-            particles.material.opacity = 0.3; // Base opacity
         }
         
 
