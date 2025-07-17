@@ -77,6 +77,7 @@
         let imageGroups = [];
         let isInitialized = false;
         let helixGroup;
+        let helixOutline;
         let isDragging = false;
         let previousY = 0;
         let targetY = 0;
@@ -87,7 +88,7 @@
         const SCROLL_SPEED = 0.3;
         const SCROLL_SMOOTHING = 0.95;
         const VELOCITY_DAMPENING = 0.92;
-        const MAX_SCROLL = 600;
+        const MAX_SCROLL = 900; // Increased to accommodate longer helix
         const ROTATION_SPEED = 0.5;
 
         // Cluster mode variables
@@ -104,17 +105,92 @@
 
         // Function to position clusters in a helix
         function createHelixPosition(index, totalClusters) {
-            const turns = 16; // Significantly increased number of turns for an even longer spiral
-            const heightStep = 1200 / totalClusters; // Dramatically taller (1200 units instead of 600)
+            const turns = 20; // Increased turns to make helix longer
+            const heightStep = 1500 / totalClusters; // Increased height to accommodate more turns
             const radius = 40; // Larger radius for better visibility of the extended helix
             
             // Calculate position on helix
             const angle = (index / totalClusters) * Math.PI * 2 * turns;
             const x = radius * Math.cos(angle);
-            const y = (index * heightStep) - 600; // Center vertically (half of 1200)
+            const y = (index * heightStep) - 750; // Center vertically (half of 1500)
             const z = radius * Math.sin(angle);
             
             return new THREE.Vector3(x, y, z);
+        }
+
+        // Function to create helix outline
+        function createHelixOutline() {
+            const turns = 20;
+            const radius = 40;
+            const totalHeight = 1500;
+            const segments = 1200; // Increased segments for even smoother curve
+            
+            // Create main helix line
+            const points = [];
+            for (let i = 0; i <= segments; i++) {
+                const angle = (i / segments) * Math.PI * 2 * turns;
+                const y = (i / segments) * totalHeight - totalHeight / 2;
+                const x = radius * Math.cos(angle);
+                const z = radius * Math.sin(angle);
+                points.push(new THREE.Vector3(x, y, z));
+            }
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({ 
+                color: 0xffffff, 
+                transparent: true, 
+                opacity: 0.9,
+                linewidth: 6
+            });
+            
+            const line = new THREE.Line(geometry, material);
+            line.renderOrder = 0; // Ensure grid renders behind images
+            return line;
+        }
+
+        // Function to create 3D grid for helix
+        function createHelixGrid() {
+            const turns = 20;
+            const radius = 40;
+            const totalHeight = 1500;
+            const gridGroup = new THREE.Group();
+            
+
+            
+            // Create spiral guide lines (secondary helix paths) - more lines with weight hierarchy
+            const spiralGuides = 6; // Increased number of spiral guides
+            for (let guide = 0; guide <= spiralGuides; guide++) {
+                const guideRadius = radius * (0.2 + guide * 0.15); // More guides with closer spacing
+                const points = [];
+                const segments = 800; // Increased segments for smoother guide lines
+                
+                for (let i = 0; i <= segments; i++) {
+                    const angle = (i / segments) * Math.PI * 2 * turns;
+                    const y = (i / segments) * totalHeight - totalHeight / 2;
+                    const x = guideRadius * Math.cos(angle);
+                    const z = guideRadius * Math.sin(angle);
+                    points.push(new THREE.Vector3(x, y, z));
+                }
+                
+                // Weight hierarchy: outermost line is heaviest
+                const isOutermost = guide === spiralGuides;
+                const lineWidth = isOutermost ? 5 : (3 + guide * 0.5); // 5 for outermost, decreasing inward
+                const opacity = isOutermost ? 0.8 : (0.4 + guide * 0.05); // Higher opacity for outer lines
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const material = new THREE.LineBasicMaterial({ 
+                    color: 0xffffff, 
+                    transparent: true, 
+                    opacity: opacity,
+                    linewidth: lineWidth
+                });
+                
+                const line = new THREE.Line(geometry, material);
+                line.renderOrder = 0; // Ensure grid renders behind images
+                gridGroup.add(line);
+            }
+            
+            return gridGroup;
         }
 
         function createTextSprite(text) {
@@ -155,6 +231,14 @@
             try {
                 helixGroup = new THREE.Group();
                 scene.add(helixGroup);
+
+                // Create and add helix outline
+                helixOutline = createHelixOutline();
+                helixGroup.add(helixOutline);
+
+                // Create and add 3D grid
+                const helixGrid = createHelixGrid();
+                helixGroup.add(helixGrid);
 
                 const response = await fetch('../../images/images.json');
                 if (!response.ok) {
@@ -198,17 +282,21 @@
                                     const spriteMaterial = new THREE.SpriteMaterial({ 
                                         map: texture,
                                         transparent: true,
-                                        opacity: 0.8
+                                        opacity: 1.0
                                     });
                                     const sprite = new THREE.Sprite(spriteMaterial);
                                     
-                                    const baseSize = 5;
+                                    // Ensure images render in front of grid
+                                    sprite.renderOrder = 1000;
+                                    sprite.material.depthTest = false;
+                                    
+                                    const baseSize = 8; // Increased from 5 to 8
                                     sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
                                     
                                     // Calculate grid dimensions for proper spacing
                                     const gridCols = Math.ceil(Math.sqrt(clusterSize));
                                     const gridRows = Math.ceil(clusterSize / gridCols);
-                                    const spacing = Math.max(8, baseSize * 1.5); // Ensure spacing is larger than image size
+                                    const spacing = Math.max(10, baseSize * 1.3); // Reduced spacing to bring images closer
                                     
                                     // Calculate total height of the grid
                                     const totalGridHeight = gridRows * spacing;
@@ -216,6 +304,9 @@
                                     // Add username text under the cluster
                                     const username = "@User" + (clusterIndex + 1);
                                     const textSprite = createTextSprite(username);
+                                    // Ensure text also renders in front
+                                    textSprite.renderOrder = 1000;
+                                    textSprite.material.depthTest = false;
                                     // Position the text sprite below the bottom row of images
                                     textSprite.position.y = -(totalGridHeight / 2 + 1 ); // 5 units padding below the last row
                                     textSprite.position.z = 0; // Keep on same plane as images
