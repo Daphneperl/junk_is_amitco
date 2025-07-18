@@ -51,7 +51,7 @@ class ArtisticImageAnalyzer:
             "notebook", "scan", "drawing", "photo", "page", "cover", "illustration",
             "image", "picture", "artwork", "painting", "sketch", "text", "document",
             "paper", "canvas", "medium", "style", "technique", "composition", "notebooks", "photos", "scans", "covers", "illustrations","drawings",
-            "paintings", "art", "sketches","draft", "drafts",
+            "paintings", "art", "sketches","draft", "drafts", "pencil", "journal", "guestbook", "protfolio", "envelope", "words",
         }
         
         # Download required NLTK data
