@@ -76,16 +76,220 @@
         let particles;
         let imageSprites = [];
         let connectionLines = [];
+        let artisticData = [];
+        let imageDataMap = new Map();
         let totalImages = 0;
         let loadedImages = 0;
+        let entranceAnimationStart = 0;
+        let entranceAnimationDuration = 4000; // 4 seconds for faster rotation
+
+        // Load artistic analysis data
+        async function loadArtisticData() {
+            try {
+                const response = await fetch('../../image_analysis/artistic_analysis_filtered.json');
+                artisticData = await response.json();
+                
+                // Create a map for quick lookup
+                artisticData.forEach(item => {
+                    imageDataMap.set(item.filename, item);
+                });
+                
+                console.log(`Loaded ${artisticData.length} image analysis records`);
+                return artisticData;
+            } catch (error) {
+                console.error('Error loading artistic data:', error);
+                return [];
+            }
+        }
+
+        // Calculate similarity between two images based on keywords
+        function calculateSimilarity(image1, image2) {
+            if (!image1 || !image2 || !image1.keywords || !image2.keywords) {
+                return 0;
+            }
+
+            const keywords1 = new Set(image1.keywords.map(k => k.keyword.toLowerCase()));
+            const keywords2 = new Set(image2.keywords.map(k => k.keyword.toLowerCase()));
+            
+            // Find intersection of keywords
+            const intersection = new Set([...keywords1].filter(x => keywords2.has(x)));
+            
+            if (intersection.size === 0) return 0;
+            
+            // Calculate weighted similarity based on confidence scores
+            let totalWeight = 0;
+            let intersectionWeight = 0;
+            
+            // Calculate weights for intersection keywords
+            intersection.forEach(keyword => {
+                const conf1 = image1.keywords.find(k => k.keyword.toLowerCase() === keyword)?.confidence || 0;
+                const conf2 = image2.keywords.find(k => k.keyword.toLowerCase() === keyword)?.confidence || 0;
+                intersectionWeight += (conf1 + conf2) / 2;
+            });
+            
+            // Calculate total weights for all keywords
+            image1.keywords.forEach(k => totalWeight += k.confidence);
+            image2.keywords.forEach(k => totalWeight += k.confidence);
+            
+            // Return weighted similarity score
+            return intersectionWeight / (totalWeight / 2);
+        }
+
+        // Strict spatial clustering with enforced separation
+        function createStrictSpatialClusters() {
+            // Define semantic categories with their keywords
+            const semanticCategories = {
+                'text_documents': ['manuscript', 'document', 'text', 'writing', 'letter', 'signature', 'list', 'catalogue', 'menu', 'notes', 'scripts', 'correspondence', 'point', 'word', 'boundary', 'names', 'roster'],
+                'people_faces': ['face', 'head', 'person', 'people', 'portrait', 'figure', 'human'],
+                'nature_landscape': ['landscape', 'nature', 'tree', 'plant', 'flower', 'sky', 'mountain', 'water', 'ocean', 'forest', 'animals', 'zebra', 'center'],
+                'architecture_buildings': ['building', 'architecture', 'house', 'structure', 'wall', 'door', 'window', 'room'],
+                'objects_things': ['object', 'thing', 'item', 'tool', 'instrument', 'device', 'machine'],
+                'abstract_patterns': ['pattern', 'abstract', 'design', 'shape', 'form', 'texture', 'color'],
+                'animals_creatures': ['animal', 'creature', 'bird', 'fish', 'insect', 'mammal'],
+                'food_dining': ['food', 'meal', 'dish', 'plate', 'cup', 'drink', 'wine', 'coffee', 'pasta']
+            };
+            
+            // Helper function to get semantic category for an image
+            function getImageCategory(imageData) {
+                const keywordTexts = imageData.keywords.map(k => k.keyword.toLowerCase());
+                const categoryScores = {};
+                
+                for (const [category, keywords] of Object.entries(semanticCategories)) {
+                    let score = 0;
+                    for (const keyword of keywords) {
+                        if (keywordTexts.includes(keyword)) {
+                            score += 1;
+                        }
+                    }
+                    categoryScores[category] = score;
+                }
+                
+                // Return the category with highest score, or 'other' if no clear match
+                const maxScore = Math.max(...Object.values(categoryScores));
+                if (maxScore === 0) return 'other';
+                
+                for (const [category, score] of Object.entries(categoryScores)) {
+                    if (score === maxScore) return category;
+                }
+                return 'other';
+            }
+            
+            // Group images by semantic category
+            const categoryGroups = {};
+            artisticData.forEach((imageData, index) => {
+                const category = getImageCategory(imageData);
+                if (!categoryGroups[category]) {
+                    categoryGroups[category] = [];
+                }
+                categoryGroups[category].push({ ...imageData, originalIndex: index });
+            });
+            
+            // Create strict spatial clusters with large separation
+            const clusters = [];
+            const clusterPositions = {
+                'text_documents': { x: -400, y: 0, z: 0 },
+                'people_faces': { x: 400, y: 0, z: 0 },
+                'nature_landscape': { x: 0, y: 400, z: 0 },
+                'architecture_buildings': { x: 0, y: -400, z: 0 },
+                'objects_things': { x: 0, y: 0, z: 400 },
+                'abstract_patterns': { x: 0, y: 0, z: -400 },
+                'animals_creatures': { x: -400, y: 400, z: 0 },
+                'food_dining': { x: 400, y: -400, z: 0 },
+                'other': { x: 0, y: 0, z: 0 }
+            };
+            
+            Object.entries(categoryGroups).forEach(([category, images]) => {
+                if (images.length === 0) return;
+                
+                clusters.push({
+                    category: category,
+                    images: images,
+                    position: clusterPositions[category] || { x: 0, y: 0, z: 0 }
+                });
+            });
+            
+            console.log('Created strict spatial clusters:', clusters.map(c => `${c.category}: ${c.images.length} images at (${c.position.x}, ${c.position.y}, ${c.position.z})`));
+            return clusters;
+        }
+
+        // Position images strictly within their cluster regions
+        function positionImagesInStrictClusters(clusters) {
+            const imagePositions = new Map();
+            
+            clusters.forEach(cluster => {
+                const baseX = cluster.position.x;
+                const baseY = cluster.position.y;
+                const baseZ = cluster.position.z;
+                const clusterRadius = 60; // Smaller radius for tighter clusters
+                
+                // Position images within this cluster in a more organized way
+                cluster.images.forEach((imageData, imageIndex) => {
+                    // Create a spiral pattern within the cluster
+                    const angle = (imageIndex / cluster.images.length) * Math.PI * 4; // 2 full rotations
+                    const radius = (imageIndex / cluster.images.length) * clusterRadius * 0.8;
+                    const height = Math.sin(angle * 2) * clusterRadius * 0.3;
+                    
+                    const x = baseX + radius * Math.cos(angle);
+                    const y = baseY + radius * Math.sin(angle);
+                    const z = baseZ + height;
+                    
+                    imagePositions.set(imageData.originalIndex, { 
+                        x, y, z, 
+                        category: cluster.category,
+                        clusterCenter: { x: baseX, y: baseY, z: baseZ }
+                    });
+                });
+            });
+            
+            return imagePositions;
+        }
+
+        // Find connections only within the same cluster
+        function findIntraClusterConnections(clusters) {
+            const connections = [];
+            
+            // Initialize empty connections array
+            for (let i = 0; i < artisticData.length; i++) {
+                connections.push([]);
+            }
+            
+            // Only create connections within the same cluster
+            clusters.forEach(cluster => {
+                const clusterImages = cluster.images;
+                const similarityThreshold = 0.05; // Lower threshold to see more variation
+                
+                for (let i = 0; i < clusterImages.length; i++) {
+                    const image1 = clusterImages[i];
+                    const connectionsForImage = [];
+                    
+                    for (let j = i + 1; j < clusterImages.length; j++) {
+                        const image2 = clusterImages[j];
+                        const similarity = calculateSimilarity(image1, image2);
+                        
+                        if (similarity > similarityThreshold) {
+                            connectionsForImage.push({
+                                targetIndex: image2.originalIndex,
+                                similarity: similarity
+                            });
+                        }
+                    }
+                    
+                    // Sort by similarity and keep top connections
+                    connectionsForImage.sort((a, b) => b.similarity - a.similarity);
+                    connections[image1.originalIndex] = connectionsForImage.slice(0, 5); // More connections per image to see variation
+                }
+            });
+            
+            return connections;
+        }
 
         async function loadImages() {
             try {
-                const response = await fetch('../../images/images.json');
-                const imageList = await response.json();
+                // Use the filenames from artistic data
+                const imageList = artisticData.map(item => `${item.filename}.jpg`);
                 totalImages = imageList.length;
                 
-                return Promise.all(imageList.map(imageName => {
+                return Promise.all(imageList.map((imageName, index) => {
                     return new Promise((resolve, reject) => {
                         const loader = new THREE.TextureLoader();
                         loader.load(
@@ -93,10 +297,15 @@
                             (texture) => {
                                 loadedImages++;
                                 updateLoadingUI((loadedImages / totalImages) * 100);
-                                resolve(texture);
+                                resolve({ texture, index });
                             },
                             undefined,
-                            (error) => reject(error)
+                            (error) => {
+                                console.warn(`Failed to load ${imageName}:`, error);
+                                loadedImages++;
+                                updateLoadingUI((loadedImages / totalImages) * 100);
+                                resolve({ texture: null, index });
+                            }
                         );
                     });
                 }));
@@ -106,9 +315,26 @@
             }
         }
 
-        function createImageSprite(texture, index) {
+        function createImageSprite(texture, index, connections) {
+            if (!texture) {
+                // Create a placeholder sprite for missing images
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#333';
+                ctx.fillRect(0, 0, 100, 100);
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Missing', 50, 50);
+                
+                const placeholderTexture = new THREE.CanvasTexture(canvas);
+                texture = placeholderTexture;
+            }
+
             const aspectRatio = texture.image.width / texture.image.height;
-            const width = 10; // Base width
+            const width = 20; // Much larger base width
             const height = width / aspectRatio;
 
             const material = new THREE.SpriteMaterial({ 
@@ -119,58 +345,89 @@
             const sprite = new THREE.Sprite(material);
             sprite.scale.set(width, height, 1);
 
-            // Calculate base position using golden ratio for even distribution
-            const goldenRatio = (1 + Math.sqrt(5)) / 2;
-            const theta = 2 * Math.PI * index / goldenRatio;
+            // Position based on connection strength and keyword clusters
+            const imageData = artisticData[index];
+            const connectionCount = connections.length;
+            
+            // Calculate average similarity for this image
+            const avgSimilarity = connections.length > 0 ? 
+                connections.reduce((sum, conn) => sum + conn.similarity, 0) / connections.length : 0;
+            
+            // Use connection count and average similarity to determine radius
+            // More connections and higher similarity = closer to center
+            const maxRadius = 350;
+            const minRadius = 0; // Allow images to be at the very center
+            const connectionFactor = Math.min(1, connectionCount / 5); // Normalize to 0-1
+            const similarityFactor = avgSimilarity;
+            const combinedFactor = (connectionFactor + similarityFactor) / 2;
+            const radius = minRadius + (maxRadius - minRadius) * (1 - combinedFactor);
+            
+            // Use vibe and keywords to determine angle
+            const vibeAngles = {
+                'warm': 0,
+                'serene': Math.PI / 3,
+                'mysterious': 2 * Math.PI / 3,
+                'neutral': Math.PI,
+                'cool': 4 * Math.PI / 3,
+                'energetic': 5 * Math.PI / 3
+            };
+            
+            const baseAngle = vibeAngles[imageData.vibe] || 0;
+            const keywordHash = imageData.keywords.reduce((sum, k) => sum + k.keyword.charCodeAt(0), 0);
+            const angleOffset = (keywordHash % 100) / 100 * Math.PI * 0.5;
+            
+            const theta = baseAngle + angleOffset;
             const phi = Math.acos(1 - 2 * (index + 0.5) / totalImages);
 
-            // Add randomness to the radius (between 30% and 100% of max radius)
-            const maxRadius = 200; // Doubled from 100
-            const minRadius = maxRadius * 0.3; // Reduced minimum to 30% for more spread
-            const radius = minRadius + Math.random() * (maxRadius - minRadius);
-
-            // Add larger random offset to the angles for less uniform distribution
-            const thetaOffset = (Math.random() - 0.5) * Math.PI * 0.8; // Increased from 0.5 to 0.8
-            const phiOffset = (Math.random() - 0.5) * Math.PI * 0.5;   // Increased from 0.3 to 0.5
-
-            // Calculate final position with randomness
-            const finalTheta = theta + thetaOffset;
-            const finalPhi = Math.max(0.1, Math.min(Math.PI - 0.1, phi + phiOffset));
-
-            const targetX = radius * Math.sin(finalPhi) * Math.cos(finalTheta);
-            const targetY = radius * Math.sin(finalPhi) * Math.sin(finalTheta);
-            const targetZ = radius * Math.cos(finalPhi);
-
-            // Add larger random offsets for more organic distribution
-            const randomOffset = maxRadius * 0.25; // Increased from 0.15 to 0.25
+            // Reduce randomness for more predictable clustering
+            const randomOffset = radius * 0.1; // Reduced from 0.2 to 0.1
             const offsetX = (Math.random() - 0.5) * randomOffset;
             const offsetY = (Math.random() - 0.5) * randomOffset;
             const offsetZ = (Math.random() - 0.5) * randomOffset;
 
-            // Set final position with all offsets
-            sprite.position.set(
-                targetX + offsetX,
-                targetY + offsetY,
-                targetZ + offsetZ
-            );
+            const targetX = radius * Math.sin(phi) * Math.cos(theta) + offsetX;
+            const targetY = radius * Math.sin(phi) * Math.sin(theta) + offsetY;
+            const targetZ = radius * Math.cos(phi) + offsetZ;
 
-            // Store original position and time offset for movement
+            sprite.position.set(targetX, targetY, targetZ);
+
+            // Store data for animation and connections
             sprite.userData = {
                 timeOffset: index * 0.1,
-                originalX: targetX + offsetX,
-                originalY: targetY + offsetY,
-                originalZ: targetZ + offsetZ
+                originalX: targetX,
+                originalY: targetY,
+                originalZ: targetZ,
+                connections: connections,
+                imageData: imageData,
+                index: index,
+                avgSimilarity: avgSimilarity
             };
 
             return sprite;
         }
 
-        function createConnectionLine() {
+        function createConnectionLine(similarity) {
+            // Debug: Log similarity values to see the range
+            console.log('Connection similarity:', similarity);
+            
+            // Calculate line weight based on similarity
+            const baseWidth = 5; // Heavier base width
+            const maxWidth = 200; // Maximum width for strongest connections
+            const lineWidth = baseWidth + (similarity * (maxWidth - baseWidth));
+            
+            // Calculate opacity based on similarity (stronger connections = more opaque)
+            const minOpacity = 0.3;
+            const maxOpacity = 1.0;
+            const opacity = minOpacity + (similarity * (maxOpacity - minOpacity));
+            
+            console.log('Line width:', lineWidth, 'Opacity:', opacity);
+            
+            // White color for all edges
             const material = new THREE.LineBasicMaterial({
                 color: 0xffffff,
                 transparent: true,
-                opacity: 1,
-                linewidth: 1
+                opacity: opacity,
+                linewidth: lineWidth
             });
             const geometry = new THREE.BufferGeometry();
             const line = new THREE.Line(geometry, material);
@@ -178,45 +435,70 @@
             return line;
         }
 
-        function updateConnectionLines() {
-            // Remove old lines
-            connectionLines.forEach(line => scene.remove(line));
-            connectionLines = [];
-
-            // Create new lines
-            imageSprites.forEach((sprite, index) => {
-                let closestDistance = Infinity;
-                let closestSprite = null;
-
-                // Find closest sprite
-                imageSprites.forEach((otherSprite, otherIndex) => {
-                    if (index !== otherIndex) {
-                        const dx = sprite.position.x - otherSprite.position.x;
-                        const dy = sprite.position.y - otherSprite.position.y;
-                        const dz = sprite.position.z - otherSprite.position.z;
-                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-                        if (distance < closestDistance) {
-                            closestDistance = distance;
-                            closestSprite = otherSprite;
-                        }
-                    }
-                });
-
-                if (closestSprite) {
-                    const line = createConnectionLine();
-                    const positions = new Float32Array([
-                        sprite.position.x, sprite.position.y, sprite.position.z,
-                        closestSprite.position.x, closestSprite.position.y, closestSprite.position.z
-                    ]);
-                    line.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                    connectionLines.push(line);
+        function updateConnectionLines(entranceProgress = 0, entranceEase = 0) {
+            // Remove old lines and dispose of geometries to prevent memory leaks
+            connectionLines.forEach(line => {
+                scene.remove(line);
+                if (line.geometry) {
+                    line.geometry.dispose();
+                }
+                if (line.material) {
+                    line.material.dispose();
                 }
             });
+            connectionLines = [];
+
+            // Limit the number of connections to prevent performance issues
+            let connectionCount = 0;
+            const maxConnections = 300; // Increase limit to see more connections
+
+            // Create new lines based on keyword similarity
+            for (let i = 0; i < imageSprites.length && connectionCount < maxConnections; i++) {
+                const sprite = imageSprites[i];
+                const connections = sprite.userData.connections;
+                
+                for (let j = 0; j < connections.length && connectionCount < maxConnections; j++) {
+                    const connection = connections[j];
+                    const targetSprite = imageSprites[connection.targetIndex];
+                    if (targetSprite) {
+                        const line = createConnectionLine(connection.similarity);
+                        
+                        // Use the exact same rotation logic as the sprites to ensure consistency
+                        const entranceRotation = entranceEase * Math.PI * 0.5; // Same rotation as images
+                        const rotationMatrix = new THREE.Matrix4();
+                        rotationMatrix.makeRotationY(entranceRotation);
+                        
+                        // Get original positions and apply rotation
+                        const startOriginalX = sprite.userData.originalX;
+                        const startOriginalY = sprite.userData.originalY;
+                        const startOriginalZ = sprite.userData.originalZ;
+                        
+                        const endOriginalX = targetSprite.userData.originalX;
+                        const endOriginalY = targetSprite.userData.originalY;
+                        const endOriginalZ = targetSprite.userData.originalZ;
+                        
+                        // Apply rotation to start position
+                        const startPos = new THREE.Vector3(startOriginalX, startOriginalY, startOriginalZ);
+                        startPos.applyMatrix4(rotationMatrix);
+                        
+                        // Apply rotation to end position
+                        const endPos = new THREE.Vector3(endOriginalX, endOriginalY, endOriginalZ);
+                        endPos.applyMatrix4(rotationMatrix);
+                        
+                        const positions = new Float32Array([
+                            startPos.x, startPos.y, startPos.z,
+                            endPos.x, endPos.y, endPos.z
+                        ]);
+                        line.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                        connectionLines.push(line);
+                        connectionCount++;
+                    }
+                }
+            }
         }
 
         function createParticleSystem() {
-            const particleCount = 300;
+            const particleCount = 1500; // Much more particles for dramatic effect
             const particleGeometry = new THREE.BufferGeometry();
             const particlePositions = new Float32Array(particleCount * 3);
             const particleSizes = new Float32Array(particleCount);
@@ -224,46 +506,62 @@
             const particleSpeeds = new Float32Array(particleCount);
 
             for (let i = 0; i < particleCount; i++) {
-                // Random positions within a sphere
-                const radius = 200; // Match the new larger radius
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
+                // Distribute particles throughout the entire 3D environment
+                let x, y, z;
                 
-                particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-                particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-                particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+                // 70% of particles in the outer space, 30% within the network area
+                if (Math.random() < 0.7) {
+                    // Outer space particles (around the clusters)
+                    const radius = 800 + Math.random() * 400; // 800-1200 range
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    
+                    x = radius * Math.sin(phi) * Math.cos(theta);
+                    y = radius * Math.sin(phi) * Math.sin(theta);
+                    z = radius * Math.cos(phi);
+                } else {
+                    // Inner network particles (within and around the clusters)
+                    const clusterRadius = 500; // Area where clusters are located
+                    x = (Math.random() - 0.5) * clusterRadius * 2;
+                    y = (Math.random() - 0.5) * clusterRadius * 2;
+                    z = (Math.random() - 0.5) * clusterRadius * 2;
+                }
+                
+                particlePositions[i * 3] = x;
+                particlePositions[i * 3 + 1] = y;
+                particlePositions[i * 3 + 2] = z;
 
-                // More vibrant colors
-                const hue = Math.random();
-                const saturation = 0.3 + Math.random() * 0.2;
-                const lightness = 0.5 + Math.random() * 0.3;
+                // More vibrant colors based on position
+                const hue = (i / particleCount) + (Math.random() * 0.2);
+                const saturation = 0.4 + Math.random() * 0.3;
+                const lightness = 0.4 + Math.random() * 0.4;
                 
                 // Convert HSL to RGB
                 const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
-                const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
+                const hueX = c * (1 - Math.abs((hue * 6) % 2 - 1));
                 const m = lightness - c/2;
                 
                 let r, g, b;
                 if (hue < 1/6) {
-                    r = c; g = x; b = 0;
+                    r = c; g = hueX; b = 0;
                 } else if (hue < 2/6) {
-                    r = x; g = c; b = 0;
+                    r = hueX; g = c; b = 0;
                 } else if (hue < 3/6) {
-                    r = 0; g = c; b = x;
+                    r = 0; g = c; b = hueX;
                 } else if (hue < 4/6) {
-                    r = 0; g = x; b = c;
+                    r = 0; g = hueX; b = c;
                 } else if (hue < 5/6) {
-                    r = x; g = 0; b = c;
+                    r = hueX; g = 0; b = c;
                 } else {
-                    r = c; g = 0; b = x;
+                    r = c; g = 0; b = hueX;
                 }
                 
                 particleColors[i * 3] = r + m;
                 particleColors[i * 3 + 1] = g + m;
                 particleColors[i * 3 + 2] = b + m;
 
-                particleSpeeds[i] = Math.random() * 0.06;
-                particleSizes[i] = 2; // Slightly larger particles
+                particleSpeeds[i] = Math.random() * 0.02; // Much slower particle movement
+                particleSizes[i] = 3 + Math.random() * 4; // Much larger particles
             }
 
             particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
@@ -271,10 +569,10 @@
             particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
 
             const particleMaterial = new THREE.PointsMaterial({
-                size: 0.5,
+                size: 2.5, // Much larger base size
                 vertexColors: true,
                 transparent: true,
-                opacity: 0.6,
+                opacity: 0.8, // Slightly more opaque
                 sizeAttenuation: true,
                 depthWrite: false
             });
@@ -282,12 +580,26 @@
             particles = new THREE.Points(particleGeometry, particleMaterial);
             particles.userData = { 
                 speeds: particleSpeeds,
-                opacities: new Float32Array(particleCount)
+                opacities: new Float32Array(particleCount),
+                originalPositions: new Float32Array(particlePositions) // Store original positions
             };
             scene.add(particles);
         }
 
         async function init() {
+            // Load artistic data first
+            await loadArtisticData();
+            
+            // Create strict spatial clusters
+            const clusters = createStrictSpatialClusters();
+
+            // Position images strictly within their cluster regions
+            const imagePositions = positionImagesInStrictClusters(clusters);
+
+            // Find connections only within the same cluster
+            const intraClusterConnections = findIntraClusterConnections(clusters);
+            console.log('Found intra-cluster connections:', intraClusterConnections.length);
+
             // Create scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x000000);
@@ -320,19 +632,22 @@
             createParticleSystem();
 
             // Load and create image sprites
-            const textures = await loadImages();
-            textures.forEach((texture, index) => {
-                const sprite = createImageSprite(texture, index);
-                imageSprites.push(sprite);
-                scene.add(sprite);
+            const textureResults = await loadImages();
+            textureResults.forEach((result, index) => {
+                if (result.texture) {
+                    const clusterPosition = imagePositions.get(index);
+                    const sprite = createImageSprite(result.texture, index, intraClusterConnections[index], clusterPosition);
+                    imageSprites.push(sprite);
+                    scene.add(sprite);
+                }
             });
 
             // Initial creation of connection lines
-            updateConnectionLines();
+            updateConnectionLines(0, 0); // Start with no rotation
 
             // Create camera with increased distance
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-            camera.position.set(0, 0, 500); // More zoomed out, centered position
+            camera.position.set(0, 0, 800); // More zoomed out initial view
             
             // Create renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -386,13 +701,13 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.minDistance = 200;  // Prevent zooming in too close
-            controls.maxDistance = 1000; // Prevent zooming out too far
-            controls.target.set(0, 0, 0); // Ensure we're looking at the center
+            controls.minDistance = 1; // Allow zooming extremely close
+            controls.maxDistance = 3000; // Allow zooming much further out
+            controls.target.set(0, 0, 0);
             controls.update();
 
             // Add ambient light
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
 
             // Handle window resize
@@ -411,63 +726,188 @@
 
             const time = Date.now();
             
-            // Animate particles
+            // Handle entrance animation (always calculate, regardless of frame rate limiting)
+            if (entranceAnimationStart === 0) {
+                entranceAnimationStart = time;
+            }
+            
+            const entranceProgress = Math.min(1, (time - entranceAnimationStart) / entranceAnimationDuration);
+            const entranceEase = 0.5 - 0.5 * Math.cos(entranceProgress * Math.PI); // Smooth ease-in-out
+            
+            // Update connection lines every frame during entrance animation for perfect sync
+            if (entranceProgress < 1) {
+                // Update every single frame during entrance for perfect synchronization
+                updateConnectionLines(entranceProgress, entranceEase);
+            } else if (time % 300 === 0) { // Much less frequent updates after entrance
+                updateConnectionLines(1, 1); // Pass 1 for completed animation
+            }
+            
+            // Add frame rate limiting to prevent excessive rendering
+            if (time - (animate.lastTime || 0) < 16) { // Limit to ~60 FPS
+                return;
+            }
+            animate.lastTime = time;
+            
+            // Animate particles with slow, gentle movement and entrance rotation
             if (particles) {
                 const positions = particles.geometry.attributes.position.array;
                 const speeds = particles.userData.speeds;
                 
+                // Apply entrance rotation to particles
+                const entranceRotation = entranceEase * Math.PI * 0.5; // Same rotation as images (90 degrees)
+                const particleRotationMatrix = new THREE.Matrix4();
+                particleRotationMatrix.makeRotationY(entranceRotation);
+                
                 for (let i = 0; i < positions.length; i += 3) {
                     const speed = speeds[i / 3];
-                    const time = Date.now() * 0.001 * speed;
+                    const time = Date.now() * 0.1 * speed; // Much slower time factor
                     
-                    positions[i] += Math.sin(time) * 0.01;
-                    positions[i + 1] += Math.cos(time) * 0.01;
-                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+                    // Get original positions from stored data
+                    const originalX = particles.userData.originalPositions[i];
+                    const originalY = particles.userData.originalPositions[i + 1];
+                    const originalZ = particles.userData.originalPositions[i + 2];
+                    
+                    // Apply entrance rotation to particle positions
+                    const particlePosition = new THREE.Vector3(originalX, originalY, originalZ);
+                    particlePosition.applyMatrix4(particleRotationMatrix);
+                    
+                    // Very gentle, slow movement on top of rotation
+                    const movementX = Math.sin(time) * 0.1; // Reduced movement amplitude
+                    const movementY = Math.cos(time) * 0.1;
+                    const movementZ = Math.sin(time * 0.3) * 0.1; // Slower oscillation
+                    
+                    positions[i] = particlePosition.x + movementX;
+                    positions[i + 1] = particlePosition.y + movementY;
+                    positions[i + 2] = particlePosition.z + movementZ;
                 }
                 
                 particles.geometry.attributes.position.needsUpdate = true;
             }
 
-            // Animate images
+            // Animate images with smooth, stable cluster positioning
             imageSprites.forEach((sprite, index) => {
-                const floatTime = time * 0.0001 + sprite.userData.timeOffset;
-                const distanceFromCenter = Math.sqrt(
-                    sprite.userData.originalX ** 2 + 
-                    sprite.userData.originalY ** 2 + 
-                    sprite.userData.originalZ ** 2
-                );
+                const floatTime = time * 0.00005 + sprite.userData.timeOffset; // Much slower time
+                const connections = sprite.userData.connections;
+                const clusterPosition = sprite.userData.clusterPosition;
                 
-                // Adjust float radius based on new maximum distance
-                const floatRadius = 0.8 + (distanceFromCenter / 200) * 0.4;
+                // Apply entrance rotation animation - only one direction
+                const entranceRotation = entranceEase * Math.PI * 0.5; // 90 degrees (25% turn) in one direction
+                const rotationMatrix = new THREE.Matrix4();
+                rotationMatrix.makeRotationY(entranceRotation);
                 
-                // Use Perlin-like compound sine waves for more organic movement
-                const floatX = (
-                    Math.sin(floatTime * 0.2) * 0.7 +
-                    Math.sin(floatTime * 0.5) * 0.3
-                ) * floatRadius;
+                // Get the original position relative to center
+                const originalX = sprite.userData.originalX;
+                const originalY = sprite.userData.originalY;
+                const originalZ = sprite.userData.originalZ;
                 
-                const floatY = (
-                    Math.cos(floatTime * 0.3) * 0.7 +
-                    Math.cos(floatTime * 0.4) * 0.3
-                ) * floatRadius;
+                // Apply rotation to original position
+                const rotatedPosition = new THREE.Vector3(originalX, originalY, originalZ);
+                rotatedPosition.applyMatrix4(rotationMatrix);
                 
-                const floatZ = (
-                    Math.sin(floatTime * 0.25) * 0.7 +
-                    Math.sin(floatTime * 0.6) * 0.3
-                ) * floatRadius;
+                // Use cluster position as the anchor point
+                let targetX, targetY, targetZ;
+                
+                if (clusterPosition) {
+                    // Apply entrance rotation to cluster position
+                    const clusterCenter = new THREE.Vector3(
+                        clusterPosition.clusterCenter.x,
+                        clusterPosition.clusterCenter.y,
+                        clusterPosition.clusterCenter.z
+                    );
+                    
+                    // Get position relative to cluster center
+                    const relativeX = originalX - clusterCenter.x;
+                    const relativeY = originalY - clusterCenter.y;
+                    const relativeZ = originalZ - clusterCenter.z;
+                    
+                    // Apply rotation to relative position
+                    const relativePosition = new THREE.Vector3(relativeX, relativeY, relativeZ);
+                    relativePosition.applyMatrix4(rotationMatrix);
+                    
+                    // Add back cluster center
+                    targetX = clusterCenter.x + relativePosition.x;
+                    targetY = clusterCenter.y + relativePosition.y;
+                    targetZ = clusterCenter.z + relativePosition.z;
+                } else {
+                    // Use rotated position for non-clustered images
+                    targetX = rotatedPosition.x;
+                    targetY = rotatedPosition.y;
+                    targetZ = rotatedPosition.z;
+                }
+                
+                // Very gentle floating movement within cluster bounds
+                const floatRadius = 0.8; // Reduced radius
+                const floatX = Math.sin(floatTime * 0.05) * floatRadius; // Much slower movement
+                const floatY = Math.cos(floatTime * 0.07) * floatRadius;
+                const floatZ = Math.sin(floatTime * 0.04) * floatRadius;
 
-                // Add micro-movements for organic jittering
-                const microMove = 0.15;
-                const microTime = time * 0.0005 + sprite.userData.timeOffset;
-                const microX = Math.sin(microTime * 1.5) * microMove;
-                const microY = Math.cos(microTime * 1.7) * microMove;
-                const microZ = Math.sin(microTime * 1.6) * microMove;
+                // Extremely weak connection-based attraction
+                let connectionForceX = 0, connectionForceY = 0, connectionForceZ = 0;
+                let totalConnectionWeight = 0;
+                
+                connections.forEach(connection => {
+                    const targetSprite = imageSprites[connection.targetIndex];
+                    if (targetSprite) {
+                        const dx = targetSprite.position.x - sprite.position.x;
+                        const dy = targetSprite.position.y - sprite.position.y;
+                        const dz = targetSprite.position.z - sprite.position.z;
+                        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                        
+                        if (distance > 0) {
+                            // Very weak attraction
+                            const attractionForce = connection.similarity * 0.002; // Even weaker
+                            const weight = connection.similarity;
+                            
+                            connectionForceX += (dx / distance) * attractionForce * weight;
+                            connectionForceY += (dy / distance) * attractionForce * weight;
+                            connectionForceZ += (dz / distance) * attractionForce * weight;
+                            totalConnectionWeight += weight;
+                        }
+                    }
+                });
+                
+                // Normalize connection forces
+                if (totalConnectionWeight > 0) {
+                    connectionForceX /= totalConnectionWeight;
+                    connectionForceY /= totalConnectionWeight;
+                    connectionForceZ /= totalConnectionWeight;
+                }
 
-                sprite.position.x = sprite.userData.originalX + floatX + microX;
-                sprite.position.y = sprite.userData.originalY + floatY + microY;
-                sprite.position.z = sprite.userData.originalZ + floatZ + microZ;
+                // Add organic jitter with multiple frequency components for natural movement
+                const jitterTime = time * 0.001 + sprite.userData.timeOffset; // Much faster for visible movement
+                const jitterAmplitude = 2.0; // Much larger amplitude for visible jitter
+                
+                // Multiple sine waves at different frequencies for organic movement
+                const jitterX = Math.sin(jitterTime * 0.7) * jitterAmplitude * 0.3 +
+                               Math.sin(jitterTime * 1.3) * jitterAmplitude * 0.2 +
+                               Math.sin(jitterTime * 2.1) * jitterAmplitude * 0.1;
+                
+                const jitterY = Math.cos(jitterTime * 0.9) * jitterAmplitude * 0.3 +
+                               Math.cos(jitterTime * 1.7) * jitterAmplitude * 0.2 +
+                               Math.cos(jitterTime * 2.5) * jitterAmplitude * 0.1;
+                
+                const jitterZ = Math.sin(jitterTime * 0.5) * jitterAmplitude * 0.3 +
+                               Math.sin(jitterTime * 1.1) * jitterAmplitude * 0.2 +
+                               Math.sin(jitterTime * 1.9) * jitterAmplitude * 0.1;
+                
+                // Add very subtle micro-movements on top of jitter
+                const microMove = 0.05; // Much smaller micro-movements
+                const microTime = time * 0.00002 + sprite.userData.timeOffset; // Much slower
+                const microX = Math.sin(microTime * 0.3) * microMove;
+                const microY = Math.cos(microTime * 0.4) * microMove;
+                const microZ = Math.sin(microTime * 0.25) * microMove;
 
-                // Apply gentler repulsion between sprites with increased minimum distance
+                // Smooth interpolation to target position
+                const lerpFactor = entranceProgress < 1 ? 0.1 : 0.15; // Higher lerp factor to show jitter
+                const targetPosX = targetX + floatX + connectionForceX + microX + jitterX;
+                const targetPosY = targetY + floatY + connectionForceY + microY + jitterY;
+                const targetPosZ = targetZ + floatZ + connectionForceZ + microZ + jitterZ;
+                
+                sprite.position.x += (targetPosX - sprite.position.x) * lerpFactor;
+                sprite.position.y += (targetPosY - sprite.position.y) * lerpFactor;
+                sprite.position.z += (targetPosZ - sprite.position.z) * lerpFactor;
+
+                // Very gentle repulsion to prevent overlap (only within same cluster)
                 imageSprites.forEach((otherSprite, otherIndex) => {
                     if (index !== otherIndex) {
                         const dx = sprite.position.x - otherSprite.position.x;
@@ -475,27 +915,26 @@
                         const dz = sprite.position.z - otherSprite.position.z;
                         const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
                         
-                        const minDistance = 25;
-                        if (distance < minDistance) {
-                            const repulsionForce = (minDistance - distance) / minDistance;
-                            sprite.position.x += dx * repulsionForce * 0.03;
-                            sprite.position.y += dy * repulsionForce * 0.03;
-                            sprite.position.z += dz * repulsionForce * 0.03;
+                        // Check if these sprites are in the same cluster
+                        const sameCluster = clusterPosition && otherSprite.userData.clusterPosition &&
+                                          clusterPosition.category === otherSprite.userData.clusterPosition.category;
+                        
+                        // Only apply repulsion within the same cluster, and very gently
+                        if (sameCluster && distance < 6) {
+                            const repulsionForce = (6 - distance) / 6;
+                            const repulsionStrength = 0.001; // Very gentle repulsion
+                            
+                            sprite.position.x += dx * repulsionForce * repulsionStrength;
+                            sprite.position.y += dy * repulsionForce * repulsionStrength;
+                            sprite.position.z += dz * repulsionForce * repulsionStrength;
                         }
                     }
                 });
             });
-
-            // Update connection lines every few frames for performance
-            if (time % 3 === 0) {
-                updateConnectionLines();
-            }
             
             controls.update();
             composer.render();
         }
-
-        let startTime;
 
         function updateLoadingUI(progress) {
             const progressBar = document.getElementById('loading-progress');
@@ -530,6 +969,39 @@
 
         // Start the visualization when the page loads
         window.addEventListener('load', startVisualization);
+        
+        // Add cleanup on page unload to prevent memory leaks
+        window.addEventListener('beforeunload', () => {
+            if (renderer) {
+                renderer.dispose();
+            }
+            if (composer) {
+                composer.dispose();
+            }
+            if (scene) {
+                scene.traverse((object) => {
+                    if (object.geometry) {
+                        object.geometry.dispose();
+                    }
+                    if (object.material) {
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(material => material.dispose());
+                        } else {
+                            object.material.dispose();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Add error handling for WebGL context loss
+        window.addEventListener('webglcontextlost', (event) => {
+            event.preventDefault();
+            console.warn('WebGL context lost. Reloading page...');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
     </script>
 </body>
 </html>

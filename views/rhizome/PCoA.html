@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D PCA Visualization - Image Semantic Analysis</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+        @font-face {
+            font-family: 'Pixel';
+            src: url('../../assets/pixel.ttf') format('truetype');
+        }
+        body {
+            margin: 0;
+            background-color: black;
+            overflow: hidden;
+        }
+        #visualization {
+            width: 100vw;
+            height: 100vh;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #black-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+            opacity: 1;
+        }
+        #loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+        }
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            height: 100%;
+            background: #ffffff;
+            transition: width 0.3s ease;
+        }
+        #info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 100;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div id="black-overlay"></div>
+    <div id="loading-container">
+        <div class="loading-bar">
+            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
+        </div>
+        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+    </div>
+    <div id="visualization"></div>
+    <div id="info-panel">
+        <h3>3D PCA Visualization</h3>
+        <p>Principal Component Analysis of image semantic features</p>
+        <p>Features: All keywords with confidence scores</p>
+        <p>Dimensions: Reduced to 3D using PCA</p>
+        <p>Click and drag to rotate, scroll to zoom</p>
+    </div>
+    <script>
+        let scene, camera, renderer, controls;
+        let composer;
+        let particles;
+        let imageSprites = [];
+        let artisticData = [];
+        let pcaCoordinates = [];
+        let allKeywords = new Set();
+        let keywordIndexMap = new Map();
+        let totalImages = 0;
+        let loadedImages = 0;
+
+        // Load artistic analysis data
+        async function loadArtisticData() {
+            try {
+                const response = await fetch('../../image_analysis/artistic_analysis_filtered.json');
+                artisticData = await response.json();
+                console.log(`Loaded ${artisticData.length} image analysis records`);
+                return artisticData;
+            } catch (error) {
+                console.error('Error loading artistic data:', error);
+                return [];
+            }
+        }
+
+        // Extract all unique keywords from the dataset
+        function extractAllKeywords() {
+            artisticData.forEach(item => {
+                if (item.keywords) {
+                    item.keywords.forEach(kw => {
+                        allKeywords.add(kw.keyword.toLowerCase());
+                    });
+                }
+            });
+            
+            // Create index mapping for keywords
+            Array.from(allKeywords).sort().forEach((keyword, index) => {
+                keywordIndexMap.set(keyword, index);
+            });
+            
+            console.log(`Found ${allKeywords.size} unique keywords`);
+        }
+
+        // Create feature vector for an image based on all keywords
+        function createFeatureVector(imageData) {
+            const featureVector = new Array(allKeywords.size).fill(0);
+            
+            if (imageData.keywords) {
+                imageData.keywords.forEach(kw => {
+                    const keyword = kw.keyword.toLowerCase();
+                    const index = keywordIndexMap.get(keyword);
+                    if (index !== undefined) {
+                        featureVector[index] = kw.confidence;
+                    }
+                });
+            }
+            
+            return featureVector;
+        }
+
+        // Calculate mean of feature vectors
+        function calculateMean(featureVectors) {
+            const mean = new Array(featureVectors[0].length).fill(0);
+            featureVectors.forEach(vector => {
+                vector.forEach((value, index) => {
+                    mean[index] += value;
+                });
+            });
+            return mean.map(sum => sum / featureVectors.length);
+        }
+
+        // Center the data by subtracting mean
+        function centerData(featureVectors, mean) {
+            return featureVectors.map(vector => 
+                vector.map((value, index) => value - mean[index])
+            );
+        }
+
+        // Calculate covariance matrix
+        function calculateCovarianceMatrix(centeredData) {
+            const n = centeredData.length;
+            const p = centeredData[0].length;
+            const covariance = Array(p).fill().map(() => Array(p).fill(0));
+            
+            for (let i = 0; i < p; i++) {
+                for (let j = 0; j < p; j++) {
+                    let sum = 0;
+                    for (let k = 0; k < n; k++) {
+                        sum += centeredData[k][i] * centeredData[k][j];
+                    }
+                    covariance[i][j] = sum / (n - 1);
+                }
+            }
+            
+            return covariance;
+        }
+
+        // Power iteration method for finding eigenvectors
+        function powerIteration(matrix, maxIterations = 100, tolerance = 1e-10) {
+            const n = matrix.length;
+            let vector = Array(n).fill().map(() => Math.random());
+            
+            // Normalize
+            let norm = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+            vector = vector.map(val => val / norm);
+            
+            for (let iter = 0; iter < maxIterations; iter++) {
+                // Matrix multiplication
+                const newVector = Array(n).fill(0);
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        newVector[i] += matrix[i][j] * vector[j];
+                    }
+                }
+                
+                // Normalize
+                norm = Math.sqrt(newVector.reduce((sum, val) => sum + val * val, 0));
+                newVector.forEach((val, i) => newVector[i] = val / norm);
+                
+                // Check convergence
+                const diff = Math.sqrt(vector.reduce((sum, val, i) => sum + (val - newVector[i]) ** 2, 0));
+                if (diff < tolerance) break;
+                
+                vector = newVector;
+            }
+            
+            return vector;
+        }
+
+        // Gram-Schmidt orthogonalization
+        function gramSchmidt(vectors) {
+            const orthogonal = [];
+            
+            for (let i = 0; i < vectors.length; i++) {
+                let orthogonalVector = [...vectors[i]];
+                
+                // Subtract projections onto previous vectors
+                for (let j = 0; j < i; j++) {
+                    const projection = vectors[i].reduce((sum, val, k) => sum + val * orthogonal[j][k], 0);
+                    const normSquared = orthogonal[j].reduce((sum, val) => sum + val * val, 0);
+                    const scale = projection / normSquared;
+                    
+                    orthogonalVector.forEach((val, k) => {
+                        orthogonalVector[k] = val - scale * orthogonal[j][k];
+                    });
+                }
+                
+                // Normalize
+                const norm = Math.sqrt(orthogonalVector.reduce((sum, val) => sum + val * val, 0));
+                orthogonalVector.forEach((val, index) => {
+                    orthogonalVector[index] = val / norm;
+                });
+                
+                orthogonal.push(orthogonalVector);
+            }
+            
+            return orthogonal;
+        }
+
+        // Perform PCA to get top 3 principal components
+        function performPCA(featureVectors) {
+            console.log('Starting PCA calculation...');
+            
+            // Calculate mean and center data
+            const mean = calculateMean(featureVectors);
+            const centeredData = centerData(featureVectors, mean);
+            
+            // Calculate covariance matrix
+            const covarianceMatrix = calculateCovarianceMatrix(centeredData);
+            
+            // Find top 3 eigenvectors using power iteration
+            const eigenvectors = [];
+            const eigenvalues = [];
+            
+            for (let i = 0; i < 3; i++) {
+                // Create deflated matrix for subsequent eigenvectors
+                let matrix = covarianceMatrix.map(row => [...row]);
+                for (let j = 0; j < i; j++) {
+                    const eigenvector = eigenvectors[j];
+                    const eigenvalue = eigenvalues[j];
+                    
+                    // Deflate matrix: A = A - λ * v * v^T
+                    for (let k = 0; k < matrix.length; k++) {
+                        for (let l = 0; l < matrix[k].length; l++) {
+                            matrix[k][l] -= eigenvalue * eigenvector[k] * eigenvector[l];
+                        }
+                    }
+                }
+                
+                // Find eigenvector
+                const eigenvector = powerIteration(matrix);
+                eigenvectors.push(eigenvector);
+                
+                // Calculate eigenvalue
+                const eigenvalue = eigenvector.reduce((sum, val, k) => {
+                    return sum + val * covarianceMatrix[k].reduce((innerSum, matrixVal, l) => 
+                        innerSum + matrixVal * eigenvector[l], 0);
+                }, 0);
+                eigenvalues.push(eigenvalue);
+            }
+            
+            // Orthogonalize eigenvectors
+            const orthogonalEigenvectors = gramSchmidt(eigenvectors);
+            
+            // Project data onto principal components
+            const pcaCoordinates = centeredData.map(vector => {
+                const projection = [0, 0, 0];
+                for (let i = 0; i < 3; i++) {
+                    projection[i] = vector.reduce((sum, val, j) => 
+                        sum + val * orthogonalEigenvectors[i][j], 0);
+                }
+                return projection;
+            });
+            
+            console.log('PCA calculation completed');
+            console.log('Eigenvalues:', eigenvalues);
+            console.log('Explained variance ratios:', eigenvalues.map(e => e / eigenvalues.reduce((sum, val) => sum + val, 0)));
+            
+            return pcaCoordinates;
+        }
+
+        async function loadImages() {
+            try {
+                const imageList = artisticData.map(item => `${item.filename}.jpg`);
+                totalImages = imageList.length;
+                
+                return Promise.all(imageList.map((imageName, index) => {
+                    return new Promise((resolve, reject) => {
+                        const loader = new THREE.TextureLoader();
+                        loader.load(
+                            `../../images/${imageName}`,
+                            (texture) => {
+                                loadedImages++;
+                                updateLoadingUI((loadedImages / totalImages) * 100);
+                                resolve({ texture, index });
+                            },
+                            undefined,
+                            (error) => {
+                                console.warn(`Failed to load ${imageName}:`, error);
+                                loadedImages++;
+                                updateLoadingUI((loadedImages / totalImages) * 100);
+                                resolve({ texture: null, index });
+                            }
+                        );
+                    });
+                }));
+            } catch (error) {
+                console.error('Error loading images:', error);
+                return [];
+            }
+        }
+
+        function createImageSprite(texture, index, pcaCoord) {
+            if (!texture) {
+                // Create a placeholder sprite for missing images
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#333';
+                ctx.fillRect(0, 0, 100, 100);
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Missing', 50, 50);
+                
+                const placeholderTexture = new THREE.CanvasTexture(canvas);
+                texture = placeholderTexture;
+            }
+
+            const aspectRatio = texture.image.width / texture.image.height;
+            const width = 6;
+            const height = width / aspectRatio;
+
+            const material = new THREE.SpriteMaterial({ 
+                map: texture,
+                transparent: true,
+                opacity: 0.9
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(width, height, 1);
+
+            // Position based on PCA coordinates
+            const scale = 150; // Increased scale factor for more spread out visualization
+            const x = pcaCoord[0] * scale;
+            const y = pcaCoord[1] * scale;
+            const z = pcaCoord[2] * scale;
+
+            sprite.position.set(x, y, z);
+
+            // Store data for animation and interaction
+            sprite.userData = {
+                timeOffset: index * 0.1,
+                originalX: x,
+                originalY: y,
+                originalZ: z,
+                imageData: artisticData[index],
+                index: index,
+                pcaCoord: pcaCoord
+            };
+
+            return sprite;
+        }
+
+        function createParticleSystem() {
+            const particleCount = 300;
+            const particleGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            const particleSizes = new Float32Array(particleCount);
+            const particleColors = new Float32Array(particleCount * 3);
+            const particleSpeeds = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                // Random positions within the PCA space
+                const radius = 500;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+
+                // Subtle colors
+                const hue = (i / particleCount) * 0.3;
+                const saturation = 0.2 + Math.random() * 0.2;
+                const lightness = 0.3 + Math.random() * 0.3;
+                
+                // Convert HSL to RGB
+                const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+                const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
+                const m = lightness - c/2;
+                
+                let r, g, b;
+                if (hue < 1/6) {
+                    r = c; g = x; b = 0;
+                } else if (hue < 2/6) {
+                    r = x; g = c; b = 0;
+                } else if (hue < 3/6) {
+                    r = 0; g = c; b = x;
+                } else if (hue < 4/6) {
+                    r = 0; g = x; b = c;
+                } else if (hue < 5/6) {
+                    r = x; g = 0; b = c;
+                } else {
+                    r = c; g = 0; b = x;
+                }
+                
+                particleColors[i * 3] = r + m;
+                particleColors[i * 3 + 1] = g + m;
+                particleColors[i * 3 + 2] = b + m;
+
+                particleSpeeds[i] = Math.random() * 0.05;
+                particleSizes[i] = 1 + Math.random() * 1.5;
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.6,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.5,
+                sizeAttenuation: true,
+                depthWrite: false
+            });
+
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            particles.userData = { 
+                speeds: particleSpeeds,
+                opacities: new Float32Array(particleCount)
+            };
+            scene.add(particles);
+        }
+
+        async function init() {
+            // Load artistic data first
+            await loadArtisticData();
+            
+            // Extract all keywords and create feature vectors
+            extractAllKeywords();
+            
+            // Create feature vectors for all images
+            const featureVectors = artisticData.map(item => createFeatureVector(item));
+            console.log(`Created feature vectors with ${allKeywords.size} dimensions`);
+            
+            // Perform PCA
+            pcaCoordinates = performPCA(featureVectors);
+            console.log('PCA coordinates calculated:', pcaCoordinates.length);
+
+            // Create scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
+            
+            // Create noise texture for background
+            const canvas = document.createElement('canvas');
+            canvas.width = 1920;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+            
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const value = Math.random() * 30;
+                data[i] = value;
+                data[i + 1] = value;
+                data[i + 2] = value;
+                data[i + 3] = 15;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            
+            const noiseTexture = new THREE.CanvasTexture(canvas);
+            noiseTexture.wrapS = THREE.RepeatWrapping;
+            noiseTexture.wrapT = THREE.RepeatWrapping;
+            scene.background = noiseTexture;
+
+            // Create particle system
+            createParticleSystem();
+
+            // Load and create image sprites
+            const textureResults = await loadImages();
+            textureResults.forEach((result, index) => {
+                if (result.texture && pcaCoordinates[index]) {
+                    const sprite = createImageSprite(result.texture, index, pcaCoordinates[index]);
+                    imageSprites.push(sprite);
+                    scene.add(sprite);
+                }
+            });
+
+            // Create camera
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 0, 600);
+            
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 1);
+            document.getElementById('visualization').appendChild(renderer.domElement);
+
+            // Setup post-processing
+            composer = new THREE.EffectComposer(renderer);
+            const renderPass = new THREE.RenderPass(scene, camera);
+            composer.addPass(renderPass);
+
+            // Add vignette effect
+            const vignetteShader = {
+                uniforms: {
+                    "tDiffuse": { value: null },
+                    "offset": { value: 1.0 },
+                    "darkness": { value: 1.0 }
+                },
+                vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform sampler2D tDiffuse;
+                    uniform float offset;
+                    uniform float darkness;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec2 uv = vUv;
+                        vec4 color = texture2D(tDiffuse, uv);
+                        vec2 center = vec2(0.5, 0.5);
+                        float dist = distance(uv, center);
+                        float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                        color.rgb *= vignette;
+                        gl_FragColor = color;
+                    }
+                `
+            };
+
+            const vignettePass = new THREE.ShaderPass(vignetteShader);
+            vignettePass.uniforms.offset.value = 0.5;
+            vignettePass.uniforms.darkness.value = 0.5;
+            composer.addPass(vignettePass);
+
+            // Add orbit controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 200;
+            controls.maxDistance = 1500;
+            controls.target.set(0, 0, 0);
+            controls.update();
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = Date.now();
+            
+            // Animate particles
+            if (particles) {
+                const positions = particles.geometry.attributes.position.array;
+                const speeds = particles.userData.speeds;
+                
+                for (let i = 0; i < positions.length; i += 3) {
+                    const speed = speeds[i / 3];
+                    const time = Date.now() * 0.001 * speed;
+                    
+                    positions[i] += Math.sin(time) * 0.01;
+                    positions[i + 1] += Math.cos(time) * 0.01;
+                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+                }
+                
+                particles.geometry.attributes.position.needsUpdate = true;
+            }
+
+            // Subtle floating animation for images
+            imageSprites.forEach((sprite, index) => {
+                const floatTime = time * 0.0001 + sprite.userData.timeOffset;
+                const floatRadius = 0.3;
+                
+                const floatX = Math.sin(floatTime * 0.3) * floatRadius;
+                const floatY = Math.cos(floatTime * 0.4) * floatRadius;
+                const floatZ = Math.sin(floatTime * 0.25) * floatRadius;
+
+                sprite.position.x = sprite.userData.originalX + floatX;
+                sprite.position.y = sprite.userData.originalY + floatY;
+                sprite.position.z = sprite.userData.originalZ + floatZ;
+            });
+            
+            controls.update();
+            composer.render();
+        }
+
+        function updateLoadingUI(progress) {
+            const progressBar = document.getElementById('loading-progress');
+            const loadingText = document.getElementById('loading-text');
+            
+            if (progressBar && loadingText) {
+                progressBar.style.width = `${progress}%`;
+                loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+            }
+        }
+
+        // Initialize the visualization
+        async function startVisualization() {
+            document.getElementById('loading-container').style.display = 'block';
+            document.getElementById('black-overlay').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '1';
+            document.getElementById('visualization').style.display = 'none';
+
+            await init();
+            
+            // Hide loading page and show visualization
+            document.getElementById('loading-container').style.display = 'none';
+            document.getElementById('visualization').style.display = 'block';
+            document.getElementById('black-overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('black-overlay').style.display = 'none';
+            }, 500);
+            
+            // Start animation
+            animate();
+        }
+
+        // Start the visualization when the page loads
+        window.addEventListener('load', startVisualization);
+    </script>
+</body>
+</html>
