@@ -531,8 +531,8 @@ class ArtisticImageAnalyzer:
 def main():
     """Main function to run the analysis"""
     # Configuration
-    images_folder = "image_analysis/test_images"  # Path to test images folder
-    output_file = "test_artistic_analysis.json"  # Output file name for test
+    images_folder = "images"  # Path to main images folder
+    output_file = "image_analysis/artistic_analysis.json"  # Output file name for main analysis
     
     # Check if images folder exists
     if not os.path.exists(images_folder):
