@@ -19,6 +19,85 @@
             background-color: black;
             overflow: hidden;
         }
+        
+        /* UI Menu Drawer Styles */
+        #ui-menu-overlay {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 80vh;
+            z-index: 2000;
+            pointer-events: none;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #ui-menu-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            pointer-events: auto;
+        }
+        
+        #ui-menu-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 2001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        #ui-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateX(-50%) scale(1.1);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        #ui-menu-overlay.hidden {
+            transform: translateY(100%);
+            pointer-events: none;
+        }
+        
+        #ui-menu-overlay.visible {
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        /* Drawer handle indicator */
+        #ui-menu-toggle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+        
+        #ui-menu-toggle.visible::after {
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+        
         #visualization {
             width: 100vw;
             height: 100vh;
@@ -62,6 +141,14 @@
     </style>
 </head>
 <body>
+    <!-- UI Menu Overlay -->
+    <div id="ui-menu-overlay" class="hidden">
+        <iframe id="ui-menu-iframe" src="../../UI-menu-overlay.html"></iframe>
+    </div>
+    
+    <!-- UI Menu Toggle Button -->
+    <button id="ui-menu-toggle" title="Open Menu"></button>
+    
     <div id="black-overlay"></div>
     <div id="loading-container" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
         <div class="loading-bar">
@@ -863,6 +950,97 @@
 
             // Initialize the scene
             init();
+            
+            // Initialize UI menu after scene is ready
+            setTimeout(() => {
+                initUIMenu();
+            }, 1000);
+        }
+
+        // UI Menu Management
+        let isMenuVisible = false;
+        
+        function initUIMenu() {
+            const menuToggle = document.getElementById('ui-menu-toggle');
+            const menuOverlay = document.getElementById('ui-menu-overlay');
+            const menuIframe = document.getElementById('ui-menu-iframe');
+            
+            // Toggle menu visibility
+            menuToggle.addEventListener('click', () => {
+                isMenuVisible = !isMenuVisible;
+                if (isMenuVisible) {
+                    menuOverlay.classList.remove('hidden');
+                    menuOverlay.classList.add('visible');
+                    menuToggle.classList.add('visible');
+                    menuToggle.title = 'Close Menu';
+                } else {
+                    menuOverlay.classList.remove('visible');
+                    menuOverlay.classList.add('hidden');
+                    menuToggle.classList.remove('visible');
+                    menuToggle.title = 'Open Menu';
+                }
+            });
+            
+            // Close menu when clicking outside
+            menuOverlay.addEventListener('click', (e) => {
+                if (e.target === menuOverlay) {
+                    isMenuVisible = false;
+                    menuOverlay.classList.remove('visible');
+                    menuOverlay.classList.add('hidden');
+                    menuToggle.classList.remove('visible');
+                    menuToggle.title = 'Open Menu';
+                }
+            });
+            
+            // Swipe gesture support for mobile
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+            
+            menuOverlay.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                isDragging = true;
+            });
+            
+            menuOverlay.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                currentY = e.touches[0].clientY;
+                const deltaY = currentY - startY;
+                
+                if (deltaY > 50) { // Swipe down to close
+                    isMenuVisible = false;
+                    menuOverlay.classList.remove('visible');
+                    menuOverlay.classList.add('hidden');
+                    menuToggle.classList.remove('visible');
+                    menuToggle.title = 'Open Menu';
+                    isDragging = false;
+                }
+            });
+            
+            menuOverlay.addEventListener('touchend', () => {
+                isDragging = false;
+            });
+            
+            // Handle iframe load
+            menuIframe.addEventListener('load', () => {
+                console.log('UI Menu iframe loaded successfully');
+                
+                // Set up communication between parent and iframe
+                window.addEventListener('message', (event) => {
+                    // Handle messages from the iframe
+                    if (event.data && event.data.type === 'navigation') {
+                        // Handle navigation requests from the menu
+                        console.log('Navigation request:', event.data);
+                        // You can add specific navigation logic here
+                    }
+                });
+            });
+            
+            // Handle iframe errors
+            menuIframe.addEventListener('error', (error) => {
+                console.error('Failed to load UI Menu:', error);
+                menuToggle.style.display = 'none';
+            });
         }
 
         window.addEventListener('load', startVisualization);
