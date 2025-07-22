@@ -5,6 +5,10 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
     <style>
       @font-face {
         font-family: "VT323";
@@ -50,47 +54,23 @@
         transition: width 0.3s ease;
       }
 
-      #view-labels {
+      #view-tooltip {
         position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 100;
         color: white;
         font-family: "VT323", monospace;
-        font-size: 16px;
-      }
-
-      .view-label {
-        margin-bottom: 10px;
+        font-size: 18px;
+        background: rgba(0, 0, 0, 0.8);
         padding: 8px 12px;
-        background: rgba(0, 0, 0, 0.7);
+        border-radius: 4px;
         border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        pointer-events: none;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
       }
 
-      .view-label:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(255, 255, 255, 0.6);
-      }
-
-      .view-label.active {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.8);
-      }
-
-      #camera-info {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        color: white;
-        font-family: "VT323", monospace;
-        font-size: 14px;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 10px;
-        border-radius: 4px;
-        z-index: 100;
+      #view-tooltip.visible {
+        opacity: 1;
       }
     </style>
   </head>
@@ -113,29 +93,19 @@
 
     <div id="visualization"></div>
 
-    <div id="view-labels">
-      <div class="view-label" data-view="rhizome">Rhizome</div>
-      <div class="view-label" data-view="artist">Artist</div>
-      <div class="view-label" data-view="open-question">Open Question</div>
-      <div class="view-label" data-view="hashtag-gallery">Hashtag Gallery</div>
-      <div class="view-label" data-view="completeness">Completeness</div>
-      <div class="view-label" data-view="intimacy">Intimacy</div>
-      <div class="view-label" data-view="temperament">Temperament</div>
-    </div>
-
-    <div id="camera-info">
-      <div>Camera Position: <span id="camera-pos">0, 0, 0</span></div>
-      <div>Current View: <span id="current-view">Galaxy Overview</span></div>
-    </div>
+    <div id="view-tooltip"></div>
 
     <script>
       let scene, camera, renderer, controls;
+      let composer;
       let particles;
       let viewGroups = {};
       let currentView = "galaxy";
       let loadedImages = 0;
       let totalImages = 0;
       let artisticData = [];
+      let raycaster, mouse;
+      let tooltip = null;
 
       // View positions in 3D space
       const viewPositions = {
@@ -147,6 +117,78 @@
         intimacy: { x: 600, y: 500, z: -400 },
         temperament: { x: -800, y: 100, z: -200 },
       };
+
+      // View display names
+      const viewDisplayNames = {
+        rhizome: "Rhizome",
+        artist: "Artist",
+        "open-question": "Open Question",
+        "hashtag-gallery": "Hashtag Gallery",
+        completeness: "Completeness",
+        intimacy: "Intimacy",
+        temperament: "Temperament",
+      };
+
+      // Tooltip functions
+      function showTooltip(text, x, y) {
+        if (!tooltip) {
+          tooltip = document.getElementById("view-tooltip");
+        }
+        tooltip.textContent = text;
+        tooltip.style.left = x + 10 + "px";
+        tooltip.style.top = y - 10 + "px";
+        tooltip.classList.add("visible");
+      }
+
+      function hideTooltip() {
+        if (tooltip) {
+          tooltip.classList.remove("visible");
+        }
+      }
+
+      function onMouseMove(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        // Check intersection with view groups
+        const intersects = raycaster.intersectObjects(scene.children, true);
+
+        if (intersects.length > 0) {
+          // Find which view group the intersected object belongs to
+          let currentObject = intersects[0].object;
+          let viewName = null;
+
+          // Traverse up the parent chain to find the view group
+          while (currentObject && !viewName) {
+            for (const [name, group] of Object.entries(viewGroups)) {
+              if (
+                currentObject === group ||
+                group.children.includes(currentObject)
+              ) {
+                viewName = name;
+                break;
+              }
+            }
+            if (!viewName) {
+              currentObject = currentObject.parent;
+            }
+          }
+
+          if (viewName && viewDisplayNames[viewName]) {
+            showTooltip(
+              viewDisplayNames[viewName],
+              event.clientX,
+              event.clientY
+            );
+          } else {
+            hideTooltip();
+          }
+        } else {
+          hideTooltip();
+        }
+      }
 
       // Update loading UI
       function updateLoadingUI(progress) {
@@ -547,7 +589,7 @@
         return group;
       }
 
-      // Create Intimacy view (exact replica of original)
+      // Create Intimacy view - true spiraling tunnel
       function createIntimacyView(textures) {
         const group = new THREE.Group();
         group.position.set(
@@ -556,24 +598,60 @@
           viewPositions.intimacy.z
         );
 
-        // Create tunnel structure
-        const tunnelRadius = 75;
-        const tunnelLength = 300;
-        const rings = 10;
+        // Create true spiraling tunnel structure
+        const tunnelLength = 500;
+        const spiralTurns = 12;
+        const segments = 300;
+        const startRadius = 80;
+        const endRadius = 10;
 
-        // Create tunnel wireframe
-        const wireGroup = new THREE.Group();
-        const numVerticalLines = 48;
-        const numHorizontalRings = 60;
+        // Create tube grid that wraps around the spiral
+        const tubeGroup = new THREE.Group();
+        const tubeSegments = 16; // Number of segments around the tube circumference
+        const tubeRings = 40; // Number of rings along the tube length
 
-        // Vertical lines
-        for (let v = 0; v < numVerticalLines; v++) {
-          const angle = (v / numVerticalLines) * Math.PI * 2;
+        for (let ring = 0; ring < tubeRings; ring++) {
+          const progress = ring / (tubeRings - 1);
+          const z = (progress - 0.5) * tunnelLength;
+          const spiralAngle = progress * Math.PI * 2 * spiralTurns;
+          const radius =
+            startRadius * Math.pow(endRadius / startRadius, progress);
+
+          for (let segment = 0; segment < tubeSegments; segment++) {
+            const segmentAngle = (segment / tubeSegments) * Math.PI * 2;
+            const tubeRadius = radius + 8; // Slightly larger than image radius
+
+            const x = tubeRadius * Math.cos(segmentAngle);
+            const y = tubeRadius * Math.sin(segmentAngle);
+
+            // Create small wireframe points at tube intersections
+            const geometry = new THREE.SphereGeometry(0.5, 4, 4);
+            const material = new THREE.MeshBasicMaterial({
+              color: 0xffffff,
+              transparent: true,
+              opacity: 0.6,
+            });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(x, y, z);
+            tubeGroup.add(sphere);
+          }
+        }
+
+        // Create longitudinal lines along the tube
+        for (let segment = 0; segment < tubeSegments; segment++) {
+          const segmentAngle = (segment / tubeSegments) * Math.PI * 2;
           const points = [];
-          for (let i = 0; i <= rings; i++) {
-            const z = (i - rings / 2) * 30;
-            const x = tunnelRadius * Math.cos(angle);
-            const y = tunnelRadius * Math.sin(angle);
+
+          for (let i = 0; i <= tubeRings; i++) {
+            const progress = i / tubeRings;
+            const z = (progress - 0.5) * tunnelLength;
+            const spiralAngle = progress * Math.PI * 2 * spiralTurns;
+            const radius =
+              startRadius * Math.pow(endRadius / startRadius, progress);
+            const tubeRadius = radius + 8;
+
+            const x = tubeRadius * Math.cos(segmentAngle);
+            const y = tubeRadius * Math.sin(segmentAngle);
             points.push(new THREE.Vector3(x, y, z));
           }
 
@@ -584,50 +662,61 @@
             opacity: 0.3,
           });
           const line = new THREE.Line(geometry, material);
-          wireGroup.add(line);
+          tubeGroup.add(line);
         }
 
-        // Horizontal rings
-        for (let i = 0; i < numHorizontalRings; i++) {
-          const z = (i - numHorizontalRings / 2) * 5;
-          const points = [];
-          for (let j = 0; j <= 48; j++) {
-            const angle = (j / 48) * Math.PI * 2;
-            const x = tunnelRadius * Math.cos(angle);
-            const y = tunnelRadius * Math.sin(angle);
-            points.push(new THREE.Vector3(x, y, z));
+        // Create spiral rings around the tube
+        for (let ring = 0; ring < tubeRings; ring++) {
+          const progress = ring / (tubeRings - 1);
+          const z = (progress - 0.5) * tunnelLength;
+          const spiralAngle = progress * Math.PI * 2 * spiralTurns;
+          const radius =
+            startRadius * Math.pow(endRadius / startRadius, progress);
+          const tubeRadius = radius + 8;
+
+          const ringPoints = [];
+          for (let j = 0; j <= tubeSegments; j++) {
+            const angle = (j / tubeSegments) * Math.PI * 2;
+            const x = tubeRadius * Math.cos(angle);
+            const y = tubeRadius * Math.sin(angle);
+            ringPoints.push(new THREE.Vector3(x, y, z));
           }
 
-          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const geometry = new THREE.BufferGeometry().setFromPoints(ringPoints);
           const material = new THREE.LineBasicMaterial({
             color: 0xffffff,
             transparent: true,
             opacity: 0.3,
           });
-          const line = new THREE.Line(geometry, material);
-          wireGroup.add(line);
+          const ringLine = new THREE.Line(geometry, material);
+          tubeGroup.add(ringLine);
         }
 
-        group.add(wireGroup);
+        group.add(tubeGroup);
 
-        // Position images in rings
-        for (let ring = 0; ring < rings; ring++) {
-          const ringGroup = new THREE.Group();
-          const ringZ = (ring - rings / 2) * 30;
+        // Position images along the true spiral
+        const imagesPerSegment = Math.ceil(textures.length / segments);
 
-          const startIndex = ring * Math.ceil(textures.length / rings);
+        for (let segment = 0; segment < segments; segment++) {
+          const progress = segment / segments;
+          const z = (progress - 0.5) * tunnelLength;
+          const spiralAngle = progress * Math.PI * 2 * spiralTurns;
+          const radius =
+            startRadius * Math.pow(endRadius / startRadius, progress);
+
+          const startIndex = segment * imagesPerSegment;
           const endIndex = Math.min(
-            startIndex + Math.ceil(textures.length / rings),
+            startIndex + imagesPerSegment,
             textures.length
           );
-          const ringImages = textures.slice(startIndex, endIndex);
+          const segmentImages = textures.slice(startIndex, endIndex);
 
-          ringImages.forEach((textureData, index) => {
+          segmentImages.forEach((textureData, index) => {
             if (textureData.texture) {
               const aspectRatio =
                 textureData.texture.image.width /
                 textureData.texture.image.height;
-              const width = 8;
+              const width = 4 + progress * 2; // Images get smaller as tunnel narrows
               const height = width / aspectRatio;
 
               const material = new THREE.SpriteMaterial({
@@ -638,20 +727,20 @@
               const sprite = new THREE.Sprite(material);
               sprite.scale.set(width, height, 1);
 
-              const angle = (index / ringImages.length) * Math.PI * 2;
-              const radius = tunnelRadius - ring * 3; // Decreasing radius for tunnel effect
+              // Position images along the spiral with natural variation
+              const imageAngle =
+                spiralAngle + (index / segmentImages.length) * Math.PI * 0.3;
+              const imageRadius = radius * 0.8; // Slightly inside the wireframe
 
               sprite.position.set(
-                radius * Math.cos(angle),
-                radius * Math.sin(angle),
-                ringZ
+                imageRadius * Math.cos(imageAngle),
+                imageRadius * Math.sin(imageAngle),
+                z
               );
 
-              ringGroup.add(sprite);
+              group.add(sprite);
             }
           });
-
-          group.add(ringGroup);
         }
 
         return group;
@@ -846,37 +935,75 @@
           viewPositions.temperament.z
         );
 
-        // Spiral arrangement
-        const spiralTurns = 6;
-        const spiralRadius = 50;
-        const spiralHeight = 200;
+        // Scattered ball arrangement with colored squares
+        const ballRadius = 60;
+        const innerRadius = 30; // Boundary between red and blue squares
 
+        // Create gradient squares from red center to blue outskirts
+        const totalSquareCount = 1400;
+        for (let i = 0; i < totalSquareCount; i++) {
+          const size = 0.5 + Math.random() * 1.5; // Varying sizes from 0.5-2 units
+          const geometry = new THREE.PlaneGeometry(size, size);
+
+          // Random position throughout the ball
+          const radius = ballRadius * Math.pow(Math.random(), 0.7);
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+
+          const x = radius * Math.sin(phi) * Math.cos(theta);
+          const y = radius * Math.sin(phi) * Math.sin(theta);
+          const z = radius * Math.cos(phi);
+
+          // Calculate gradient based on distance from center
+          const distanceFromCenter = radius / ballRadius; // 0 = center, 1 = edge
+          const redComponent = Math.max(0, 1 - distanceFromCenter * 0.8); // Red fades out more slowly
+          const blueComponent = Math.min(1, distanceFromCenter * 0.8); // Blue increases more gradually
+
+          const color = new THREE.Color(redComponent, 0, blueComponent);
+
+          const material = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.5,
+            side: THREE.DoubleSide,
+          });
+          const square = new THREE.Mesh(geometry, material);
+
+          square.position.set(x, y, z);
+          // Make squares always face the viewer (like sprites)
+          square.userData = { isSprite: true }; // Mark for camera-facing update
+
+          group.add(square);
+        }
+
+        // Add scattered images throughout the ball
         textures.forEach((textureData, index) => {
           if (textureData.texture) {
             const aspectRatio =
               textureData.texture.image.width /
               textureData.texture.image.height;
-            const width = 10;
+            const width = 6 + Math.random() * 3; // Smaller images to fit with squares
             const height = width / aspectRatio;
 
             const material = new THREE.SpriteMaterial({
               map: textureData.texture,
               transparent: true,
-              opacity: 0.8,
+              opacity: 0.9,
             });
             const sprite = new THREE.Sprite(material);
             sprite.scale.set(width, height, 1);
 
-            const progress = index / textures.length;
-            const angle = progress * Math.PI * 2 * spiralTurns;
-            const radius = spiralRadius * (1 - progress * 0.5); // Decreasing radius
-            const spiralZ = (progress - 0.5) * spiralHeight;
+            // Random position throughout the entire ball
+            const radius = ballRadius * Math.pow(Math.random(), 0.7);
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
 
-            sprite.position.set(
-              radius * Math.cos(angle),
-              spiralZ,
-              radius * Math.sin(angle)
-            );
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
+
+            sprite.position.set(x, y, z);
+            sprite.rotation.z = Math.random() * Math.PI * 2;
 
             group.add(sprite);
           }
@@ -887,39 +1014,96 @@
 
       // Create particle system
       function createParticleSystem() {
-        const particleCount = 1000;
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
-        const colors = new Float32Array(particleCount * 3);
+        const particleCount = 1500;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleSizes = new Float32Array(particleCount);
+        const particleColors = new Float32Array(particleCount * 3);
+        const particleSpeeds = new Float32Array(particleCount);
 
         for (let i = 0; i < particleCount; i++) {
-          const radius = 800 + Math.random() * 500;
+          // Random positions within a much larger sphere to match the environment scale
+          const radius = 1200;
           const theta = Math.random() * Math.PI * 2;
           const phi = Math.acos(2 * Math.random() - 1);
 
-          positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-          positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-          positions[i * 3 + 2] = radius * Math.cos(phi);
+          particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+          particlePositions[i * 3 + 1] =
+            radius * Math.sin(phi) * Math.sin(theta);
+          particlePositions[i * 3 + 2] = radius * Math.cos(phi);
 
-          colors[i * 3] = 0.5 + Math.random() * 0.5;
-          colors[i * 3 + 1] = 0.5 + Math.random() * 0.5;
-          colors[i * 3 + 2] = 0.5 + Math.random() * 0.5;
+          // More vibrant colors
+          const hue = Math.random(); // Random hue
+          const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+          const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
+
+          // Convert HSL to RGB
+          const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+          const x = c * (1 - Math.abs(((hue * 6) % 2) - 1));
+          const m = lightness - c / 2;
+
+          let r, g, b;
+          if (hue < 1 / 6) {
+            r = c;
+            g = x;
+            b = 0;
+          } else if (hue < 2 / 6) {
+            r = x;
+            g = c;
+            b = 0;
+          } else if (hue < 3 / 6) {
+            r = 0;
+            g = c;
+            b = x;
+          } else if (hue < 4 / 6) {
+            r = 0;
+            g = x;
+            b = c;
+          } else if (hue < 5 / 6) {
+            r = x;
+            g = 0;
+            b = c;
+          } else {
+            r = c;
+            g = 0;
+            b = x;
+          }
+
+          particleColors[i * 3] = r + m; // R
+          particleColors[i * 3 + 1] = g + m; // G
+          particleColors[i * 3 + 2] = b + m; // B
+
+          // Random speeds between 0.02 and 0.08 (much slower than before)
+          particleSpeeds[i] = Math.random() * 0.06;
         }
 
-        geometry.setAttribute(
+        particleGeometry.setAttribute(
           "position",
-          new THREE.BufferAttribute(positions, 3)
+          new THREE.BufferAttribute(particlePositions, 3)
         );
-        geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+        particleGeometry.setAttribute(
+          "size",
+          new THREE.BufferAttribute(particleSizes, 1)
+        );
+        particleGeometry.setAttribute(
+          "color",
+          new THREE.BufferAttribute(particleColors, 3)
+        );
 
-        const material = new THREE.PointsMaterial({
-          size: 3,
+        const particleMaterial = new THREE.PointsMaterial({
+          size: 8.0,
           vertexColors: true,
           transparent: true,
-          opacity: 0.6,
+          opacity: 0.5,
+          sizeAttenuation: true,
+          depthWrite: false, // Allow particles to be transparent when in front
         });
 
-        particles = new THREE.Points(geometry, material);
+        particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.userData = {
+          speeds: particleSpeeds,
+          opacities: new Float32Array(particleCount), // Store individual opacities
+        };
         scene.add(particles);
       }
 
@@ -934,6 +1118,32 @@
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
 
+        // Create noise texture background
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+
+        // Generate noise
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const value = Math.random() * 50;
+          data[i] = value; // R
+          data[i + 1] = value; // G
+          data[i + 2] = value; // B
+          data[i + 3] = 20; // A
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        // Create texture from canvas
+        const noiseTexture = new THREE.CanvasTexture(canvas);
+        noiseTexture.wrapS = THREE.RepeatWrapping;
+        noiseTexture.wrapT = THREE.RepeatWrapping;
+
+        // Set as background
+        scene.background = noiseTexture;
+
         // Create camera
         camera = new THREE.PerspectiveCamera(
           60,
@@ -941,14 +1151,68 @@
           0.1,
           3000
         );
-        camera.position.set(0, 0, 1000);
+        camera.position.set(0, 0, 2000);
 
         // Create renderer
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1); // Set black background color immediately
         document
           .getElementById("visualization")
           .appendChild(renderer.domElement);
+
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Add vignette effect
+        const vignetteShader = {
+          uniforms: {
+            tDiffuse: { value: null },
+            offset: { value: 1.0 },
+            darkness: { value: 1.0 },
+          },
+          vertexShader: `
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform sampler2D tDiffuse;
+            uniform float offset;
+            uniform float darkness;
+            varying vec2 vUv;
+            
+            void main() {
+              vec2 uv = vUv;
+              vec4 color = texture2D(tDiffuse, uv);
+              
+              // Calculate distance from center
+              vec2 center = vec2(0.5, 0.5);
+              float dist = distance(uv, center);
+              
+              // Create vignette effect
+              float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+              
+              // Apply vignette
+              color.rgb *= vignette;
+              
+              gl_FragColor = color;
+            }
+          `,
+        };
+
+        const vignettePass = new THREE.ShaderPass(vignetteShader);
+        vignettePass.uniforms.offset.value = 0.5;
+        vignettePass.uniforms.darkness.value = 0.5;
+        composer.addPass(vignettePass);
+
+        // Initialize raycaster and mouse
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
 
         // Add controls
         controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -958,6 +1222,13 @@
         controls.maxDistance = 2000;
         controls.target.set(0, 0, 0);
         controls.update();
+
+        // Set camera to maximum zoom out
+        camera.position.set(0, 0, 2000);
+        controls.update();
+
+        // Add mouse move event listener for tooltips
+        renderer.domElement.addEventListener("mousemove", onMouseMove);
 
         // Add light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -984,39 +1255,7 @@
         // Add all groups to scene
         Object.values(viewGroups).forEach((group) => scene.add(group));
 
-        // Setup navigation
-        setupNavigation();
-
         console.log("Initialization complete!");
-      }
-
-      // Setup navigation
-      function setupNavigation() {
-        const viewLabels = document.querySelectorAll(".view-label");
-
-        viewLabels.forEach((label) => {
-          label.addEventListener("click", () => {
-            const viewName = label.dataset.view;
-            navigateToView(viewName);
-
-            viewLabels.forEach((l) => l.classList.remove("active"));
-            label.classList.add("active");
-          });
-        });
-      }
-
-      // Navigate to view
-      function navigateToView(viewName) {
-        if (viewPositions[viewName]) {
-          const pos = viewPositions[viewName];
-          camera.position.set(pos.x, pos.y, pos.z + 200);
-          controls.target.set(pos.x, pos.y, pos.z);
-          currentView = viewName;
-          document.getElementById("current-view").textContent =
-            viewName.charAt(0).toUpperCase() +
-            viewName.slice(1).replace("-", " ");
-        }
-        controls.update();
       }
 
       // Animation loop
@@ -1026,31 +1265,45 @@
         // Animate particles
         if (particles) {
           const positions = particles.geometry.attributes.position.array;
-          const time = Date.now() * 0.001;
+          const speeds = particles.userData.speeds;
+          const opacities = particles.userData.opacities;
 
           for (let i = 0; i < positions.length; i += 3) {
-            positions[i] += Math.sin(time + i) * 0.1;
-            positions[i + 1] += Math.cos(time + i) * 0.1;
-            positions[i + 2] += Math.sin(time * 0.5 + i) * 0.1;
+            // Move particles in a circular motion
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.5;
+            positions[i + 1] += Math.cos(time) * 0.5;
+            positions[i + 2] += Math.sin(time * 0.5) * 0.5;
+
+            // Check if particle is in front of images (z > 0)
+            const z = positions[i + 2];
+            opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
           }
 
           particles.geometry.attributes.position.needsUpdate = true;
+          particles.material.opacity = 0.3; // Base opacity
         }
 
         // Animate view groups with gentle rotation
         Object.values(viewGroups).forEach((group, index) => {
           group.rotation.y += 0.0005 + index * 0.0002;
           group.rotation.x += 0.0002 + index * 0.0001;
+
+          // Make temperament squares always face the camera
+          if (index === 6) {
+            // Temperament view index
+            group.children.forEach((child) => {
+              if (child.userData && child.userData.isSprite) {
+                child.lookAt(camera.position);
+              }
+            });
+          }
         });
 
-        // Update camera info
-        const cameraPos = camera.position;
-        document.getElementById("camera-pos").textContent = `${Math.round(
-          cameraPos.x
-        )}, ${Math.round(cameraPos.y)}, ${Math.round(cameraPos.z)}`;
-
         controls.update();
-        renderer.render(scene, camera);
+        composer.render();
       }
 
       // Handle window resize
@@ -1058,6 +1311,7 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
       }
 
       // Start the visualization
