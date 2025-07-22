@@ -65,6 +65,56 @@
             background: #ffffff;
             transition: width 0.3s ease;
         }
+        
+        /* Floating Eye Styles */
+        #floating-eye {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            z-index: 1000;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            pointer-events: auto;
+            display: block;
+            top: 100px;
+            left: 100px;
+        }
+        
+        #floating-eye:hover {
+            transform: scale(1.2);
+        }
+        
+        #floating-eye img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+        }
+        
+        /* Tooltip Styles */
+        #eye-tooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 15px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            max-width: 300px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            pointer-events: none;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        #eye-tooltip.show {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
@@ -76,6 +126,17 @@
         <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
     </div>
     <div id="visualization"></div>
+    
+    <!-- Floating Eye -->
+    <div id="floating-eye">
+        <img src="../../assets/GlitchyEyeGif.gif" alt="Glitchy Eye" style="width:100%;height:100%;object-fit:contain;" />
+    </div>
+    
+    <!-- Tooltip -->
+    <div id="eye-tooltip">
+        Here is the Intimacy View. Zoom in to discover where personal fragments were left – the closer you go, the more intimate places you'll find.
+    </div>
+
     <script>
     // 1. Define stations and Z mapping
     const stations = [
@@ -731,6 +792,12 @@
             setTimeout(() => {
                 document.getElementById('black-overlay').style.display = 'none';
             }, 500);
+            
+            // Initialize floating eye
+            console.log('About to initialize floating eye...');
+            initFloatingEye();
+            console.log('Floating eye initialization completed');
+            
             animate();
         });
     }
@@ -921,6 +988,10 @@
                 obj.lookAt(camera.position);
             }
         });
+        
+        // Update floating eye
+        updateFloatingEye();
+        
         composer.render();
         
         // Update station labels
@@ -952,9 +1023,81 @@
         cameraT = Math.max(minCameraT, Math.min(maxCameraT, cameraT));
     }, { passive: false });
 
-
-
-
+    // Simple Floating Eye Animation
+    let eyeX = 100;
+    let eyeY = 100;
+    let eyeTargetX = 100;
+    let eyeTargetY = 100;
+    let eyeSpeed = 0.02;
+    let lastEyeMoveTime = 0;
+    let eyeMoveInterval = 3000;
+    let eyeIsHovered = false;
+    
+    function initFloatingEye() {
+        console.log('Initializing floating eye...');
+        const eye = document.getElementById('floating-eye');
+        const tooltip = document.getElementById('eye-tooltip');
+        
+        console.log('Eye element:', eye);
+        console.log('Tooltip element:', tooltip);
+        
+        if (!eye || !tooltip) {
+            console.error('Missing elements!');
+            return;
+        }
+        
+        // Set up hover events
+        eye.addEventListener('mouseenter', () => {
+            console.log('Eye hovered!');
+            eyeIsHovered = true;
+            tooltip.classList.add('show');
+        });
+        
+        eye.addEventListener('mouseleave', () => {
+            console.log('Eye unhovered!');
+            eyeIsHovered = false;
+            tooltip.classList.remove('show');
+        });
+        
+        // Update tooltip position
+        eye.addEventListener('mousemove', (e) => {
+            const rect = eye.getBoundingClientRect();
+            tooltip.style.left = (rect.right + 10) + 'px';
+            tooltip.style.top = (rect.top - 10) + 'px';
+        });
+        
+        // Set initial position
+        eye.style.left = eyeX + 'px';
+        eye.style.top = eyeY + 'px';
+        console.log('Eye positioned at:', eyeX, eyeY);
+        console.log('Eye should be visible now!');
+    }
+    
+    function updateFloatingEye() {
+        const eye = document.getElementById('floating-eye');
+        if (!eye || eye.style.display === 'none') return;
+        
+        // Don't move if hovered
+        if (eyeIsHovered) return;
+        
+        const now = Date.now();
+        
+        // Change target position periodically
+        if (now - lastEyeMoveTime > eyeMoveInterval) {
+            const margin = 100;
+            eyeTargetX = margin + Math.random() * (window.innerWidth - 200);
+            eyeTargetY = margin + Math.random() * (window.innerHeight - 200);
+            lastEyeMoveTime = now;
+        }
+        
+        // Smooth movement towards target
+        eyeX += (eyeTargetX - eyeX) * eyeSpeed;
+        eyeY += (eyeTargetY - eyeY) * eyeSpeed;
+        
+        // Update position
+        eye.style.left = eyeX + 'px';
+        eye.style.top = eyeY + 'px';
+    }
 
     // Start the visualization when the page loads
     window.addEventListener('load', main);
