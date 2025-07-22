@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Hashtag Gallery Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -10,226 +10,324 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
     <style>
-        @font-face {
-            font-family: 'Pixel';
-            src: url('../../assets/pixel.ttf') format('truetype');
-        }
-        @font-face {
-            font-family: 'Heming';
-            src: url('../../assets/Heming.ttf') format('truetype');
-        }
-        body {
-            margin: 0;
-            background-color: black;
-            overflow: hidden;
-        }
-        #visualization {
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-        #black-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: black;
-            z-index: 1000;
-            transition: opacity 0.5s ease;
-            opacity: 1;
-        }
-        #loading-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 1001;
-        }
-        .loading-bar {
-            width: 300px;
-            height: 20px;
-            background: #333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .loading-progress {
-            height: 100%;
-            background: #ffffff;
-            transition: width 0.3s ease;
-        }
+      @font-face {
+        font-family: "Pixel";
+        src: url("../../assets/pixel.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "Heming";
+        src: url("../../assets/Heming.ttf") format("truetype");
+      }
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+      }
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+      #black-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+        opacity: 1;
+      }
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
+      #quote-info {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        color: white;
+        font-family: "Heming", monospace;
+        font-size: 14px;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 15px;
+        border-radius: 8px;
+        max-width: 400px;
+        display: none;
+      }
+      #quote-info h3 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+        color: #ffffff;
+      }
+      #quote-info p {
+        margin: 5px 0;
+        color: #cccccc;
+      }
+      #quote-info .bottom-line {
+        color: #ffaa00;
+        font-weight: bold;
+      }
+      #refresh-button {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 10px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: "Heming", monospace;
+        font-size: 14px;
+        z-index: 100;
+        transition: background 0.3s ease;
+      }
+      #refresh-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="black-overlay"></div>
-    <div id="loading-container" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-        <div class="loading-bar">
-            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
-        </div>
-        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+    <div
+      id="loading-container"
+      style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      "
+    >
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING... 0%
+      </div>
     </div>
     <div id="visualization"></div>
+    <div id="quote-info">
+      <h3 id="quote-title"></h3>
+      <p class="bottom-line" id="quote-bottom-line"></p>
+      <p id="quote-origin"></p>
+      <p id="quote-images-count"></p>
+    </div>
+    <button id="refresh-button" onclick="refreshGallery()">New Quote</button>
     <script>
-        let scene, camera, renderer, controls;
-        let composer;
-        let particles;
-        let curvedText; // 3D curved text object
-        let wallRadius = 55; // Shared radius for both image and text walls
-        // Animation state for camera rotation
-        let isRotating = false;
-        let rotationStart = 0;
-        let rotationDuration = 3000; // ms
-        let initialAngle = 0;
-        let targetAngle = -Math.PI / 2; // 90 degrees to the left
-        let cameraRadius = 125; // Default, will be set after images are loaded
-        let cameraY = 0; // Default, will be set after images are loaded
-        let raycaster, mouse;
+      let scene, camera, renderer, controls;
+      let composer;
+      let particles;
+      let curvedText; // 3D curved text object
+      let wallRadius = 55; // Shared radius for both image and text walls
+      // Animation state for camera rotation
+      let isRotating = false;
+      let rotationStart = 0;
+      let rotationDuration = 3000; // ms
+      let initialAngle = 0;
+      let targetAngle = -Math.PI / 2; // 90 degrees to the left
+      let cameraRadius = 125; // Default, will be set after images are loaded
+      let cameraY = 0; // Default, will be set after images are loaded
+      let raycaster, mouse;
+      let quoteConnections = {}; // Store the quote connections data
+      let currentQuoteData = null; // Store current quote data
 
-        // Easing function for even smoother animation (quartic)
-        function easeInOutQuart(t) {
-            return t < 0.5
-                ? 8 * t * t * t * t
-                : 1 - Math.pow(-2 * t + 2, 4) / 2;
+      // Easing function for even smoother animation (quartic)
+      function easeInOutQuart(t) {
+        return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+      }
+
+      function init() {
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); // Set black background immediately
+
+        // Create noise texture
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+
+        // Generate noise
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const value = Math.random() * 50;
+          data[i] = value; // R
+          data[i + 1] = value; // G
+          data[i + 2] = value; // B
+          data[i + 3] = 20; // A
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        // Create texture from canvas
+        const noiseTexture = new THREE.CanvasTexture(canvas);
+        noiseTexture.wrapS = THREE.RepeatWrapping;
+        noiseTexture.wrapT = THREE.RepeatWrapping;
+
+        // Set as background
+        scene.background = noiseTexture;
+
+        // Create particles
+        const particleCount = 300;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleSizes = new Float32Array(particleCount);
+        const particleColors = new Float32Array(particleCount * 3);
+        const particleSpeeds = new Float32Array(particleCount);
+
+        for (let i = 0; i < particleCount; i++) {
+          // Random positions within a sphere
+          const radius = 80;
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+
+          particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+          particlePositions[i * 3 + 1] =
+            radius * Math.sin(phi) * Math.sin(theta);
+          particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+
+          // More vibrant colors
+          const hue = Math.random(); // Random hue
+          const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+          const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
+
+          // Convert HSL to RGB
+          const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+          const x = c * (1 - Math.abs(((hue * 6) % 2) - 1));
+          const m = lightness - c / 2;
+
+          let r, g, b;
+          if (hue < 1 / 6) {
+            r = c;
+            g = x;
+            b = 0;
+          } else if (hue < 2 / 6) {
+            r = x;
+            g = c;
+            b = 0;
+          } else if (hue < 3 / 6) {
+            r = 0;
+            g = c;
+            b = x;
+          } else if (hue < 4 / 6) {
+            r = 0;
+            g = x;
+            b = c;
+          } else if (hue < 5 / 6) {
+            r = x;
+            g = 0;
+            b = c;
+          } else {
+            r = c;
+            g = 0;
+            b = x;
+          }
+
+          particleColors[i * 3] = r + m; // R
+          particleColors[i * 3 + 1] = g + m; // G
+          particleColors[i * 3 + 2] = b + m; // B
+
+          // Random speeds between 0.02 and 0.08 (much slower than before)
+          particleSpeeds[i] = Math.random() * 0.06;
         }
 
-        function init() {
-            // Create scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x000000); // Set black background immediately
-            
-            // Create noise texture
-            const canvas = document.createElement('canvas');
-            canvas.width = 1920;
-            canvas.height = 1080;
-            const ctx = canvas.getContext('2d');
-            
-            // Generate noise
-            const imageData = ctx.createImageData(canvas.width, canvas.height);
-            const data = imageData.data;
-            for (let i = 0; i < data.length; i += 4) {
-                const value = Math.random() * 50;
-                data[i] = value;     // R
-                data[i + 1] = value; // G
-                data[i + 2] = value; // B
-                data[i + 3] = 20;    // A
-            }
-            ctx.putImageData(imageData, 0, 0);
-            
-            // Create texture from canvas
-            const noiseTexture = new THREE.CanvasTexture(canvas);
-            noiseTexture.wrapS = THREE.RepeatWrapping;
-            noiseTexture.wrapT = THREE.RepeatWrapping;
-            
-            // Set as background
-            scene.background = noiseTexture;
+        particleGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(particlePositions, 3)
+        );
+        particleGeometry.setAttribute(
+          "size",
+          new THREE.BufferAttribute(particleSizes, 1)
+        );
+        particleGeometry.setAttribute(
+          "color",
+          new THREE.BufferAttribute(particleColors, 3)
+        );
 
-            // Create particles
-            const particleCount = 300;
-            const particleGeometry = new THREE.BufferGeometry();
-            const particlePositions = new Float32Array(particleCount * 3);
-            const particleSizes = new Float32Array(particleCount);
-            const particleColors = new Float32Array(particleCount * 3);
-            const particleSpeeds = new Float32Array(particleCount);
+        const particleMaterial = new THREE.PointsMaterial({
+          size: 0.5,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.3,
+          sizeAttenuation: true,
+          depthWrite: false, // Allow particles to be transparent when in front
+        });
 
-            for (let i = 0; i < particleCount; i++) {
-                // Random positions within a sphere
-                const radius = 80;
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.acos(2 * Math.random() - 1);
-                
-                particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-                particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-                particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+        particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.userData = {
+          speeds: particleSpeeds,
+          opacities: new Float32Array(particleCount), // Store individual opacities
+        };
+        scene.add(particles);
 
+        // Create camera
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.z = 100;
 
-                // More vibrant colors
-                const hue = Math.random(); // Random hue
-                const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
-                const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
-                
-                // Convert HSL to RGB
-                const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
-                const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
-                const m = lightness - c/2;
-                
-                let r, g, b;
-                if (hue < 1/6) {
-                    r = c; g = x; b = 0;
-                } else if (hue < 2/6) {
-                    r = x; g = c; b = 0;
-                } else if (hue < 3/6) {
-                    r = 0; g = c; b = x;
-                } else if (hue < 4/6) {
-                    r = 0; g = x; b = c;
-                } else if (hue < 5/6) {
-                    r = x; g = 0; b = c;
-                } else {
-                    r = c; g = 0; b = x;
-                }
-                
-                particleColors[i * 3] = r + m;     // R
-                particleColors[i * 3 + 1] = g + m; // G
-                particleColors[i * 3 + 2] = b + m; // B
+        // Create renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1); // Set black background color immediately
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
 
-                // Random speeds between 0.02 and 0.08 (much slower than before)
-                particleSpeeds[i] = Math.random() * 0.06 ;
-            }
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
 
-            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-            particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
-            particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
-
-            const particleMaterial = new THREE.PointsMaterial({
-                size: 0.5,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.3,
-                sizeAttenuation: true,
-                depthWrite: false // Allow particles to be transparent when in front
-            });
-
-            particles = new THREE.Points(particleGeometry, particleMaterial);
-            particles.userData = { 
-                speeds: particleSpeeds,
-                opacities: new Float32Array(particleCount) // Store individual opacities
-            };
-            scene.add(particles);
-
-            // Create camera
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 100;
-
-            // Create renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0x000000, 1); // Set black background color immediately
-            document.getElementById('visualization').appendChild(renderer.domElement);
-
-            // Setup post-processing
-            composer = new THREE.EffectComposer(renderer);
-            const renderPass = new THREE.RenderPass(scene, camera);
-            composer.addPass(renderPass);
-
-            // Add vignette effect
-            const vignetteShader = {
-                uniforms: {
-                    "tDiffuse": { value: null },
-                    "offset": { value: 1.0 },
-                    "darkness": { value: 1.0 }
-                },
-                vertexShader: `
+        // Add vignette effect
+        const vignetteShader = {
+          uniforms: {
+            tDiffuse: { value: null },
+            offset: { value: 1.0 },
+            darkness: { value: 1.0 },
+          },
+          vertexShader: `
                     varying vec2 vUv;
                     void main() {
                         vUv = uv;
                         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                     }
                 `,
-                fragmentShader: `
+          fragmentShader: `
                     uniform sampler2D tDiffuse;
                     uniform float offset;
                     uniform float darkness;
@@ -251,384 +349,546 @@
                         
                         gl_FragColor = color;
                     }
-                `
-            };
+                `,
+        };
 
-            const vignettePass = new THREE.ShaderPass(vignetteShader);
-            vignettePass.uniforms.offset.value = 0.5;
-            vignettePass.uniforms.darkness.value = 0.5;
-            composer.addPass(vignettePass);
+        const vignettePass = new THREE.ShaderPass(vignetteShader);
+        vignettePass.uniforms.offset.value = 0.5;
+        vignettePass.uniforms.darkness.value = 0.5;
+        composer.addPass(vignettePass);
 
-            // Add orbit controls
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
+        // Add orbit controls
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
 
-            // Add ambient light
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(ambientLight);
+        // Limit controls to only zoom and horizontal rotation
+        controls.enablePan = false; // Disable panning
+        controls.minPolarAngle = Math.PI / 2; // Lock vertical angle to horizontal
+        controls.maxPolarAngle = Math.PI / 2; // Lock vertical angle to horizontal
+        controls.enableZoom = true; // Keep zoom enabled
+        controls.enableRotate = true; // Keep rotation enabled
 
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize, false);
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        // Handle window resize
+        window.addEventListener("resize", onWindowResize, false);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Animate camera position in a circular arc if needed
+        if (isRotating) {
+          const now = performance.now();
+          const elapsed = now - rotationStart;
+          if (elapsed < rotationDuration) {
+            const t = elapsed / rotationDuration;
+            const easedT = easeInOutQuart(t);
+            const angle = initialAngle + (targetAngle - initialAngle) * easedT;
+            camera.position.x = cameraRadius * Math.sin(angle);
+            camera.position.z = cameraRadius * Math.cos(angle);
+            camera.position.y = cameraY;
+            camera.lookAt(0, cameraY, 0);
+          } else {
+            camera.position.x = cameraRadius * Math.sin(targetAngle);
+            camera.position.z = cameraRadius * Math.cos(targetAngle);
+            camera.position.y = cameraY;
+            camera.lookAt(0, cameraY, 0);
+            isRotating = false;
+          }
         }
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+        // Animate particles
+        if (particles) {
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = particles.userData.speeds;
+          const opacities = particles.userData.opacities;
+
+          for (let i = 0; i < positions.length; i += 3) {
+            // Move particles in a circular motion
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.01;
+            positions[i + 1] += Math.cos(time) * 0.01;
+            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+            // Check if particle is in front of images (z > 0)
+            const z = positions[i + 2];
+            opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+          particles.material.opacity = 0.3; // Base opacity
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
+        controls.update();
+        composer.render();
+      }
 
-            // Animate camera position in a circular arc if needed
-            if (isRotating) {
-                const now = performance.now();
-                const elapsed = now - rotationStart;
-                if (elapsed < rotationDuration) {
-                    const t = elapsed / rotationDuration;
-                    const easedT = easeInOutQuart(t);
-                    const angle = initialAngle + (targetAngle - initialAngle) * easedT;
-                    camera.position.x = cameraRadius * Math.sin(angle);
-                    camera.position.z = cameraRadius * Math.cos(angle);
-                    camera.position.y = cameraY;
-                    camera.lookAt(0, cameraY, 0);
-                } else {
-                    camera.position.x = cameraRadius * Math.sin(targetAngle);
-                    camera.position.z = cameraRadius * Math.cos(targetAngle);
-                    camera.position.y = cameraY;
-                    camera.lookAt(0, cameraY, 0);
-                    isRotating = false;
-                }
-            }
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
 
-            // Animate particles
-            if (particles) {
-                const positions = particles.geometry.attributes.position.array;
-                const speeds = particles.userData.speeds;
-                const opacities = particles.userData.opacities;
-                
-                for (let i = 0; i < positions.length; i += 3) {
-                    // Move particles in a circular motion
-                    const speed = speeds[i / 3];
-                    const time = Date.now() * 0.001 * speed;
-                    
-                    positions[i] += Math.sin(time) * 0.01;
-                    positions[i + 1] += Math.cos(time) * 0.01;
-                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
-
-                    // Check if particle is in front of images (z > 0)
-                    const z = positions[i + 2];
-                    opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
-                }
-                
-                particles.geometry.attributes.position.needsUpdate = true;
-                particles.material.opacity = 0.3; // Base opacity
-            }
-            
-            controls.update();
-            composer.render();
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
         }
+      }
 
-        function updateLoadingUI(progress) {
-            const progressBar = document.getElementById('loading-progress');
-            const loadingText = document.getElementById('loading-text');
-            
-            if (progressBar && loadingText) {
-                progressBar.style.width = `${progress}%`;
-                loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
-            }
-        }
+      function addImageWall(imageList) {
+        const numImages = imageList.length;
+        const arcAngle = Math.PI * 1.22; // 220 degrees
+        let radius = wallRadius; // Use shared wall radius
+        const yCenter = 0;
+        const fixedHeight = 18; // All images have this height
+        const zOffset = 0;
 
-        function addImageWall(imageList) {
-            const numImages = imageList.length;
-            const arcAngle = Math.PI * 1.22; // 220 degrees
-            let radius = wallRadius; // Use shared wall radius
-            const yCenter = 0;
-            const fixedHeight = 18; // All images have this height
-            const zOffset = 0;
+        console.log("Adding image wall with", numImages, "images:", imageList);
 
-            // Remove previous images if any
-            if (scene.userData.imagePlanes) {
-                scene.userData.imagePlanes.forEach(plane => scene.remove(plane));
-            }
-            scene.userData.imagePlanes = [];
+        // Remove previous images if any
+        clearPreviousImages();
 
-            // Helper to load image and return a promise with aspect ratio
-            function loadImageAspect(url) {
-                return new Promise(resolve => {
-                    const img = new window.Image();
-                    img.onload = function() {
-                        resolve({ url, aspect: img.naturalWidth / img.naturalHeight });
-                    };
-                    img.src = url;
+        // Helper to load image and return a promise with aspect ratio
+        function loadImageAspect(imageName) {
+          return new Promise((resolve) => {
+            const img = new window.Image();
+
+            // Try different file extensions
+            const extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+            let currentExtensionIndex = 0;
+
+            function tryNextExtension() {
+              if (currentExtensionIndex >= extensions.length) {
+                console.warn(`Could not load image: ${imageName}`);
+                // Return a fallback with default aspect ratio
+                resolve({ url: "", aspect: 1.5, success: false });
+                return;
+              }
+
+              const extension = extensions[currentExtensionIndex];
+              // Add cache-busting parameter to prevent browser caching
+              const cacheBuster = Date.now() + Math.random();
+              const url = `../../images/${imageName}${extension}?cb=${cacheBuster}`;
+
+              img.onload = function () {
+                console.log(`Successfully loaded: ${url}`);
+                resolve({
+                  url,
+                  aspect: img.naturalWidth / img.naturalHeight,
+                  success: true,
                 });
+              };
+
+              img.onerror = function () {
+                console.log(`Failed to load: ${url}`);
+                currentExtensionIndex++;
+                tryNextExtension();
+              };
+
+              img.src = url;
             }
 
-            // Load all images to get aspect ratios
-            Promise.all(imageList.map(img => loadImageAspect(`../../images/${img}`))).then(imagesWithAspect => {
-                // Calculate total arc length needed (sum of widths + gaps)
-                const gap = 3; // Gap between images (in world units)
-                const widths = imagesWithAspect.map(img => img.aspect * fixedHeight);
-                const totalWidth = widths.reduce((a, b) => a + b, 0) + gap * (numImages - 1);
-                const arcLength = radius * arcAngle;
-                // If totalWidth > arcLength, increase radius
-                let usedRadius = radius;
-                if (totalWidth > arcLength) {
-                    usedRadius = totalWidth / arcAngle;
+            tryNextExtension();
+          });
+        }
+
+        // Load all images to get aspect ratios
+        Promise.all(imageList.map((img) => loadImageAspect(`${img}`))).then(
+          (imagesWithAspect) => {
+            console.log(
+              "Successfully loaded images:",
+              imagesWithAspect.filter((img) => img.success).length,
+              "out of",
+              imageList.length
+            );
+
+            // Filter out images that failed to load
+            const validImages = imagesWithAspect.filter((img) => img.success);
+
+            if (validImages.length === 0) {
+              console.error("No images loaded successfully!");
+              // Create a fallback wall with placeholder
+              createFallbackWall();
+              return;
+            }
+
+            // Calculate total arc length needed (sum of widths + gaps)
+            const gap = 3; // Gap between images (in world units)
+            const widths = validImages.map((img) => img.aspect * fixedHeight);
+            const totalWidth =
+              widths.reduce((a, b) => a + b, 0) +
+              gap * (validImages.length - 1);
+            const arcLength = radius * arcAngle;
+            // If totalWidth > arcLength, increase radius
+            let usedRadius = radius;
+            if (totalWidth > arcLength) {
+              usedRadius = totalWidth / arcAngle;
+            }
+
+            console.log("Placing", validImages.length, "images on wall");
+
+            // Place images along the arc, centered
+            // Calculate total width of all images plus gaps
+            const totalImagesWidth =
+              widths.reduce((a, b) => a + b, 0) +
+              gap * (validImages.length - 1);
+
+            // Calculate the starting arc position to center the images
+            const availableArcLength = usedRadius * arcAngle;
+            const startArc =
+              -arcAngle / 2 +
+              (availableArcLength - totalImagesWidth) / (2 * usedRadius);
+
+            let currentArc = startArc;
+            for (let i = 0; i < validImages.length; i++) {
+              const width = widths[i];
+              const angle = currentArc + width / (2 * usedRadius); // Center of this image
+              const x = usedRadius * Math.cos(angle);
+              const z = usedRadius * Math.sin(angle);
+
+              console.log(
+                `Placing image ${i + 1} at position (${x.toFixed(
+                  2
+                )}, ${yCenter}, ${z.toFixed(2)})`
+              );
+
+              // Texture loader
+              const texture = new THREE.TextureLoader().load(
+                validImages[i].url,
+                function (texture) {
+                  console.log(`Texture loaded successfully for image ${i + 1}`);
+                },
+                undefined,
+                function (error) {
+                  console.error(
+                    `Failed to load texture for image ${i + 1}:`,
+                    error
+                  );
                 }
+              );
+              const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide,
+              });
+              const geometry = new THREE.PlaneGeometry(width, fixedHeight);
+              const plane = new THREE.Mesh(geometry, material);
+              plane.position.set(x, yCenter, zOffset + z);
+              plane.lookAt(0, yCenter, 0); // Face the center
+              scene.add(plane);
+              scene.userData.imagePlanes.push(plane);
 
-                // Place images along the arc, centered
-                let currentArc = -arcAngle / 2;
-                for (let i = 0; i < numImages; i++) {
-                    const width = widths[i];
-                    const angle = currentArc + width / (2 * usedRadius); // Center of this image
-                    const x = usedRadius * Math.cos(angle);
-                    const z = usedRadius * Math.sin(angle);
+              // Move to next position (arc advances by width + gap)
+              currentArc += (width + gap) / usedRadius;
+            }
+            // Set camera in front of the images, facing the center, and store radius/y for animation
+            wallRadius = usedRadius; // Update global wall radius for text
+            cameraRadius = usedRadius + 70;
+            cameraY = yCenter;
+            camera.position.set(0, yCenter, cameraRadius);
+            camera.lookAt(0, yCenter, 0);
 
-                    // Texture loader
-                    const texture = new THREE.TextureLoader().load(imagesWithAspect[i].url);
-                    const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-                    const geometry = new THREE.PlaneGeometry(width, fixedHeight);
-                    const plane = new THREE.Mesh(geometry, material);
-                    plane.position.set(x, yCenter, zOffset + z);
-                    plane.lookAt(0, yCenter, 0); // Face the center
-                    scene.add(plane);
-                    scene.userData.imagePlanes.push(plane);
+            console.log(
+              "Image wall setup complete. Camera positioned at:",
+              camera.position
+            );
+          }
+        );
+      }
 
-                    // Move to next position (arc advances by width + gap)
-                    currentArc += (width + gap) / usedRadius;
-                }
-                // Set camera in front of the images, facing the center, and store radius/y for animation
-                wallRadius = usedRadius; // Update global wall radius for text
-                cameraRadius = usedRadius + 70;
-                cameraY = yCenter;
-                camera.position.set(0, yCenter, cameraRadius);
-                camera.lookAt(0, yCenter, 0);
+      // Function to properly clear previous images and textures
+      function clearPreviousImages() {
+        if (scene.userData.imagePlanes) {
+          scene.userData.imagePlanes.forEach((plane) => {
+            // Dispose of geometry
+            if (plane.geometry) {
+              plane.geometry.dispose();
+            }
+            // Dispose of material and texture
+            if (plane.material) {
+              if (plane.material.map) {
+                plane.material.map.dispose();
+              }
+              plane.material.dispose();
+            }
+            // Remove from scene
+            scene.remove(plane);
+          });
+        }
+        scene.userData.imagePlanes = [];
+        console.log("Cleared previous images");
+      }
+
+      // Create a fallback wall if no images load
+      function createFallbackWall() {
+        console.log("Creating fallback wall");
+        const fallbackGeometry = new THREE.PlaneGeometry(20, 15);
+        const fallbackMaterial = new THREE.MeshBasicMaterial({
+          color: 0x444444,
+          side: THREE.DoubleSide,
+        });
+        const fallbackPlane = new THREE.Mesh(
+          fallbackGeometry,
+          fallbackMaterial
+        );
+        fallbackPlane.position.set(0, 0, 0);
+        scene.add(fallbackPlane);
+        scene.userData.imagePlanes = [fallbackPlane];
+
+        // Set camera position
+        cameraRadius = 50;
+        cameraY = 0;
+        camera.position.set(0, 0, cameraRadius);
+        camera.lookAt(0, 0, 0);
+      }
+
+      // Load quote connections and select a random quote
+      function loadQuoteConnections() {
+        return fetch("quote_to_images_connections.json")
+          .then((response) => response.json())
+          .then((data) => {
+            quoteConnections = data;
+            console.log(
+              "Loaded quote connections:",
+              Object.keys(data).length,
+              "quotes"
+            );
+            return selectRandomQuote();
+          })
+          .catch((err) => {
+            console.error("Failed to load quote connections", err);
+            return null;
+          });
+      }
+
+      // Select a random quote from the connections
+      function selectRandomQuote() {
+        const quotes = Object.keys(quoteConnections);
+        if (quotes.length === 0) return null;
+
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        currentQuoteData = quoteConnections[randomQuote];
+        console.log("Selected quote:", currentQuoteData.quote);
+        console.log("Matching images:", currentQuoteData.matching_images);
+        return currentQuoteData;
+      }
+
+      // Update quote info display
+      function updateQuoteInfo() {
+        if (!currentQuoteData) return;
+
+        const quoteInfo = document.getElementById("quote-info");
+        const quoteTitle = document.getElementById("quote-title");
+        const quoteBottomLine = document.getElementById("quote-bottom-line");
+        const quoteOrigin = document.getElementById("quote-origin");
+        const quoteImagesCount = document.getElementById("quote-images-count");
+
+        // Format quote text (replace underscores with spaces)
+        const formattedQuote = currentQuoteData.quote.replace(/_/g, " ");
+
+        quoteTitle.textContent = formattedQuote;
+        quoteBottomLine.textContent = currentQuoteData.bottom_line;
+        quoteOrigin.textContent = currentQuoteData.origin;
+        quoteImagesCount.textContent = `${currentQuoteData.num_images} semantically connected images`;
+
+        // Show the quote info
+        quoteInfo.style.display = "block";
+      }
+
+      // Create curved 3D text wrapped around the cylinder
+      function createCurvedText(text) {
+        // Remove existing curved text if any
+        if (curvedText) {
+          scene.remove(curvedText);
+        }
+
+        // Create canvas for text
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.width = 5000;
+        canvas.height = 300;
+
+        // Set text style (smaller font)
+        context.fillStyle = "white";
+        context.font = "bold 200px Heming, monospace";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+
+        // Draw text on canvas
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        // Create texture from canvas (flip Y to fix mirroring)
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        texture.center = new THREE.Vector2(0.5, 0.5);
+        texture.rotation = Math.PI; // Flip vertically
+        texture.flipY = false;
+
+        // Create curved geometry
+        const radius = wallRadius; // Use shared wall radius
+        const arcAngle = Math.PI * 0.61; // Half of the semi-cylinder (about 110 degrees)
+        const height = 8; // Increased height for larger text
+        const segments = 128;
+
+        const geometry = new THREE.PlaneGeometry(
+          arcAngle * radius * 1.5,
+          height,
+          segments,
+          1
+        );
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide,
+        });
+
+        // Create mesh
+        curvedText = new THREE.Mesh(geometry, material);
+
+        // Position and curve the text
+        curvedText.position.set(0, 15, 0); // Above the images
+        curvedText.rotation.y = Math.PI / 2; // Face outward
+
+        // Apply curvature by bending the geometry
+        const positions = geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+          const x = positions[i];
+          const y = positions[i + 1];
+          const z = positions[i + 2];
+
+          // Calculate angle based on x position
+          const angle = (x / ((arcAngle * radius) / 2)) * (arcAngle / 2);
+
+          // Apply cylindrical transformation
+          positions[i] = radius * Math.sin(angle);
+          positions[i + 1] = y;
+          positions[i + 2] = radius * Math.cos(angle);
+        }
+
+        geometry.attributes.position.needsUpdate = true;
+        geometry.computeVertexNormals();
+
+        // Add to scene
+        scene.add(curvedText);
+      }
+
+      // Initialize the visualization
+      function startVisualization() {
+        // Ensure loading page is visible
+        document.getElementById("loading-container").style.display = "block";
+        document.getElementById("black-overlay").style.display = "block";
+        document.getElementById("black-overlay").style.opacity = "1";
+        document.getElementById("visualization").style.display = "none";
+
+        // Simulate loading progress
+        let progress = 0;
+        const loadingInterval = setInterval(() => {
+          progress += 2;
+          updateLoadingUI(progress);
+
+          if (progress >= 100) {
+            clearInterval(loadingInterval);
+
+            // Load quote connections and initialize
+            loadQuoteConnections().then((quoteData) => {
+              if (quoteData) {
+                // Initialize the scene
+                init();
+
+                // Add image wall with semantically connected images
+                addImageWall(quoteData.matching_images);
+
+                // Create curved text with the quote
+                const formattedQuote = quoteData.quote.replace(/_/g, " ");
+                createCurvedText(formattedQuote);
+
+                // Update quote info display
+                updateQuoteInfo();
+              }
+
+              // Hide loading page and show visualization
+              document.getElementById("loading-container").style.display =
+                "none";
+              document.getElementById("visualization").style.display = "block";
+              document.getElementById("black-overlay").style.opacity = "0";
+              setTimeout(() => {
+                document.getElementById("black-overlay").style.display = "none";
+              }, 500);
+
+              // Start animation
+              animate();
+
+              // Start camera position animation after loading
+              isRotating = true;
+              rotationStart = performance.now();
+              initialAngle = 0;
             });
+          }
+        }, 50);
+      }
+
+      // Start the visualization when the page loads
+      window.addEventListener("load", startVisualization);
+
+      function refreshGallery() {
+        document.getElementById("loading-container").style.display = "block";
+        document.getElementById("black-overlay").style.display = "block";
+        document.getElementById("black-overlay").style.opacity = "1";
+        document.getElementById("visualization").style.display = "none";
+
+        // Clear current scene and particles
+        clearPreviousImages();
+        if (curvedText) {
+          scene.remove(curvedText);
+          curvedText = null;
         }
+        currentQuoteData = null;
 
-        // Fetch images.json and add image wall
-        function setupImageWall() {
-            fetch('../../images/images.json')
-                .then(response => response.json())
-                .then(images => {
-                    // Shuffle and pick 10 random images
-                    for (let i = images.length - 1; i > 0; i--) {
-                        const j = Math.floor(Math.random() * (i + 1));
-                        [images[i], images[j]] = [images[j], images[i]];
-                    }
-                    const selected = images.slice(0, 10);
-                    addImageWall(selected);
-                })
-                .catch(err => {
-                    console.error('Failed to load images.json', err);
-                });
-        }
+        // Load new quote connections
+        loadQuoteConnections().then((quoteData) => {
+          if (quoteData) {
+            // Initialize the scene
+            init();
 
-        // Load and display a random quote as 3D curved text
-        function loadRandomQuote() {
-            fetch('Hashtags.csv')
-                .then(response => response.text())
-                .then(csvText => {
-                    // Parse CSV
-                    const lines = csvText.split('\n');
-                    const headers = lines[0].split(',');
-                    const quoteIndex = headers.indexOf('Quote');
-                    
-                    if (quoteIndex === -1) {
-                        console.error('Quote column not found in CSV');
-                        return;
-                    }
-                    
-                    // Get all quotes (skip header)
-                    const quotes = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        if (lines[i].trim()) {
-                            const columns = lines[i].split(',');
-                            if (columns[quoteIndex]) {
-                                // Replace underscores with spaces and clean up the quote
-                                let quote = columns[quoteIndex].replace(/_/g, ' ');
-                                // Remove quotes if present
-                                quote = quote.replace(/^"|"$/g, '');
-                                quotes.push(quote);
-                            }
-                        }
-                    }
-                    
-                    // Select a random quote and create 3D text
-                    if (quotes.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * quotes.length);
-                        const selectedQuote = quotes[randomIndex];
-                        createCurvedText(selectedQuote);
-                    }
-                })
-                .catch(err => {
-                    console.error('Failed to load Hashtags.csv', err);
-                });
-        }
+            // Add image wall with semantically connected images
+            addImageWall(quoteData.matching_images);
 
-        // Create curved 3D text wrapped around the cylinder
-        function createCurvedText(text) {
-            // Remove existing curved text if any
-            if (curvedText) {
-                scene.remove(curvedText);
-            }
+            // Create curved text with the quote
+            const formattedQuote = quoteData.quote.replace(/_/g, " ");
+            createCurvedText(formattedQuote);
 
-            // Create canvas for text
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = 3000;
-            canvas.height = 120;
-            
-            // Set text style (smaller font)
-            context.fillStyle = 'white';
-            context.font = 'bold 100px Heming, monospace';
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            
-            // Draw text on canvas
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.fillText(text, canvas.width / 2, canvas.height / 2);
-            
-            // Create texture from canvas (flip Y to fix mirroring)
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.needsUpdate = true;
-            texture.center = new THREE.Vector2(0.5, 0.5);
-            texture.rotation = Math.PI; // Flip vertically
-            texture.flipY = false;
-            
-            // Create curved geometry
-            const radius = wallRadius; // Use shared wall radius
-            const arcAngle = Math.PI * 0.61; // Half of the semi-cylinder (about 110 degrees)
-            const height = 4; // More narrow
-            const segments = 128;
-            
-            const geometry = new THREE.PlaneGeometry(arcAngle * radius, height, segments, 1);
-            const material = new THREE.MeshBasicMaterial({ 
-                map: texture, 
-                transparent: true, 
-                side: THREE.DoubleSide 
-            });
-            
-            // Create mesh
-            curvedText = new THREE.Mesh(geometry, material);
-            
-            // Position and curve the text
-            curvedText.position.set(0, 15, 0); // Above the images
-            curvedText.rotation.y = Math.PI / 2; // Face outward
-            
-            // Apply curvature by bending the geometry
-            const positions = geometry.attributes.position.array;
-            for (let i = 0; i < positions.length; i += 3) {
-                const x = positions[i];
-                const y = positions[i + 1];
-                const z = positions[i + 2];
-                
-                // Calculate angle based on x position
-                const angle = (x / (arcAngle * radius / 2)) * (arcAngle / 2);
-                
-                // Apply cylindrical transformation
-                positions[i] = radius * Math.sin(angle);
-                positions[i + 1] = y;
-                positions[i + 2] = radius * Math.cos(angle);
-            }
-            
-            geometry.attributes.position.needsUpdate = true;
-            geometry.computeVertexNormals();
-            
-            // Add to scene
-            scene.add(curvedText);
-        }
+            // Update quote info display
+            updateQuoteInfo();
+          }
 
-        // Initialize the visualization
-        function startVisualization() {
-            // Ensure loading page is visible
-            document.getElementById('loading-container').style.display = 'block';
-            document.getElementById('black-overlay').style.display = 'block';
-            document.getElementById('black-overlay').style.opacity = '1';
-            document.getElementById('visualization').style.display = 'none';
+          // Hide loading page and show visualization
+          document.getElementById("loading-container").style.display = "none";
+          document.getElementById("visualization").style.display = "block";
+          document.getElementById("black-overlay").style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("black-overlay").style.display = "none";
+          }, 500);
 
-            // Load random quote and store it for later use
-            let selectedQuote = '';
-            fetch('Hashtags.csv')
-                .then(response => response.text())
-                .then(csvText => {
-                    // Parse CSV
-                    const lines = csvText.split('\n');
-                    const headers = lines[0].split(',');
-                    const quoteIndex = headers.indexOf('Quote');
-                    
-                    if (quoteIndex === -1) {
-                        console.error('Quote column not found in CSV');
-                        return;
-                    }
-                    
-                    // Get all quotes (skip header)
-                    const quotes = [];
-                    for (let i = 1; i < lines.length; i++) {
-                        if (lines[i].trim()) {
-                            const columns = lines[i].split(',');
-                            if (columns[quoteIndex]) {
-                                // Replace underscores with spaces and clean up the quote
-                                let quote = columns[quoteIndex].replace(/_/g, ' ');
-                                // Remove quotes if present
-                                quote = quote.replace(/^"|"$/g, '');
-                                quotes.push(quote);
-                            }
-                        }
-                    }
-                    
-                    // Select a random quote
-                    if (quotes.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * quotes.length);
-                        selectedQuote = quotes[randomIndex];
-                    }
-                })
-                .catch(err => {
-                    console.error('Failed to load Hashtags.csv', err);
-                });
+          // Start animation
+          animate();
 
-            // Simulate loading progress
-            let progress = 0;
-            const loadingInterval = setInterval(() => {
-                progress += 2;
-                updateLoadingUI(progress);
-                
-                if (progress >= 100) {
-                    clearInterval(loadingInterval);
-                    
-                    // Initialize the scene
-                    init();
-                    setupImageWall();
-                    
-                    // Create curved text after scene is initialized
-                    if (selectedQuote) {
-                        createCurvedText(selectedQuote);
-                    }
-                    
-                    // Hide loading page and show visualization
-                    document.getElementById('loading-container').style.display = 'none';
-                    document.getElementById('visualization').style.display = 'block';
-                    document.getElementById('black-overlay').style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('black-overlay').style.display = 'none';
-                    }, 500);
-                    
-                    // Start animation
-                    animate();
-
-                    // Start camera position animation after loading
-                    isRotating = true;
-                    rotationStart = performance.now();
-                    initialAngle = 0;
-                }
-            }, 50);
-        }
-
-        // Start the visualization when the page loads
-        window.addEventListener('load', startVisualization);
+          // Start camera position animation after loading
+          isRotating = true;
+          rotationStart = performance.now();
+          initialAngle = 0;
+        });
+      }
     </script>
-</body>
+  </body>
 </html>
