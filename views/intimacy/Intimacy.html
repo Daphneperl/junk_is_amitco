@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>3D Intimacy Tunnel Gallery</title>
-    <link href="https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@400&display=swap" rel="stylesheet">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
@@ -10,176 +13,196 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
     <style>
-        @font-face {
-            font-family: 'Pixel';
-            src: url('../../../assets/pixel.ttf') format('truetype');
-        }
-        @font-face {
-            font-family: 'VT323';
-            src: url('../../../assets/VT323-Regular.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-        body {
-            margin: 0;
-            background-color: black;
-            overflow: hidden;
-        }
-        #visualization {
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-        #black-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: black;
-            z-index: 1000;
-            transition: opacity 0.5s ease;
-            opacity: 1;
-        }
-        #loading-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 1001;
-        }
-        .loading-bar {
-            width: 300px;
-            height: 20px;
-            background: #333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .loading-progress {
-            height: 100%;
-            background: #ffffff;
-            transition: width 0.3s ease;
-        }
-        
-        /* Floating Eye Styles */
-        #floating-eye {
-            position: fixed;
-            width: 80px;
-            height: 80px;
-            z-index: 1000;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            pointer-events: auto;
-            display: block;
-            top: 100px;
-            left: 100px;
-        }
-        
-        #floating-eye:hover {
-            transform: scale(1.2);
-        }
-        
-        #floating-eye img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
-        }
-        
-        /* Tooltip Styles */
-        #eye-tooltip {
-            position: fixed;
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 15px;
-            border: 1px solid #fff;
-            border-radius: 5px;
-            font-family: 'VT323', monospace;
-            font-size: 14px;
-            max-width: 300px;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            pointer-events: none;
-            text-align: center;
-            line-height: 1.4;
-        }
-        
-        #eye-tooltip.show {
-            opacity: 1;
-            visibility: visible;
-        }
+      @font-face {
+        font-family: "Pixel";
+        src: url("../../../assets/pixel.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "VT323";
+        src: url("../../../assets/VT323-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+      }
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+      #black-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+        opacity: 1;
+      }
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
+
+      /* Floating Eye Styles */
+      #floating-eye {
+        position: fixed;
+        width: 200px;
+        height: 200px;
+        z-index: 1000;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        pointer-events: auto;
+        display: none;
+        top: 100px;
+        left: 100px;
+        opacity: 0.7;
+      }
+
+      #floating-eye:hover {
+        transform: scale(1.2);
+      }
+
+      #floating-eye img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+      }
+
+      /* Tooltip Styles */
+      #eye-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        font-family: "VT323", monospace;
+        font-size: 26px;
+        width: 350px;
+        height: 200px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        pointer-events: none;
+        text-align: center;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      #eye-tooltip.show {
+        opacity: 0.7;
+        visibility: visible;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="black-overlay"></div>
     <div id="loading-container">
-        <div class="loading-bar">
-            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
-        </div>
-        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING... 0%
+      </div>
     </div>
     <div id="visualization"></div>
-    
+
     <!-- Floating Eye -->
     <div id="floating-eye">
-        <img src="../../assets/GlitchyEyeGif.gif" alt="Glitchy Eye" style="width:100%;height:100%;object-fit:contain;" />
+      <img
+        src="../../assets/GlitchyEyeGif.gif"
+        alt="Glitchy Eye"
+        style="width: 100%; height: 100%; object-fit: contain"
+      />
     </div>
-    
+
     <!-- Tooltip -->
     <div id="eye-tooltip">
-        Here is the Intimacy View. Zoom in to discover where personal fragments were left – the closer you go, the more intimate places you'll find.
+      Here is the Intimacy View. Zoom in to discover where personal fragments
+      were left – the closer you go, the more intimate places you'll find.
     </div>
 
     <script>
-    // 1. Define stations and Z mapping
-    const stations = [
+      // 1. Define stations and Z mapping
+      const stations = [
         { name: "", flower: "" }, // Empty first layer
-        { name: "The Beach", flower: "Sea Lavender" },
-        { name: "The Park", flower: "Wild Daisy" },
-        { name: "Museum", flower: "Orchid" },
-        { name: "Cafe", flower: "Coffee Flower" },
-        { name: "Pub", flower: "Hop Blossom" },
-        { name: "Class", flower: "Scholar's Rose" },
-        { name: "Studio", flower: "Artist's Iris" },
-        { name: "Living room", flower: "Home Lily" },
-        { name: "Bedroom", flower: "Night Jasmine" },
-        { name: "Toilet", flower: "Bathroom Fern" }
-    ];
-    
+        { name: "The Beach", flower: "Sand in your soul and sketchbook" },
+        { name: "The Park", flower: "So poetic" },
+        { name: "Museum", flower: "It's not stealing if you make it your own" },
+        { name: "Cafe", flower: "Coffee stains everywhere" },
+        { name: "Pub", flower: "Who needs friends when there's beer?" },
+        { name: "Class", flower: "Teacher's pet!" },
+        { name: "Studio", flower: "Artist's layer" },
+        { name: "Living room", flower: "Couchpotato or artistic genius?" },
+        { name: "Bedroom", flower: "Where the magic happens" },
+        { name: "Toilet", flower: "Where shit gets real" },
+      ];
 
-    const imageRingRadius = 75;
-    const tunnelMargin = 3;
-    const tunnelRadius = imageRingRadius + tunnelMargin;
-    const minRingRadius = 55;
-    const maxRingRadius = 75;
-    const tunnelLength = 5500; // total Z length (increased for additional layer)
-    const zStart = 0;
-    const zEnd = -tunnelLength;
-    const stationStep = tunnelLength / (stations.length - 1);
+      const imageRingRadius = 75;
+      const tunnelMargin = 3;
+      const tunnelRadius = imageRingRadius + tunnelMargin;
+      const minRingRadius = 55;
+      const maxRingRadius = 75;
+      const tunnelLength = 5500; // total Z length (increased for additional layer)
+      const zStart = 0;
+      const zEnd = -tunnelLength;
+      const stationStep = tunnelLength / (stations.length - 1);
 
-    // Define a left-turning curve using CatmullRomCurve3
-    const tunnelCurve = new THREE.CatmullRomCurve3(
-        Array.from({length: 200}, (_, i) => {
-            const t = i / 199;
-            const angle = t * Math.PI * 1.8; // 1.8 radians = ~103 degrees (increased turn for longer tunnel)
-            const radius = 1500; // Increased radius for smoother curve with longer distance
-            return new THREE.Vector3(
-                Math.sin(angle) * radius,
-                0,
-                -Math.cos(angle) * radius
-            );
+      // Define a left-turning curve using CatmullRomCurve3
+      const tunnelCurve = new THREE.CatmullRomCurve3(
+        Array.from({ length: 200 }, (_, i) => {
+          const t = i / 199;
+          const angle = t * Math.PI * 1.8; // 1.8 radians = ~103 degrees (increased turn for longer tunnel)
+          const radius = 1500; // Increased radius for smoother curve with longer distance
+          return new THREE.Vector3(
+            Math.sin(angle) * radius,
+            0,
+            -Math.cos(angle) * radius
+          );
         })
-    );
+      );
 
-    // 1. Add the custom shader for vertical lines at the top of the script section:
-    const verticalLineVertexShader = `
+      // 1. Add the custom shader for vertical lines at the top of the script section:
+      const verticalLineVertexShader = `
         attribute float alpha;
         varying float vAlpha;
         void main() {
@@ -187,77 +210,86 @@
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
     `;
-    const verticalLineFragmentShader = `
+      const verticalLineFragmentShader = `
         varying float vAlpha;
         void main() {
             gl_FragColor = vec4(1.0, 1.0, 1.0, vAlpha);
         }
     `;
 
-    // 2. Load images from JSON and assign stations
-    async function loadArtworks() {
+      // 2. Load images from JSON and assign stations
+      async function loadArtworks() {
         let imageList = [];
         try {
-            const response = await fetch('../../images/images.json');
-            imageList = await response.json();
+          const response = await fetch("../../images/images.json");
+          imageList = await response.json();
         } catch (e) {
-            document.getElementById('loading-text').textContent = 'Error loading images.json';
-            return [];
+          document.getElementById("loading-text").textContent =
+            "Error loading images.json";
+          return [];
         }
-        
+
         // Shuffle the image list to randomize selection
         const shuffledImages = [...imageList].sort(() => Math.random() - 0.5);
-        
+
         // Calculate how many images per station (ensure equal distribution)
-        const imagesPerStation = Math.floor(shuffledImages.length / stations.length);
+        const imagesPerStation = Math.floor(
+          shuffledImages.length / stations.length
+        );
         const totalImagesToUse = imagesPerStation * stations.length;
-        
+
         // Distribute images evenly across stations
         const artworks = [];
         for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
-            for (let i = 0; i < imagesPerStation; i++) {
-                const imageIndex = stationIdx * imagesPerStation + i;
-                if (imageIndex < shuffledImages.length) {
-                    artworks.push({
-                        id: imageIndex,
-                        stationIdx,
-                        station: stations[stationIdx],
-                        image: shuffledImages[imageIndex]
-                    });
-                }
+          for (let i = 0; i < imagesPerStation; i++) {
+            const imageIndex = stationIdx * imagesPerStation + i;
+            if (imageIndex < shuffledImages.length) {
+              artworks.push({
+                id: imageIndex,
+                stationIdx,
+                station: stations[stationIdx],
+                image: shuffledImages[imageIndex],
+              });
             }
+          }
         }
-        
+
         return artworks;
-    }
+      }
 
-    // 3. Map station index to Z and ring radius
-    function stationZ(stationIdx) {
+      // 3. Map station index to Z and ring radius
+      function stationZ(stationIdx) {
         return zStart - stationIdx * stationStep;
-    }
-    function stationRadius(stationIdx) {
+      }
+      function stationRadius(stationIdx) {
         // Optional: make more intimate stations smaller
-        return maxRingRadius - (maxRingRadius - minRingRadius) * (stationIdx / (stations.length - 1));
-    }
+        return (
+          maxRingRadius -
+          (maxRingRadius - minRingRadius) * (stationIdx / (stations.length - 1))
+        );
+      }
 
-    // 4. Place artworks in tunnel
-    let scene, camera, renderer, tunnelWire, composer, particles, squareParticleGroup;
-    // Add these arrays to store references and t values
-    let visibleMeshes = [];
-    let visibleLabels = [];
-    let ringObjects = [];
-    let artworksByStation = [];
-    let stationZs = [];
-    let artworksData = [];
+      // 4. Place artworks in tunnel
+      let scene,
+        camera,
+        renderer,
+        tunnelWire,
+        composer,
+        particles,
+        squareParticleGroup;
+      // Add these arrays to store references and t values
+      let visibleMeshes = [];
+      let visibleLabels = [];
+      let ringObjects = [];
+      let artworksByStation = [];
+      let stationZs = [];
+      let artworksData = [];
 
-    
+      // Store Frenet frames globally for reuse
+      let tunnelFrenetFrames = null;
 
-    
-    // Store Frenet frames globally for reuse
-    let tunnelFrenetFrames = null;
-
-    // Create wire grid for the tunnel
-    function createTunnelWireGrid() {
+      // Create wire grid for the tunnel
+      function createTunnelWireGrid() {
         const wireGroup = new THREE.Group();
         const numVerticalLines = 48;
         const numHorizontalRings = 60;
@@ -265,105 +297,117 @@
         const numRingSegments = 48;
 
         // Precompute Frenet frames along the curve
-        tunnelFrenetFrames = tunnelCurve.computeFrenetFrames(numCurveSamples, false);
+        tunnelFrenetFrames = tunnelCurve.computeFrenetFrames(
+          numCurveSamples,
+          false
+        );
 
         // Vertical lines (meridians)
         for (let v = 0; v < numVerticalLines; v++) {
-            const angle = (v / numVerticalLines) * Math.PI * 2;
-            const points = [];
-            for (let i = 0; i < numCurveSamples; i++) {
-                const t = i / (numCurveSamples - 1);
-                const center = tunnelCurve.getPoint(t);
-                const normal = tunnelFrenetFrames.normals[i];
-                const binormal = tunnelFrenetFrames.binormals[i];
-                const x = Math.cos(angle) * tunnelRadius;
-                const y = Math.sin(angle) * tunnelRadius;
-                // Local position in the ring's frame
-                const pos = center.clone()
-                    .add(normal.clone().multiplyScalar(x))
-                    .add(binormal.clone().multiplyScalar(y));
-                points.push(pos);
-            }
-            // Create geometry with per-vertex alpha
-            const positions = new Float32Array(points.length * 3);
-            const alphas = new Float32Array(points.length);
-            for (let i = 0; i < points.length; i++) {
-                positions[i * 3] = points[i].x;
-                positions[i * 3 + 1] = points[i].y;
-                positions[i * 3 + 2] = points[i].z;
-                alphas[i] = 1.0; // default, will be updated each frame
-            }
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
-            const material = new THREE.ShaderMaterial({
-                vertexShader: verticalLineVertexShader,
-                fragmentShader: verticalLineFragmentShader,
-                transparent: true,
-                depthWrite: false,
-                depthTest: true
-            });
-            const line = new THREE.Line(geometry, material);
-            line.renderOrder = 1;
-            line.userData = { type: 'vertical', points: points, geometry: geometry, alphas: alphas };
-            wireGroup.add(line);
+          const angle = (v / numVerticalLines) * Math.PI * 2;
+          const points = [];
+          for (let i = 0; i < numCurveSamples; i++) {
+            const t = i / (numCurveSamples - 1);
+            const center = tunnelCurve.getPoint(t);
+            const normal = tunnelFrenetFrames.normals[i];
+            const binormal = tunnelFrenetFrames.binormals[i];
+            const x = Math.cos(angle) * tunnelRadius;
+            const y = Math.sin(angle) * tunnelRadius;
+            // Local position in the ring's frame
+            const pos = center
+              .clone()
+              .add(normal.clone().multiplyScalar(x))
+              .add(binormal.clone().multiplyScalar(y));
+            points.push(pos);
+          }
+          // Create geometry with per-vertex alpha
+          const positions = new Float32Array(points.length * 3);
+          const alphas = new Float32Array(points.length);
+          for (let i = 0; i < points.length; i++) {
+            positions[i * 3] = points[i].x;
+            positions[i * 3 + 1] = points[i].y;
+            positions[i * 3 + 2] = points[i].z;
+            alphas[i] = 1.0; // default, will be updated each frame
+          }
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(positions, 3)
+          );
+          geometry.setAttribute("alpha", new THREE.BufferAttribute(alphas, 1));
+          const material = new THREE.ShaderMaterial({
+            vertexShader: verticalLineVertexShader,
+            fragmentShader: verticalLineFragmentShader,
+            transparent: true,
+            depthWrite: false,
+            depthTest: true,
+          });
+          const line = new THREE.Line(geometry, material);
+          line.renderOrder = 1;
+          line.userData = {
+            type: "vertical",
+            points: points,
+            geometry: geometry,
+            alphas: alphas,
+          };
+          wireGroup.add(line);
         }
 
         // Horizontal rings (latitudes) - unchanged except for userData
         for (let i = 0; i < numHorizontalRings; i++) {
-            const t = i / (numHorizontalRings - 1);
-            const center = tunnelCurve.getPoint(t);
-            const tangent = tunnelCurve.getTangent(t).clone().normalize();
-            // Find a perpendicular vector for the ring's plane
-            let up = new THREE.Vector3(0, 1, 0);
-            if (Math.abs(tangent.dot(up)) > 0.99) up = new THREE.Vector3(1, 0, 0);
-            const binormal = new THREE.Vector3().crossVectors(tangent, up).normalize();
-            const ringPoints = [];
-            for (let j = 0; j <= numRingSegments; j++) {
-                const angle = (j / numRingSegments) * Math.PI * 2;
-                const x = Math.cos(angle) * tunnelRadius;
-                const y = Math.sin(angle) * tunnelRadius;
-                // Local position in the ring's frame
-                const pos = center.clone()
-                    .add(up.clone().multiplyScalar(x))
-                    .add(binormal.clone().multiplyScalar(y));
-                ringPoints.push(pos);
-            }
-            const geometry = new THREE.BufferGeometry().setFromPoints(ringPoints);
-            const material = new THREE.LineBasicMaterial({ 
-                color: 0xffffff, 
-                transparent: true, 
-                opacity: 1.0,
-                depthWrite: false,
-                depthTest: true
-            });
-            const line = new THREE.Line(geometry, material);
-            line.renderOrder = 1;
-            line.userData = { type: 'horizontal', points: ringPoints };
-            wireGroup.add(line);
+          const t = i / (numHorizontalRings - 1);
+          const center = tunnelCurve.getPoint(t);
+          const tangent = tunnelCurve.getTangent(t).clone().normalize();
+          // Find a perpendicular vector for the ring's plane
+          let up = new THREE.Vector3(0, 1, 0);
+          if (Math.abs(tangent.dot(up)) > 0.99) up = new THREE.Vector3(1, 0, 0);
+          const binormal = new THREE.Vector3()
+            .crossVectors(tangent, up)
+            .normalize();
+          const ringPoints = [];
+          for (let j = 0; j <= numRingSegments; j++) {
+            const angle = (j / numRingSegments) * Math.PI * 2;
+            const x = Math.cos(angle) * tunnelRadius;
+            const y = Math.sin(angle) * tunnelRadius;
+            // Local position in the ring's frame
+            const pos = center
+              .clone()
+              .add(up.clone().multiplyScalar(x))
+              .add(binormal.clone().multiplyScalar(y));
+            ringPoints.push(pos);
+          }
+          const geometry = new THREE.BufferGeometry().setFromPoints(ringPoints);
+          const material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 1.0,
+            depthWrite: false,
+            depthTest: true,
+          });
+          const line = new THREE.Line(geometry, material);
+          line.renderOrder = 1;
+          line.userData = { type: "horizontal", points: ringPoints };
+          wireGroup.add(line);
         }
 
         tunnelWire = wireGroup;
         scene.add(tunnelWire);
-    }
-    
-    function clearVisible() {
-        visibleMeshes.forEach(mesh => scene.remove(mesh));
+      }
+
+      function clearVisible() {
+        visibleMeshes.forEach((mesh) => scene.remove(mesh));
         visibleMeshes = [];
-        visibleLabels.forEach(label => label.remove());
+        visibleLabels.forEach((label) => label.remove());
         visibleLabels = [];
+      }
 
-    }
-    
-
-    
-    function createTextSprite(title, subtitle = null) {
+      function createTextSprite(title, subtitle = null) {
         // Create a temporary canvas to measure text
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        
+        const tempCanvas = document.createElement("canvas");
+        const tempCtx = tempCanvas.getContext("2d");
+
         // Measure title text
-        tempCtx.font = 'bold 300px VT323, monospace';
+        tempCtx.font = "bold 300px VT323, monospace";
         const titleMetrics = tempCtx.measureText(title);
         const titleWidth = Math.ceil(titleMetrics.width);
         const titleHeight = 450; // Bigger height for bigger font
@@ -371,40 +415,89 @@
         // Measure subtitle text if provided
         let subtitleWidth = 0;
         let subtitleHeight = 0;
+        let subtitleLines = [];
         if (subtitle) {
-            tempCtx.font = '400 120px "Overpass Mono", monospace';
-            const subtitleMetrics = tempCtx.measureText(subtitle);
+          tempCtx.font = '400 80px "Overpass Mono", monospace';
+
+          // Set maximum width for subtitle (narrower box)
+          const maxSubtitleWidth = 1400; // Reduced from previous width
+
+          // Check if subtitle needs to be split into multiple lines
+          const subtitleMetrics = tempCtx.measureText(subtitle);
+          if (subtitleMetrics.width <= maxSubtitleWidth) {
+            // Single line
             subtitleWidth = Math.ceil(subtitleMetrics.width);
-            subtitleHeight = 150;
+            subtitleLines = [subtitle];
+            subtitleHeight = 120;
+          } else {
+            // Split into multiple lines
+            const words = subtitle.split(" ");
+            let currentLine = "";
+            subtitleLines = [];
+
+            for (let i = 0; i < words.length; i++) {
+              const testLine =
+                currentLine + (currentLine ? " " : "") + words[i];
+              const testMetrics = tempCtx.measureText(testLine);
+
+              if (testMetrics.width <= maxSubtitleWidth) {
+                currentLine = testLine;
+              } else {
+                if (currentLine) {
+                  subtitleLines.push(currentLine);
+                  currentLine = words[i];
+                } else {
+                  // Single word is too long, force it
+                  subtitleLines.push(words[i]);
+                  currentLine = "";
+                }
+              }
+            }
+
+            if (currentLine) {
+              subtitleLines.push(currentLine);
+            }
+
+            // Calculate width and height for multiple lines
+            subtitleWidth = maxSubtitleWidth;
+            subtitleHeight = 120 * subtitleLines.length;
+          }
         }
 
-        // Calculate total dimensions
-        const totalWidth = Math.max(titleWidth, subtitleWidth) + 160; // More padding for bigger text
-        const totalHeight = titleHeight + (subtitle ? subtitleHeight - 50 : 0) + 120; // Extremely close - more overlap
+        // Calculate total dimensions with narrower subtitle width
+        const totalWidth = Math.max(titleWidth, subtitleWidth) + 160;
+        const totalHeight = titleHeight + (subtitle ? subtitleHeight : 0) + 200; // Increased padding to prevent cutoff
 
         // Now create the actual canvas
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = totalWidth;
         canvas.height = totalHeight;
-        const context = canvas.getContext('2d');
+        const context = canvas.getContext("2d");
         context.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         // Draw title
-        context.font = 'bold 300px VT323, monospace';
-        context.fillStyle = 'rgba(255,255,255,1)';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        const titleY = subtitle ? totalHeight / 2 - subtitleHeight / 2 + 25 : totalHeight / 2;
+        context.font = "bold 300px VT323, monospace";
+        context.fillStyle = "rgba(255,255,255,1)";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        const titleY = totalHeight / 2 - 50; // Fixed title position
         context.fillText(title, canvas.width / 2, titleY);
 
         // Draw subtitle if provided
-        if (subtitle) {
-            context.font = '400 120px "Overpass Mono", monospace';
-            context.fillStyle = 'rgba(255,255,255,1)'; // Full opacity white
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            const subtitleY = totalHeight / 2 + titleHeight / 2 - 25;
-            context.fillText(subtitle, canvas.width / 2, subtitleY);
+        if (subtitle && subtitleLines.length > 0) {
+          context.font = '400 80px "Overpass Mono", monospace';
+          context.fillStyle = "rgba(255,255,255,1)"; // Full opacity white
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+
+          const lineHeight = 120; // Match the subtitleHeight per line
+          const fixedGap = 200; // Fixed gap between title and subtitle
+          const startY = titleY + fixedGap;
+
+          subtitleLines.forEach((line, index) => {
+            const lineY = startY + index * lineHeight;
+            context.fillText(line, canvas.width / 2, lineY);
+          });
         }
 
         const texture = new THREE.CanvasTexture(canvas);
@@ -413,177 +506,209 @@
         texture.premultiplyAlpha = true;
 
         const spriteMaterial = new THREE.SpriteMaterial({
-            map: texture,
-            transparent: true,
-            opacity: 1.0,
-            alphaTest: 0.5 // Discard low-alpha pixels
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
+          alphaTest: 0.5, // Discard low-alpha pixels
         });
         const sprite = new THREE.Sprite(spriteMaterial);
         // Set scale to match the canvas aspect ratio for natural look, but bigger
-        const scaleX = 0.7 * canvas.width / 10;
-        const scaleY = 0.7 * canvas.height / 10;
+        const scaleX = (0.7 * canvas.width) / 10;
+        const scaleY = (0.7 * canvas.height) / 10;
         sprite.scale.set(scaleX, scaleY, 1);
         return sprite;
-    }
+      }
 
-    function showTunnelRings() {
+      function showTunnelRings() {
         clearVisible();
         ringObjects = [];
         for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
-            const t = stationIdx / (stations.length - 1);
-            const center = tunnelCurve.getPoint(t);
-            let arts = artworksByStation[stationIdx];
-            const maxImagesPerRing = 8;
-            if (arts.length > maxImagesPerRing) {
-                arts = arts.slice(0, maxImagesPerRing).sort(() => Math.random() - 0.5);
-            } else if (arts.length < maxImagesPerRing) {
-                const originalArts = [...arts];
-                while (arts.length < maxImagesPerRing) {
-                    arts.push(...originalArts.slice(0, Math.min(maxImagesPerRing - arts.length, originalArts.length)));
-                }
-                arts = arts.slice(0, maxImagesPerRing).sort(() => Math.random() - 0.5);
+          const t = stationIdx / (stations.length - 1);
+          const center = tunnelCurve.getPoint(t);
+          let arts = artworksByStation[stationIdx];
+          const maxImagesPerRing = 8;
+          if (arts.length > maxImagesPerRing) {
+            arts = arts
+              .slice(0, maxImagesPerRing)
+              .sort(() => Math.random() - 0.5);
+          } else if (arts.length < maxImagesPerRing) {
+            const originalArts = [...arts];
+            while (arts.length < maxImagesPerRing) {
+              arts.push(
+                ...originalArts.slice(
+                  0,
+                  Math.min(maxImagesPerRing - arts.length, originalArts.length)
+                )
+              );
             }
-            const N = arts.length;
-            const ringGroup = new THREE.Group();
-            ringGroup.position.copy(center);
-            ringGroup.userData = { stationIdx, t };
-            scene.add(ringGroup);
-            // Title sprite (only create if station name is not empty)
-            if (stations[stationIdx].name.trim() !== "") {
-                const titleSprite = createTextSprite(stations[stationIdx].name, stations[stationIdx].flower);
-                titleSprite.position.set(0, 0, 0);
-                ringGroup.add(titleSprite);
-                // Store for dynamic opacity, now with center
-                ringObjects.push({ t, center: center.clone(), titleSprite, imageMeshes: [] });
+            arts = arts
+              .slice(0, maxImagesPerRing)
+              .sort(() => Math.random() - 0.5);
+          }
+          const N = arts.length;
+          const ringGroup = new THREE.Group();
+          ringGroup.position.copy(center);
+          ringGroup.userData = { stationIdx, t };
+          scene.add(ringGroup);
+          // Title sprite (only create if station name is not empty)
+          if (stations[stationIdx].name.trim() !== "") {
+            const titleSprite = createTextSprite(
+              stations[stationIdx].name,
+              stations[stationIdx].flower
+            );
+            titleSprite.position.set(0, 0, 0);
+            ringGroup.add(titleSprite);
+            // Store for dynamic opacity, now with center
+            ringObjects.push({
+              t,
+              center: center.clone(),
+              titleSprite,
+              imageMeshes: [],
+            });
+          } else {
+            // For empty first layer, just store the ring object without title
+            ringObjects.push({
+              t,
+              center: center.clone(),
+              titleSprite: null,
+              imageMeshes: [],
+            });
+          }
+
+          // Skip creating images for the first (empty) layer
+          if (stationIdx === 0) {
+            continue;
+          }
+
+          for (let i = 0; i < N; i++) {
+            const angle = (i / N) * Math.PI * 2;
+            const art = arts[i];
+            const texture = art._texture;
+            let mesh,
+              imageWidth = 18;
+            if (texture) {
+              const aspect = texture.image.width / texture.image.height;
+              const height = 30;
+              imageWidth = height * aspect;
+              const geometry = new THREE.PlaneGeometry(imageWidth, height);
+              const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+              });
+              mesh = new THREE.Mesh(geometry, material);
             } else {
-                // For empty first layer, just store the ring object without title
-                ringObjects.push({ t, center: center.clone(), titleSprite: null, imageMeshes: [] });
+              const geometry = new THREE.BoxGeometry(30, 20, 2);
+              const color = `hsl(${Math.floor(360 * Math.random())},70%,60%)`;
+              const material = new THREE.MeshPhongMaterial({
+                color,
+                transparent: true,
+              });
+              mesh = new THREE.Mesh(geometry, material);
             }
-            
-            // Skip creating images for the first (empty) layer
-            if (stationIdx === 0) {
-                continue;
-            }
-            
-            for (let i = 0; i < N; i++) {
-                const angle = (i / N) * Math.PI * 2;
-                const art = arts[i];
-                const texture = art._texture;
-                let mesh, imageWidth = 18;
-                if (texture) {
-                    const aspect = texture.image.width / texture.image.height;
-                    const height = 30;
-                    imageWidth = height * aspect;
-                    const geometry = new THREE.PlaneGeometry(imageWidth, height);
-                    const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-                    mesh = new THREE.Mesh(geometry, material);
-                } else {
-                    const geometry = new THREE.BoxGeometry(30, 20, 2);
-                    const color = `hsl(${Math.floor(360 * Math.random())},70%,60%)`;
-                    const material = new THREE.MeshPhongMaterial({ color, transparent: true });
-                    mesh = new THREE.Mesh(geometry, material);
-                }
-                // Ensure images render above the grid but respect depth
-                mesh.renderOrder = 100;
-                mesh.material.depthTest = true;
-                mesh.material.depthWrite = true;
-                const x = Math.cos(angle) * imageRingRadius;
-                const y = Math.sin(angle) * imageRingRadius;
-                mesh.position.set(x, y, 0);
-                mesh.rotation.set(0, 0, 0);
-                // Store original position for jitter calculations
-                mesh.userData = {
-                    originalX: x,
-                    originalY: y,
-                    originalZ: 0,
-                    jitterSeed: Math.random() * 1000, // Random seed for unique jitter
-                    jitterSpeed: 0.5 + Math.random() * 2.0, // Random speed between 0.5-1.5
-                    jitterAmplitude: 2 + Math.random() * 3, // Random amplitude between 2-5
-                    jitterPhase: Math.random() * Math.PI * 2 // Random starting phase
-                };
-                ringGroup.add(mesh);
-                visibleMeshes.push(mesh);
-                ringObjects[ringObjects.length - 1].imageMeshes.push(mesh);
-            }
+            // Ensure images render above the grid but respect depth
+            mesh.renderOrder = 100;
+            mesh.material.depthTest = true;
+            mesh.material.depthWrite = true;
+            const x = Math.cos(angle) * imageRingRadius;
+            const y = Math.sin(angle) * imageRingRadius;
+            mesh.position.set(x, y, 0);
+            mesh.rotation.set(0, 0, 0);
+            // Store original position for jitter calculations
+            mesh.userData = {
+              originalX: x,
+              originalY: y,
+              originalZ: 0,
+              jitterSeed: Math.random() * 1000, // Random seed for unique jitter
+              jitterSpeed: 0.5 + Math.random() * 2.0, // Random speed between 0.5-1.5
+              jitterAmplitude: 2 + Math.random() * 3, // Random amplitude between 2-5
+              jitterPhase: Math.random() * Math.PI * 2, // Random starting phase
+            };
+            ringGroup.add(mesh);
+            visibleMeshes.push(mesh);
+            ringObjects[ringObjects.length - 1].imageMeshes.push(mesh);
+          }
         }
-    }
-    
-    function updateArtworkOrientations() {
+      }
+
+      function updateArtworkOrientations() {
         // Make all images face the camera
-        visibleMeshes.forEach(mesh => {
-            mesh.lookAt(camera.position);
+        visibleMeshes.forEach((mesh) => {
+          mesh.lookAt(camera.position);
         });
-    }
-    
-    function preloadTextures(artworks, onDone) {
+      }
+
+      function preloadTextures(artworks, onDone) {
         const textureLoader = new THREE.TextureLoader();
         let loaded = 0;
         let total = artworks.length;
-        if (total === 0) { onDone(); return; }
-        artworks.forEach(art => {
-            textureLoader.load(
-                `../../images/${art.image}`,
-                (texture) => { 
-                    art._texture = texture; 
-                    loaded++; 
-                    updateLoadingUI((loaded / total) * 100);
-                    if (loaded === total) onDone(); 
-                },
-                undefined,
-                () => { 
-                    art._texture = null; 
-                    loaded++; 
-                    updateLoadingUI((loaded / total) * 100);
-                    if (loaded === total) onDone(); 
-                }
-            );
+        if (total === 0) {
+          onDone();
+          return;
+        }
+        artworks.forEach((art) => {
+          textureLoader.load(
+            `../../images/${art.image}`,
+            (texture) => {
+              art._texture = texture;
+              loaded++;
+              updateLoadingUI((loaded / total) * 100);
+              if (loaded === total) onDone();
+            },
+            undefined,
+            () => {
+              art._texture = null;
+              loaded++;
+              updateLoadingUI((loaded / total) * 100);
+              if (loaded === total) onDone();
+            }
+          );
         });
-    }
-    
-    function placeArtworksTunnel(artworks) {
+      }
+
+      function placeArtworksTunnel(artworks) {
         // Group artworks by station
-        artworksByStation = Array.from({length: stations.length}, () => []);
+        artworksByStation = Array.from({ length: stations.length }, () => []);
         stationZs = [];
         for (let i = 0; i < stations.length; i++) {
-            stationZs.push(stationZ(i));
+          stationZs.push(stationZ(i));
         }
-        artworks.forEach(art => artworksByStation[art.stationIdx].push(art));
+        artworks.forEach((art) => artworksByStation[art.stationIdx].push(art));
         showTunnelRings();
-    }
+      }
 
-    // 5. Camera, scene, controls
-    async function main() {
+      // 5. Camera, scene, controls
+      async function main() {
         // Ensure fonts are loaded before proceeding
-        await document.fonts.load('bold 300px VT323');
+        await document.fonts.load("bold 300px VT323");
         await document.fonts.load('400 120px "Overpass Mono"');
-        
+
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
         scene.fog = new THREE.Fog(0x000000, 100, tunnelLength + 800);
-        
+
         // Create noise texture background
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = 1920;
         canvas.height = 1080;
-        const ctx = canvas.getContext('2d');
-        
+        const ctx = canvas.getContext("2d");
+
         // Generate noise
         const imageData = ctx.createImageData(canvas.width, canvas.height);
         const data = imageData.data;
         for (let i = 0; i < data.length; i += 4) {
-            const value = Math.random() * 50;
-            data[i] = value;     // R
-            data[i + 1] = value; // G
-            data[i + 2] = value; // B
-            data[i + 3] = 20;    // A
+          const value = Math.random() * 50;
+          data[i] = value; // R
+          data[i + 1] = value; // G
+          data[i + 2] = value; // B
+          data[i + 3] = 20; // A
         }
         ctx.putImageData(imageData, 0, 0);
-        
+
         // Create texture from canvas
         const noiseTexture = new THREE.CanvasTexture(canvas);
         noiseTexture.wrapS = THREE.RepeatWrapping;
         noiseTexture.wrapT = THREE.RepeatWrapping;
-        
+
         // Set as background
         scene.background = noiseTexture;
 
@@ -595,132 +720,163 @@
         squareParticleGroup = new THREE.Group();
         const numCurveSamples = tunnelFrenetFrames.normals.length;
         for (let i = 0; i < squareParticleCount; i++) {
-            // Position particles along the tunnel curve
-            const t = Math.random(); // Random position along the curve
-            const curveIdx = Math.floor(t * (numCurveSamples - 1));
-            const center = tunnelCurve.getPoint(t);
-            // Use Frenet frames for local normal/binormal
-            const normal = tunnelFrenetFrames.normals[curveIdx];
-            const binormal = tunnelFrenetFrames.binormals[curveIdx];
-            // Place outside the tunnel
-            const angle = Math.random() * Math.PI * 2;
-            const radius = tunnelRadius + 20 + Math.random() * 50;
-            const offset = normal.clone().multiplyScalar(Math.cos(angle) * radius)
-                .add(binormal.clone().multiplyScalar(Math.sin(angle) * radius));
-            // Create square geometry
-            const squareSize = 2 + Math.random() * 3; // Random size between 2-5
-            const geometry = new THREE.PlaneGeometry(squareSize, squareSize);
-            // Color gradient from cyan (start) to purple (middle) to red (end) based on t position
-            const cyan = new THREE.Color(0x00ffff); // Cyan
-            const purple = new THREE.Color(0x8000ff); // Purple
-            const red = new THREE.Color(0xff0000);  // Red
-            let color;
-            if (t < 0.5) {
-                color = new THREE.Color().lerpColors(cyan, purple, t * 2);
-            } else {
-                color = new THREE.Color().lerpColors(purple, red, (t - 0.5) * 2);
-            }
-            const material = new THREE.MeshBasicMaterial({
-                color: color,
-                transparent: true,
-                opacity: 0.3 + Math.random() * 0.6, // Random opacity between 0.3 and 0.9
-                side: THREE.DoubleSide
-            });
-            const square = new THREE.Mesh(geometry, material);
-            square.position.copy(center.clone().add(offset));
-            // Store original data for animation
-            square.userData = {
-                t: t,
-                angle: angle,
-                radius: radius,
-                speed: 0.001 + Math.random() * 0.002
-            };
-            squareParticleGroup.add(square);
+          // Position particles along the tunnel curve
+          const t = Math.random(); // Random position along the curve
+          const curveIdx = Math.floor(t * (numCurveSamples - 1));
+          const center = tunnelCurve.getPoint(t);
+          // Use Frenet frames for local normal/binormal
+          const normal = tunnelFrenetFrames.normals[curveIdx];
+          const binormal = tunnelFrenetFrames.binormals[curveIdx];
+          // Place outside the tunnel
+          const angle = Math.random() * Math.PI * 2;
+          const radius = tunnelRadius + 20 + Math.random() * 50;
+          const offset = normal
+            .clone()
+            .multiplyScalar(Math.cos(angle) * radius)
+            .add(binormal.clone().multiplyScalar(Math.sin(angle) * radius));
+          // Create square geometry
+          const squareSize = 2 + Math.random() * 3; // Random size between 2-5
+          const geometry = new THREE.PlaneGeometry(squareSize, squareSize);
+          // Color gradient from cyan (start) to purple (middle) to red (end) based on t position
+          const cyan = new THREE.Color(0x00ffff); // Cyan
+          const purple = new THREE.Color(0x8000ff); // Purple
+          const red = new THREE.Color(0xff0000); // Red
+          let color;
+          if (t < 0.5) {
+            color = new THREE.Color().lerpColors(cyan, purple, t * 2);
+          } else {
+            color = new THREE.Color().lerpColors(purple, red, (t - 0.5) * 2);
+          }
+          const material = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.3 + Math.random() * 0.6, // Random opacity between 0.3 and 0.9
+            side: THREE.DoubleSide,
+          });
+          const square = new THREE.Mesh(geometry, material);
+          square.position.copy(center.clone().add(offset));
+          // Store original data for animation
+          square.userData = {
+            t: t,
+            angle: angle,
+            radius: radius,
+            speed: 0.001 + Math.random() * 0.002,
+          };
+          squareParticleGroup.add(square);
         }
         scene.add(squareParticleGroup);
 
-    // Create original spherical particles
-    const particleCount = 300;
-    const particleGeometry = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(particleCount * 3);
-    const particleSizes = new Float32Array(particleCount);
-    const particleColors = new Float32Array(particleCount * 3);
-    const particleSpeeds = new Float32Array(particleCount);
+        // Create original spherical particles
+        const particleCount = 300;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleSizes = new Float32Array(particleCount);
+        const particleColors = new Float32Array(particleCount * 3);
+        const particleSpeeds = new Float32Array(particleCount);
 
-    for (let i = 0; i < particleCount; i++) {
-        // Random positions within a sphere
-        const radius = 80;
-        const theta = Math.random() * Math.PI * 2;
-        const phi = Math.acos(2 * Math.random() - 1);
-        
-        particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-        particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-        particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+        for (let i = 0; i < particleCount; i++) {
+          // Random positions within a sphere
+          const radius = 80;
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
 
-        // More vibrant colors
-        const hue = Math.random(); // Random hue
-        const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
-        const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
-        
-        // Convert HSL to RGB
-        const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
-        const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
-        const m = lightness - c/2;
-        
-        let r, g, b;
-        if (hue < 1/6) {
-            r = c; g = x; b = 0;
-        } else if (hue < 2/6) {
-            r = x; g = c; b = 0;
-        } else if (hue < 3/6) {
-            r = 0; g = c; b = x;
-        } else if (hue < 4/6) {
-            r = 0; g = x; b = c;
-        } else if (hue < 5/6) {
-            r = x; g = 0; b = c;
-        } else {
-            r = c; g = 0; b = x;
+          particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+          particlePositions[i * 3 + 1] =
+            radius * Math.sin(phi) * Math.sin(theta);
+          particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+
+          // More vibrant colors
+          const hue = Math.random(); // Random hue
+          const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+          const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
+
+          // Convert HSL to RGB
+          const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+          const x = c * (1 - Math.abs(((hue * 6) % 2) - 1));
+          const m = lightness - c / 2;
+
+          let r, g, b;
+          if (hue < 1 / 6) {
+            r = c;
+            g = x;
+            b = 0;
+          } else if (hue < 2 / 6) {
+            r = x;
+            g = c;
+            b = 0;
+          } else if (hue < 3 / 6) {
+            r = 0;
+            g = c;
+            b = x;
+          } else if (hue < 4 / 6) {
+            r = 0;
+            g = x;
+            b = c;
+          } else if (hue < 5 / 6) {
+            r = x;
+            g = 0;
+            b = c;
+          } else {
+            r = c;
+            g = 0;
+            b = x;
+          }
+
+          particleColors[i * 3] = r + m; // R
+          particleColors[i * 3 + 1] = g + m; // G
+          particleColors[i * 3 + 2] = b + m; // B
+
+          // Random speeds between 0.02 and 0.08 (much slower than before)
+          particleSpeeds[i] = Math.random() * 0.06;
         }
-        
-        particleColors[i * 3] = r + m;     // R
-        particleColors[i * 3 + 1] = g + m; // G
-        particleColors[i * 3 + 2] = b + m; // B
 
-        // Random speeds between 0.02 and 0.08 (much slower than before)
-        particleSpeeds[i] = Math.random() * 0.06;
-    }
+        particleGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(particlePositions, 3)
+        );
+        particleGeometry.setAttribute(
+          "size",
+          new THREE.BufferAttribute(particleSizes, 1)
+        );
+        particleGeometry.setAttribute(
+          "color",
+          new THREE.BufferAttribute(particleColors, 3)
+        );
 
-    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
-    particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+        const particleMaterial = new THREE.PointsMaterial({
+          size: 0.5,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.3,
+          sizeAttenuation: true,
+          depthWrite: true,
+          depthTest: true,
+        });
 
-    const particleMaterial = new THREE.PointsMaterial({
-        size: 0.5,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.3,
-        sizeAttenuation: true,
-        depthWrite: true,
-        depthTest: true
-    });
+        particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.userData = {
+          speeds: particleSpeeds,
+        };
+        scene.add(particles);
 
-    particles = new THREE.Points(particleGeometry, particleMaterial);
-    particles.userData = { 
-        speeds: particleSpeeds
-    };
-    scene.add(particles);
-        
         // Create the wire grid
         // createTunnelWireGrid(); // This line is now redundant as it's called above
 
-        camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000);
+        camera = new THREE.PerspectiveCamera(
+          70,
+          window.innerWidth / window.innerHeight,
+          1,
+          10000
+        );
         camera.position.set(0, 0, 200); // Start outside tunnel, looking at z=0
         camera.lookAt(0, 0, 0);
-        
+
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000000, 1);
-        document.getElementById('visualization').appendChild(renderer.domElement);
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
 
         // Setup post-processing
         composer = new THREE.EffectComposer(renderer);
@@ -729,19 +885,19 @@
 
         // Add vignette effect
         const vignetteShader = {
-            uniforms: {
-                "tDiffuse": { value: null },
-                "offset": { value: 1.0 },
-                "darkness": { value: 1.0 }
-            },
-            vertexShader: `
+          uniforms: {
+            tDiffuse: { value: null },
+            offset: { value: 1.0 },
+            darkness: { value: 1.0 },
+          },
+          vertexShader: `
                 varying vec2 vUv;
                 void main() {
                     vUv = uv;
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
-            fragmentShader: `
+          fragmentShader: `
                 uniform sampler2D tDiffuse;
                 uniform float offset;
                 uniform float darkness;
@@ -763,7 +919,7 @@
                     
                     gl_FragColor = color;
                 }
-            `
+            `,
         };
 
         const vignettePass = new THREE.ShaderPass(vignetteShader);
@@ -772,185 +928,207 @@
         composer.addPass(vignettePass);
 
         scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-        
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          composer.setSize(window.innerWidth, window.innerHeight);
         });
-        
+
         // Load artworks and textures
         const artworks = await loadArtworks();
         artworksData = artworks;
         preloadTextures(artworks, () => {
-            placeArtworksTunnel(artworks);
-            // Hide loading page and show visualization
-            document.getElementById('loading-container').style.display = 'none';
-            document.getElementById('visualization').style.display = 'block';
-            document.getElementById('black-overlay').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('black-overlay').style.display = 'none';
-            }, 500);
-            
-            // Initialize floating eye
-            console.log('About to initialize floating eye...');
-            initFloatingEye();
-            console.log('Floating eye initialization completed');
-            
-            animate();
+          placeArtworksTunnel(artworks);
+          // Hide loading page and show visualization
+          document.getElementById("loading-container").style.display = "none";
+          document.getElementById("visualization").style.display = "block";
+          document.getElementById("black-overlay").style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("black-overlay").style.display = "none";
+          }, 500);
+
+          // Initialize floating eye
+          console.log("About to initialize floating eye...");
+          initFloatingEye();
+          console.log("Floating eye initialization completed");
+
+          animate();
         });
-    }
+      }
 
-    function updateLoadingUI(progress) {
-        const progressBar = document.getElementById('loading-progress');
-        const loadingText = document.getElementById('loading-text');
-        
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
         if (progressBar && loadingText) {
-            progressBar.style.width = `${progress}%`;
-            loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
         }
-    }
+      }
 
-    function updateTunnelWireOpacity() {
+      function updateTunnelWireOpacity() {
         if (!tunnelWire) return;
-        
+
         const minOpacity = 0.01;
         const maxOpacity = 1.0;
         const fadeStart = 200;
         const fadeEnd = 1200;
-        
-        tunnelWire.children.forEach(line => {
-            if (line.userData && line.userData.type === 'vertical') {
-                // Per-vertex alpha for vertical lines
-                const geometry = line.userData.geometry;
-                const alphas = line.userData.alphas;
-                const positions = geometry.attributes.position;
-                for (let i = 0; i < positions.count; i++) {
-                    const x = positions.getX(i);
-                    const y = positions.getY(i);
-                    const z = positions.getZ(i);
-                    const pos = new THREE.Vector3(x, y, z);
-                    const dist = camera.position.distanceTo(pos);
-                    let opacity = maxOpacity;
-                    if (dist > fadeStart) {
-                        opacity = maxOpacity - (maxOpacity - minOpacity) * ((dist - fadeStart) / (fadeEnd - fadeStart));
-                    }
-                    opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
-                    alphas[i] = opacity; // direct value for shader
-                }
-                geometry.attributes.alpha.needsUpdate = true;
-            } else if (line.userData && line.userData.type === 'horizontal' && line.material) {
-                // Horizontal rings: single opacity for whole ring
-                let totalDistance = 0;
-                const points = line.userData.points;
-                for (let i = 0; i < points.length; i++) {
-                    totalDistance += camera.position.distanceTo(points[i]);
-                }
-                const avgDistance = totalDistance / points.length;
-                let opacity = maxOpacity;
-                if (avgDistance > fadeStart) {
-                    opacity = maxOpacity - (maxOpacity - minOpacity) * ((avgDistance - fadeStart) / (fadeEnd - fadeStart));
-                }
-                opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
-                line.material.opacity = opacity;
-            }
-        });
-    }
 
-    // 7. Animate: smooth camera movement with mouse scroll
-    // Camera movement along the curve
-    let cameraT = 0; // 0=start, 1=end
-    const minCameraT = 0;
-    const maxCameraT = 1;
-    const scrollSpeedT = 0.0001; // Adjust for faster/slower scroll
-    
-    function animate() {
+        tunnelWire.children.forEach((line) => {
+          if (line.userData && line.userData.type === "vertical") {
+            // Per-vertex alpha for vertical lines
+            const geometry = line.userData.geometry;
+            const alphas = line.userData.alphas;
+            const positions = geometry.attributes.position;
+            for (let i = 0; i < positions.count; i++) {
+              const x = positions.getX(i);
+              const y = positions.getY(i);
+              const z = positions.getZ(i);
+              const pos = new THREE.Vector3(x, y, z);
+              const dist = camera.position.distanceTo(pos);
+              let opacity = maxOpacity;
+              if (dist > fadeStart) {
+                opacity =
+                  maxOpacity -
+                  (maxOpacity - minOpacity) *
+                    ((dist - fadeStart) / (fadeEnd - fadeStart));
+              }
+              opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+              alphas[i] = opacity; // direct value for shader
+            }
+            geometry.attributes.alpha.needsUpdate = true;
+          } else if (
+            line.userData &&
+            line.userData.type === "horizontal" &&
+            line.material
+          ) {
+            // Horizontal rings: single opacity for whole ring
+            let totalDistance = 0;
+            const points = line.userData.points;
+            for (let i = 0; i < points.length; i++) {
+              totalDistance += camera.position.distanceTo(points[i]);
+            }
+            const avgDistance = totalDistance / points.length;
+            let opacity = maxOpacity;
+            if (avgDistance > fadeStart) {
+              opacity =
+                maxOpacity -
+                (maxOpacity - minOpacity) *
+                  ((avgDistance - fadeStart) / (fadeEnd - fadeStart));
+            }
+            opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+            line.material.opacity = opacity;
+          }
+        });
+      }
+
+      // 7. Animate: smooth camera movement with mouse scroll
+      // Camera movement along the curve
+      let cameraT = 0; // 0=start, 1=end
+      const minCameraT = 0;
+      const maxCameraT = 1;
+      const scrollSpeedT = 0.0001; // Adjust for faster/slower scroll
+
+      function animate() {
         requestAnimationFrame(animate);
-        
+
         // Animate square particles
         if (squareParticleGroup && tunnelFrenetFrames) {
-            const numCurveSamples = tunnelFrenetFrames.normals.length;
-            squareParticleGroup.children.forEach((square, idx) => {
-                if (square.userData && square.userData.speed) {
-                    const t = square.userData.t;
-                    const curveIdx = Math.floor(t * (numCurveSamples - 1));
-                    const center = tunnelCurve.getPoint(t);
-                    const normal = tunnelFrenetFrames.normals[curveIdx];
-                    const binormal = tunnelFrenetFrames.binormals[curveIdx];
-                    // Animate angle
-                    const time = Date.now() * 0.001 * square.userData.speed;
-                    const newAngle = square.userData.angle + time;
-                    const offset = normal.clone().multiplyScalar(Math.cos(newAngle) * square.userData.radius)
-                        .add(binormal.clone().multiplyScalar(Math.sin(newAngle) * square.userData.radius));
-                    // Add jitter: small, smooth, unique per particle
-                    const jitterTime = Date.now() * 0.002;
-                    const jitterAmount = 7.0; // max jitter in units (increased for larger effect)
-                    const jitterX = Math.sin(jitterTime + idx) * jitterAmount;
-                    const jitterY = Math.cos(jitterTime + idx * 1.7) * jitterAmount;
-                    // Jitter in the normal/binormal plane
-                    const jitterOffset = normal.clone().multiplyScalar(jitterX).add(binormal.clone().multiplyScalar(jitterY));
-                    square.position.copy(center.clone().add(offset).add(jitterOffset));
-                    // Always face the camera
-                    square.lookAt(camera.position);
-                }
-            });
+          const numCurveSamples = tunnelFrenetFrames.normals.length;
+          squareParticleGroup.children.forEach((square, idx) => {
+            if (square.userData && square.userData.speed) {
+              const t = square.userData.t;
+              const curveIdx = Math.floor(t * (numCurveSamples - 1));
+              const center = tunnelCurve.getPoint(t);
+              const normal = tunnelFrenetFrames.normals[curveIdx];
+              const binormal = tunnelFrenetFrames.binormals[curveIdx];
+              // Animate angle
+              const time = Date.now() * 0.001 * square.userData.speed;
+              const newAngle = square.userData.angle + time;
+              const offset = normal
+                .clone()
+                .multiplyScalar(Math.cos(newAngle) * square.userData.radius)
+                .add(
+                  binormal
+                    .clone()
+                    .multiplyScalar(Math.sin(newAngle) * square.userData.radius)
+                );
+              // Add jitter: small, smooth, unique per particle
+              const jitterTime = Date.now() * 0.002;
+              const jitterAmount = 7.0; // max jitter in units (increased for larger effect)
+              const jitterX = Math.sin(jitterTime + idx) * jitterAmount;
+              const jitterY = Math.cos(jitterTime + idx * 1.7) * jitterAmount;
+              // Jitter in the normal/binormal plane
+              const jitterOffset = normal
+                .clone()
+                .multiplyScalar(jitterX)
+                .add(binormal.clone().multiplyScalar(jitterY));
+              square.position.copy(
+                center.clone().add(offset).add(jitterOffset)
+              );
+              // Always face the camera
+              square.lookAt(camera.position);
+            }
+          });
         }
-        
+
         // Animate particles
         if (particles) {
-            const positions = particles.geometry.attributes.position.array;
-            const speeds = particles.userData.speeds;
-            
-            for (let i = 0; i < positions.length; i += 3) {
-                // Move particles in a circular motion
-                const speed = speeds[i / 3];
-                const time = Date.now() * 0.001 * speed;
-                
-                positions[i] += Math.sin(time) * 0.01;
-                positions[i + 1] += Math.cos(time) * 0.01;
-                positions[i + 2] += Math.sin(time * 0.5) * 0.01;
-            }
-            
-            particles.geometry.attributes.position.needsUpdate = true;
-        }
-        
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = particles.userData.speeds;
 
-        
+          for (let i = 0; i < positions.length; i += 3) {
+            // Move particles in a circular motion
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.01;
+            positions[i + 1] += Math.cos(time) * 0.01;
+            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+        }
+
         // Animate image jitter - slow and organic
         const time = Date.now() * 0.001; // Faster overall time factor
-        visibleMeshes.forEach(mesh => {
-            if (mesh.userData && mesh.userData.jitterSpeed) {
-                const speed = mesh.userData.jitterSpeed;
-                const amplitude = mesh.userData.jitterAmplitude;
-                const phase = mesh.userData.jitterPhase;
-                const seed = mesh.userData.jitterSeed;
-                
-                // Create organic jitter using multiple sine waves with different frequencies
-                const jitterX = Math.sin(time * speed + phase) * amplitude * 0.3 +
-                               Math.sin(time * speed * 0.7 + seed) * amplitude * 0.2 +
-                               Math.sin(time * speed * 0.3 + phase * 2) * amplitude * 0.1;
-                
-                const jitterY = Math.cos(time * speed * 0.8 + phase) * amplitude * 0.3 +
-                               Math.cos(time * speed * 0.5 + seed) * amplitude * 0.2 +
-                               Math.cos(time * speed * 0.2 + phase * 3) * amplitude * 0.1;
-                
-                const jitterZ = Math.sin(time * speed * 0.6 + seed) * amplitude * 0.1 +
-                               Math.cos(time * speed * 0.4 + phase) * amplitude * 0.05;
-                
-                // Apply jitter to original position
-                mesh.position.set(
-                    mesh.userData.originalX + jitterX,
-                    mesh.userData.originalY + jitterY,
-                    mesh.userData.originalZ + jitterZ
-                );
-                
-                // Add subtle rotation jitter
-                const rotationJitter = Math.sin(time * speed * 0.3 + seed) * 0.02;
-                mesh.rotation.z = rotationJitter;
-            }
+        visibleMeshes.forEach((mesh) => {
+          if (mesh.userData && mesh.userData.jitterSpeed) {
+            const speed = mesh.userData.jitterSpeed;
+            const amplitude = mesh.userData.jitterAmplitude;
+            const phase = mesh.userData.jitterPhase;
+            const seed = mesh.userData.jitterSeed;
+
+            // Create organic jitter using multiple sine waves with different frequencies
+            const jitterX =
+              Math.sin(time * speed + phase) * amplitude * 0.3 +
+              Math.sin(time * speed * 0.7 + seed) * amplitude * 0.2 +
+              Math.sin(time * speed * 0.3 + phase * 2) * amplitude * 0.1;
+
+            const jitterY =
+              Math.cos(time * speed * 0.8 + phase) * amplitude * 0.3 +
+              Math.cos(time * speed * 0.5 + seed) * amplitude * 0.2 +
+              Math.cos(time * speed * 0.2 + phase * 3) * amplitude * 0.1;
+
+            const jitterZ =
+              Math.sin(time * speed * 0.6 + seed) * amplitude * 0.1 +
+              Math.cos(time * speed * 0.4 + phase) * amplitude * 0.05;
+
+            // Apply jitter to original position
+            mesh.position.set(
+              mesh.userData.originalX + jitterX,
+              mesh.userData.originalY + jitterY,
+              mesh.userData.originalZ + jitterZ
+            );
+
+            // Add subtle rotation jitter
+            const rotationJitter = Math.sin(time * speed * 0.3 + seed) * 0.02;
+            mesh.rotation.z = rotationJitter;
+          }
         });
-        
+
         // Camera follows the curve
         const camPos = tunnelCurve.getPoint(cameraT);
         // Opacity gradient update using 3D distance
@@ -959,148 +1137,252 @@
         const fadeStart = 200;
         const fadeEnd = 1200;
         ringObjects.forEach(({ center, titleSprite, imageMeshes }) => {
-            const dist = camPos.distanceTo(center);
-            let opacity = maxOpacity;
-            if (dist > fadeStart) {
-                opacity = maxOpacity - (maxOpacity - minOpacity) * ((dist - fadeStart) / (fadeEnd - fadeStart));
-            }
-            opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
-            if (titleSprite && titleSprite.material) {
-                titleSprite.material.opacity = opacity;
-            }
-            imageMeshes.forEach(mesh => {
-                if (mesh.material) mesh.material.opacity = opacity;
-            });
+          const dist = camPos.distanceTo(center);
+          let opacity = maxOpacity;
+          if (dist > fadeStart) {
+            opacity =
+              maxOpacity -
+              (maxOpacity - minOpacity) *
+                ((dist - fadeStart) / (fadeEnd - fadeStart));
+          }
+          opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+          if (titleSprite && titleSprite.material) {
+            titleSprite.material.opacity = opacity;
+          }
+          imageMeshes.forEach((mesh) => {
+            if (mesh.material) mesh.material.opacity = opacity;
+          });
         });
-        
 
         camera.position.copy(camPos);
         camera.up.set(0, 1, 0);
         const camTangent = tunnelCurve.getTangent(cameraT);
         camera.lookAt(camPos.clone().add(camTangent));
-        
+
         // Update tunnel wire opacity based on distance from camera
         updateTunnelWireOpacity();
         // --- DYNAMICALLY ORIENT RINGS TO FACE CAMERA ---
         scene.traverse((obj) => {
-            if (obj.type === 'Group' && obj.userData.stationIdx !== undefined) {
-                obj.up.set(0, 1, 0);
-                obj.lookAt(camera.position);
-            }
+          if (obj.type === "Group" && obj.userData.stationIdx !== undefined) {
+            obj.up.set(0, 1, 0);
+            obj.lookAt(camera.position);
+          }
         });
-        
+
         // Update floating eye
         updateFloatingEye();
-        
+
         composer.render();
-        
+
         // Update station labels
-        visibleLabels.forEach(({label, z, labelY}) => {
-            // Place label at (0, labelY, z) - moved up
-            const pos = new THREE.Vector3(0, labelY + imageRingRadius * 0.2, z);
-            const vector = pos.clone().project(camera);
-            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-            const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
-            // Calculate distance-based font size
-            const distance = Math.abs(currentZ - z);
-            const baseFontSize = 24;
-            const maxDistance = tunnelLength;
-            const fontSize = Math.max(12, baseFontSize * (1 - distance / maxDistance));
-            
-            label.style.left = `${x}px`;
-            label.style.top = `${y}px`;
-            label.style.transform = 'translateX(-50%)'; // Center horizontally
-            label.style.textAlign = 'center';
-            label.style.fontSize = `${fontSize}px`;
-            label.style.display = (vector.z > 1 || vector.z < -1) ? 'none' : 'block';
+        visibleLabels.forEach(({ label, z, labelY }) => {
+          // Place label at (0, labelY, z) - moved up
+          const pos = new THREE.Vector3(0, labelY + imageRingRadius * 0.2, z);
+          const vector = pos.clone().project(camera);
+          const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+          // Calculate distance-based font size
+          const distance = Math.abs(currentZ - z);
+          const baseFontSize = 24;
+          const maxDistance = tunnelLength;
+          const fontSize = Math.max(
+            12,
+            baseFontSize * (1 - distance / maxDistance)
+          );
+
+          label.style.left = `${x}px`;
+          label.style.top = `${y}px`;
+          label.style.transform = "translateX(-50%)"; // Center horizontally
+          label.style.textAlign = "center";
+          label.style.fontSize = `${fontSize}px`;
+          label.style.display =
+            vector.z > 1 || vector.z < -1 ? "none" : "block";
         });
-    }
+      }
 
-    // 8. Mouse wheel navigation: update cameraT
-    document.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        cameraT -= e.deltaY * scrollSpeedT;
-        cameraT = Math.max(minCameraT, Math.min(maxCameraT, cameraT));
-    }, { passive: false });
+      // 8. Mouse wheel navigation: update cameraT
+      document.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          cameraT -= e.deltaY * scrollSpeedT;
+          cameraT = Math.max(minCameraT, Math.min(maxCameraT, cameraT));
+        },
+        { passive: false }
+      );
 
-    // Simple Floating Eye Animation
-    let eyeX = 100;
-    let eyeY = 100;
-    let eyeTargetX = 100;
-    let eyeTargetY = 100;
-    let eyeSpeed = 0.02;
-    let lastEyeMoveTime = 0;
-    let eyeMoveInterval = 3000;
-    let eyeIsHovered = false;
-    
-    function initFloatingEye() {
-        console.log('Initializing floating eye...');
-        const eye = document.getElementById('floating-eye');
-        const tooltip = document.getElementById('eye-tooltip');
-        
-        console.log('Eye element:', eye);
-        console.log('Tooltip element:', tooltip);
-        
+      // Organic Floating Eye Animation
+      let eyeX = 100;
+      let eyeY = 100;
+      let eyeTargetX = 100;
+      let eyeTargetY = 100;
+      let eyeSpeed = 0.008; // Much slower movement
+      let lastEyeMoveTime = 0;
+      let eyeMoveInterval = 8000; // Longer intervals between movements
+      let eyeIsHovered = false;
+      let eyeDriftX = 0;
+      let eyeDriftY = 0;
+      let eyeDriftSpeed = 0.001; // Very slow drift
+      let eyeDriftAmplitude = 15; // Small drift amplitude
+
+      function initFloatingEye() {
+        console.log("Initializing floating eye...");
+        const eye = document.getElementById("floating-eye");
+        const tooltip = document.getElementById("eye-tooltip");
+
+        console.log("Eye element:", eye);
+        console.log("Tooltip element:", tooltip);
+
         if (!eye || !tooltip) {
-            console.error('Missing elements!');
-            return;
+          console.error("Missing elements!");
+          return;
         }
-        
+
         // Set up hover events
-        eye.addEventListener('mouseenter', () => {
-            console.log('Eye hovered!');
-            eyeIsHovered = true;
-            tooltip.classList.add('show');
+        eye.addEventListener("mouseenter", () => {
+          console.log("Eye hovered!");
+          eyeIsHovered = true;
+          tooltip.classList.add("show");
         });
-        
-        eye.addEventListener('mouseleave', () => {
-            console.log('Eye unhovered!');
-            eyeIsHovered = false;
-            tooltip.classList.remove('show');
+
+        eye.addEventListener("mouseleave", () => {
+          console.log("Eye unhovered!");
+          eyeIsHovered = false;
+          tooltip.classList.remove("show");
         });
-        
+
         // Update tooltip position
-        eye.addEventListener('mousemove', (e) => {
-            const rect = eye.getBoundingClientRect();
-            tooltip.style.left = (rect.right + 10) + 'px';
-            tooltip.style.top = (rect.top - 10) + 'px';
+        eye.addEventListener("mousemove", (e) => {
+          const rect = eye.getBoundingClientRect();
+          const eyeCenterX = rect.left + rect.width / 2;
+          const screenCenterX = window.innerWidth / 2;
+
+          // Determine if eye is on left or right side of screen
+          if (eyeCenterX < screenCenterX) {
+            // Eye is on left side - show tooltip on the right
+            tooltip.style.left = rect.right + 10 + "px";
+            tooltip.style.transform = "translateX(0)"; // Reset transform
+          } else {
+            // Eye is on right side - show tooltip on the left
+            tooltip.style.left = rect.left - 10 + "px";
+            tooltip.style.transform = "translateX(-100%)"; // Move tooltip to the left of the eye
+          }
+
+          tooltip.style.top = rect.top - 10 + "px";
         });
-        
+
         // Set initial position
-        eye.style.left = eyeX + 'px';
-        eye.style.top = eyeY + 'px';
-        console.log('Eye positioned at:', eyeX, eyeY);
-        console.log('Eye should be visible now!');
-    }
-    
-    function updateFloatingEye() {
-        const eye = document.getElementById('floating-eye');
-        if (!eye || eye.style.display === 'none') return;
-        
+        eye.style.left = eyeX + "px";
+        eye.style.top = eyeY + "px";
+
+        // Show the floating eye after initialization
+        eye.style.display = "block";
+
+        console.log("Eye positioned at:", eyeX, eyeY);
+        console.log("Eye should be visible now!");
+      }
+
+      function updateFloatingEye() {
+        const eye = document.getElementById("floating-eye");
+        if (!eye || eye.style.display === "none") return;
+
         // Don't move if hovered
         if (eyeIsHovered) return;
-        
-        const now = Date.now();
-        
-        // Change target position periodically
-        if (now - lastEyeMoveTime > eyeMoveInterval) {
-            const margin = 100;
-            eyeTargetX = margin + Math.random() * (window.innerWidth - 200);
-            eyeTargetY = margin + Math.random() * (window.innerHeight - 200);
-            lastEyeMoveTime = now;
-        }
-        
-        // Smooth movement towards target
-        eyeX += (eyeTargetX - eyeX) * eyeSpeed;
-        eyeY += (eyeTargetY - eyeY) * eyeSpeed;
-        
-        // Update position
-        eye.style.left = eyeX + 'px';
-        eye.style.top = eyeY + 'px';
-    }
 
-    // Start the visualization when the page loads
-    window.addEventListener('load', main);
+        const now = Date.now();
+        const time = now * 0.001; // Convert to seconds
+
+        // Change target position periodically with more organic timing
+        if (now - lastEyeMoveTime > eyeMoveInterval) {
+          const margin = 150;
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
+
+          // Create perimeter-based movement - prefer edges and corners
+          const perimeterChoice = Math.random();
+
+          if (perimeterChoice < 0.4) {
+            // Top edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = margin + Math.random() * 50;
+          } else if (perimeterChoice < 0.7) {
+            // Bottom edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = screenHeight - margin - Math.random() * 50;
+          } else if (perimeterChoice < 0.85) {
+            // Left edge
+            eyeTargetX = margin + Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          } else {
+            // Right edge
+            eyeTargetX = screenWidth - margin - Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          }
+
+          lastEyeMoveTime = now;
+        }
+
+        // Add subtle organic drift using sine waves
+        eyeDriftX = Math.sin(time * eyeDriftSpeed) * eyeDriftAmplitude;
+        eyeDriftY =
+          Math.cos(time * eyeDriftSpeed * 0.7) * eyeDriftAmplitude * 0.8;
+
+        // Smooth movement towards target with easing
+        const dx = eyeTargetX - eyeX;
+        const dy = eyeTargetY - eyeY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate distance from center to avoid it
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const distanceFromCenter = Math.sqrt(
+          (eyeX - centerX) ** 2 + (eyeY - centerY) ** 2
+        );
+        const centerAvoidanceRadius =
+          Math.min(window.innerWidth, window.innerHeight) * 0.4; // Increased from 0.25 to 0.4
+
+        // Add center avoidance force
+        let avoidanceX = 0;
+        let avoidanceY = 0;
+        if (distanceFromCenter < centerAvoidanceRadius) {
+          const avoidanceStrength = 0.05; // Increased from 0.02 to 0.05
+          const centerDx = eyeX - centerX;
+          const centerDy = eyeY - centerY;
+          const centerDistance = Math.sqrt(
+            centerDx * centerDx + centerDy * centerDy
+          );
+          if (centerDistance > 0) {
+            // Stronger avoidance when closer to center
+            const avoidanceMultiplier =
+              1 + (1 - distanceFromCenter / centerAvoidanceRadius);
+            avoidanceX =
+              (centerDx / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+            avoidanceY =
+              (centerDy / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+          }
+        }
+
+        // Slower movement when closer to target (easing)
+        const currentSpeed = eyeSpeed * (0.5 + (distance / 200) * 0.5);
+
+        eyeX += dx * currentSpeed + avoidanceX;
+        eyeY += dy * currentSpeed + avoidanceY;
+
+        // Add drift to final position
+        const finalX = eyeX + eyeDriftX;
+        const finalY = eyeY + eyeDriftY;
+
+        // Update position
+        eye.style.left = finalX + "px";
+        eye.style.top = finalY + "px";
+      }
+
+      // Start the visualization when the page loads
+      window.addEventListener("load", main);
     </script>
-</body>
-</html> 
+  </body>
+</html>
