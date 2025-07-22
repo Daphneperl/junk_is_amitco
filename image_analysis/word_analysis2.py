@@ -48,8 +48,8 @@ class ArtisticImageAnalyzer:
         
         # Keywords to avoid (medium/context words)
         self.avoid_keywords = {
-            "notebook", "scan", "drawing", "photo", "page", "cover", "illustration","digital",
-            "image", "picture", "artwork", "painting", "sketch", "text", "document",
+            "notebook", "scan", "drawing", "photo", "page", "cover", "illustration", "digital",
+            "image", "picture", "artwork", "painting", "sketch", "text", "document", "simple",
             "paper", "canvas", "medium", "style", "technique", "composition", "notebooks", "photos", "scans", "covers", "illustrations","drawings",
             "paintings", "art", "sketches","draft", "drafts", "pencil", "journal", "guestbook", "protfolio", "envelope", "words",
         }
