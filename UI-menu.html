@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Base Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -9,1523 +9,1621 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&libraries=places&callback=initGoogleMaps&loading=async" async defer></script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&libraries=places&callback=initGoogleMaps&loading=async"
+      async
+      defer
+    ></script>
     <style>
-        @font-face {
-            font-family: 'Pixel';
-            src: url('../../assets/pixel.ttf') format('truetype');
-        }
-        @font-face {
-            font-family: 'VT323';
-            src: url('assets/VT323-Regular.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-        }
-        body {
-            margin: 0;
-            background-color: black;
-            overflow: hidden;
-        }
-        #visualization {
-            width: 100vw;
-            height: 100vh;
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-        #rings-container {
-            position: fixed;
-            bottom: -90px;
-            left: -10px;
-            width: 500px;
-            height: 500px;
-            z-index: 2;
-            pointer-events: auto;
-        }
-        #hover-title {
-            position: absolute;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ffffff;
-            font-family: 'VT323', monospace;
-            font-size: 32px;
-            font-weight: bold;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-            z-index: 10;
-        }
-        #search-bar {
-            position: fixed;
-            left: 50%;
-            bottom: 3vw;
-            transform: translateX(-50%);
-            width: 420px;
-            max-width: 80vw;
-            min-width: 280px;
-            height: 54px;
-            background: #fff;
-            border-radius: 32px;
-            box-shadow: 0 2px 16px #0003;
-            font-size: 28px;
-            font-family: 'VT323', monospace, sans-serif;
-            color: #888;
-            border: none;
-            outline: none;
-            padding: 0 32px;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        #black-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: black;
-            z-index: 1000;
-            transition: opacity 0.5s ease;
-            opacity: 1;
-        }
-        #loading-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 1001;
-        }
-        .loading-bar {
-            width: 300px;
-            height: 20px;
-            background: #333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .loading-progress {
-            height: 100%;
-            background: #ffffff;
-            transition: width 0.3s ease;
-        }
-        
-        /* Upload Button Styles */
-        #upload-hand-btn {
-            position: fixed;
-            right: 2vw;
-            bottom: 2vw;
-            width: 280px;
-            height: 280px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            z-index: 2100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: none;
-            flex-direction: unset;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        #upload-hand-btn-text {
-            position: absolute;
-            left: 30%;
-            top: 55%;
-            transform: translate(-50%, -50%);
-            font-size: 28px;
-            font-family: 'VT323', monospace, sans-serif;
-            color: #888;
-            background: none;
-            border: none;
-            text-align: center;
-            pointer-events: none;
-            width: 180px;
-            line-height: 0.9;
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-shadow: 0 0 1px rgba(0,0,0,0.1);
-            letter-spacing: 0.5px;
-        }
-        #upload-hand-btn-img {
-            width: 270px;
-            height: 270px;
-            object-fit: contain;
-            display: block;
-            pointer-events: none;
-        }
-        
-        /* Chatbot Styles */
-        .chatbot-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 2999;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .chatbot-container {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 95vw;
-            max-width: 800px;
-            height: 80vh;
-            background: #000;
-            border: 1px solid #fff;
-            border-radius: 8px;
-            z-index: 3000;
-            display: none;
-            font-family: 'Overpass Mono', monospace;
-            color: #fff;
-        }
-
-        .chatbot-input-area {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #000;
-            border-top: 1px solid #fff;
-            padding: 20px;
-            z-index: 10;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #dynamic-input-container {
-            position: absolute;
-            bottom: 100px;
-            left: 0;
-            right: 0;
-            background: #000;
-            padding: 10px 20px;
-            z-index: 8;
-            min-height: 0;
-        }
-
-        .persistent-input {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .persistent-input-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .persistent-input input {
-            flex: 1;
-            background: transparent;
-            border: 1px solid #fff;
-            border-radius: 4px;
-            padding: 12px;
-            color: #fff;
-            font-family: 'Overpass Mono', monospace;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .persistent-input input:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .persistent-input input:focus {
-            border-color: #fff;
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-        }
-
-        .persistent-input button {
-            padding: 12px 20px;
-            border: 1px solid #fff;
-            background: transparent;
-            color: #fff;
-            font-family: 'VT323', monospace;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        .persistent-input button:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .persistent-input button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .chatbot-header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            padding: 20px;
-            border-bottom: 1px solid #fff;
-            font-family: 'VT323', monospace;
-            font-size: 24px;
-            text-align: center;
-            background: #000;
-            z-index: 5;
-        }
-
-        .chatbot-messages {
-            position: absolute;
-            top: 80px;
-            left: 0;
-            right: 0;
-            bottom: 120px;
-            overflow-y: auto;
-            padding: 20px 20px 100px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .message {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .message.bot {
-            align-items: flex-start;
-        }
-
-        .message.user {
-            align-items: flex-end;
-        }
-
-        .message-content {
-            max-width: 80%;
-            padding: 15px;
-            border: 1px solid #fff;
-            border-radius: 8px;
-            font-size: 16px;
-            line-height: 1.4;
-        }
-
-        .message.bot .message-content {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .message.user .message-content {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Add extra space after the last message */
-        .chatbot-messages::after {
-            content: '';
-            height: 40px;
-            flex-shrink: 0;
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-            padding: 15px;
-            border: 1px solid #fff;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            max-width: 80%;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: #fff;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .input-field {
-            background: transparent;
-            border: 1px solid #fff;
-            border-radius: 4px;
-            padding: 12px;
-            color: #fff;
-            font-family: 'Overpass Mono', monospace;
-            font-size: 14px;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-            min-width: 0;
-        }
-
-        .input-field:focus {
-            border-color: #fff;
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-        }
-
-        .file-upload-area {
-            border: 2px dashed #fff;
-            border-radius: 8px;
-            padding: 20px;
-            min-height: 300px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .upload-icon {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            filter: brightness(0) invert(1);
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            margin-top: -5px;
-        }
-
-        .file-upload-area:hover .upload-icon {
-            opacity: 1;
-        }
-
-        .file-upload-area:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .file-upload-area.dragover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #fff;
-        }
-
-        .uploaded-image {
-            max-width: 80%;
-            max-height: 120px;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .file-upload-text {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            width: 100%;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            justify-content: flex-end;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: 1px solid #fff;
-            background: transparent;
-            color: #fff;
-            font-family: 'VT323', monospace;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn.primary {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .btn.primary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .slider {
-            flex: 1;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            outline: none;
-            -webkit-appearance: none;
-            min-width: 0;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #fff;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .tag-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .tag {
-            padding: 6px 12px;
-            border: 1px solid #fff;
-            background: transparent;
-            color: #fff;
-            font-family: 'Overpass Mono', monospace;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .tag:hover,
-        .tag.selected {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .summary-screen {
-            display: none;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
-
-        .summary-label {
-            font-family: 'VT323', monospace;
-            font-size: 16px;
-        }
-
-        .summary-value {
-            font-family: 'Overpass Mono', monospace;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 24px;
-            cursor: pointer;
-            font-family: 'VT323', monospace;
-        }
-
-        /* Map Popup Styles */
-        .map-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 4000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .map-popup-content {
-            background: #000;
-            border: 1px solid #fff;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 800px;
-            width: 90vw;
-            max-height: 80vh;
-            font-family: 'VT323', monospace;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .map-popup-header {
-            font-size: 24px;
-            margin-bottom: 15px;
-            text-align: center;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .map-popup-close {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 24px;
-            cursor: pointer;
-            font-family: 'VT323', monospace;
-        }
-
-        .map-container {
-            flex: 1;
-            min-height: 400px;
-            border: 1px solid #fff;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            position: relative;
-            background: #1a1a1a;
-            overflow: visible;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-            min-height: 400px;
-            flex: 1;
-            position: relative;
-            background: #1a1a1a;
-        }
-
-        .map-overlay {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 4px;
-            z-index: 1000;
-        }
-
-        .map-instructions {
-            color: #fff;
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .map-pin-button {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #ff4444;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            cursor: pointer;
-            z-index: 1001;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-        }
-
-        .map-pin-button:hover {
-            background: #ff6666;
-        }
-
-        .map-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .map-input {
-            flex: 1;
-            min-width: 200px;
-            background: transparent;
-            border: 1px solid #fff;
-            border-radius: 4px;
-            padding: 8px 12px;
-            color: #fff;
-            font-family: 'Overpass Mono', monospace;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .map-input:focus {
-            border-color: #fff;
-            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
-        }
-
-        .map-popup-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .map-popup-btn {
-            padding: 10px 20px;
-            border: 1px solid #fff;
-            background: transparent;
-            color: #fff;
-            font-family: 'VT323', monospace;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .map-popup-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .map-popup-btn.primary {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .map-popup-btn.primary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .coordinates-display {
-            font-family: 'Overpass Mono', monospace;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 10px;
-            text-align: center;
-        }
+      @font-face {
+        font-family: "Pixel";
+        src: url("../../assets/pixel.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "VT323";
+        src: url("assets/VT323-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+      }
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+      #rings-container {
+        position: fixed;
+        bottom: -90px;
+        left: -10px;
+        width: 500px;
+        height: 500px;
+        z-index: 2;
+        pointer-events: auto;
+      }
+      #hover-title {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffffff;
+        font-family: "VT323", monospace;
+        font-size: 32px;
+        font-weight: bold;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 10;
+      }
+      #search-bar {
+        position: fixed;
+        left: 50%;
+        bottom: 3vw;
+        transform: translateX(-50%);
+        width: 420px;
+        max-width: 80vw;
+        min-width: 280px;
+        height: 54px;
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 2px 16px #0003;
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        border: none;
+        outline: none;
+        padding: 0 32px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      #black-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+        opacity: 1;
+      }
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
+
+      /* Upload Button Styles */
+      #upload-hand-btn {
+        position: fixed;
+        right: 2vw;
+        bottom: 2vw;
+        width: 280px;
+        height: 280px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 2100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        flex-direction: unset;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      #upload-hand-btn-text {
+        position: absolute;
+        left: 30%;
+        top: 55%;
+        transform: translate(-50%, -50%);
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        background: none;
+        border: none;
+        text-align: center;
+        pointer-events: none;
+        width: 180px;
+        line-height: 0.9;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.5px;
+      }
+      #upload-hand-btn-img {
+        width: 270px;
+        height: 270px;
+        object-fit: contain;
+        display: block;
+        pointer-events: none;
+      }
+
+      /* Chatbot Styles */
+      .chatbot-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 2999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .chatbot-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 95vw;
+        max-width: 800px;
+        height: 80vh;
+        background: #000;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        z-index: 3000;
+        display: none;
+        font-family: "Overpass Mono", monospace;
+        color: #fff;
+      }
+
+      .chatbot-input-area {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #000;
+        border-top: 1px solid #fff;
+        padding: 20px;
+        z-index: 10;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #dynamic-input-container {
+        position: absolute;
+        bottom: 100px;
+        left: 0;
+        right: 0;
+        background: #000;
+        padding: 10px 20px;
+        z-index: 8;
+        min-height: 0;
+      }
+
+      .persistent-input {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input input {
+        flex: 1;
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .persistent-input input:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .persistent-input input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .persistent-input button {
+        padding: 12px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .persistent-input button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .persistent-input button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .chatbot-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        border-bottom: 1px solid #fff;
+        font-family: "VT323", monospace;
+        font-size: 24px;
+        text-align: center;
+        background: #000;
+        z-index: 5;
+      }
+
+      .chatbot-messages {
+        position: absolute;
+        top: 80px;
+        left: 0;
+        right: 0;
+        bottom: 120px;
+        overflow-y: auto;
+        padding: 20px 20px 100px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .message {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .message.bot {
+        align-items: flex-start;
+      }
+
+      .message.user {
+        align-items: flex-end;
+      }
+
+      .message-content {
+        max-width: 80%;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      .message.bot .message-content {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .message.user .message-content {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Add extra space after the last message */
+      .chatbot-messages::after {
+        content: "";
+        height: 40px;
+        flex-shrink: 0;
+      }
+
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        max-width: 80%;
+      }
+
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes typing {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .input-field {
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+      }
+
+      .input-field:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .file-upload-area {
+        border: 2px dashed #fff;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 300px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .upload-icon {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        margin-top: -5px;
+      }
+
+      .file-upload-area:hover .upload-icon {
+        opacity: 1;
+      }
+
+      .file-upload-area:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .file-upload-area.dragover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #fff;
+      }
+
+      .uploaded-image {
+        max-width: 80%;
+        max-height: 120px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .file-upload-text {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        width: 100%;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: flex-end;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 10px;
+      }
+
+      .slider {
+        flex: 1;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
+        min-width: 0;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .tag-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .tag {
+        padding: 6px 12px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tag:hover,
+      .tag.selected {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .summary-screen {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+      }
+
+      .summary-label {
+        font-family: "VT323", monospace;
+        font-size: 16px;
+      }
+
+      .summary-value {
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+      }
+
+      /* Map Popup Styles */
+      .map-popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 4000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .map-popup-content {
+        background: #000;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 800px;
+        width: 90vw;
+        max-height: 80vh;
+        font-family: "VT323", monospace;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .map-popup-header {
+        font-size: 24px;
+        margin-bottom: 15px;
+        text-align: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .map-popup-close {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+      }
+
+      .map-container {
+        flex: 1;
+        min-height: 400px;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        position: relative;
+        background: #1a1a1a;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        min-height: 400px;
+        flex: 1;
+        position: relative;
+        background: #1a1a1a;
+      }
+
+      .map-overlay {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 4px;
+        z-index: 1000;
+      }
+
+      .map-instructions {
+        color: #fff;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .map-pin-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #ff4444;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        z-index: 1001;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+
+      .map-pin-button:hover {
+        background: #ff6666;
+      }
+
+      .map-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .map-input {
+        flex: 1;
+        min-width: 200px;
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 8px 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .map-input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .map-popup-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .map-popup-btn {
+        padding: 10px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .map-popup-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .map-popup-btn.primary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .map-popup-btn.primary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .coordinates-display {
+        font-family: "Overpass Mono", monospace;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 10px;
+        text-align: center;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div id="black-overlay"></div>
     <div id="loading-container">
-        <div class="loading-bar">
-            <div id="loading-progress" class="loading-progress" style="width: 0%"></div>
-        </div>
-        <div id="loading-text" style="color: #ffffff; font-family: monospace; margin-top: 10px;">LOADING... 0%</div>
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING... 0%
+      </div>
     </div>
     <div id="visualization"></div>
     <div id="rings-container">
-        <div id="hover-title"></div>
+      <div id="hover-title"></div>
     </div>
     <!-- Search Bar (fixed) -->
     <input id="search-bar" type="text" placeholder="I want to see..." />
     <!-- Upload Hand Button (fixed, with image and overlaid text) -->
     <button id="upload-hand-btn">
-        <img id="upload-hand-btn-img" src="UploadButton/BiggerHand.png" alt="Upload hand" />
-        <div id="upload-hand-btn-text">Upload<br>junk</div>
+      <img
+        id="upload-hand-btn-img"
+        src="UploadButton/BiggerHand.png"
+        alt="Upload hand"
+      />
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
     </button>
     <script>
-        let scene, camera, renderer, controls;
-        let composer;
-        let particles;
-        
-        // Separate variables for rings
-        let ringsScene, ringsCamera, ringsRenderer;
-        let rings;
-        let ringsRotation = {
-            isDragging: false,
-            previousX: 0,
-            previousY: 0,
-            rotationSpeedX: 0.0003,
-            rotationSpeedY: 0.0006,
-            manualRotationX: 0,
-            manualRotationY: 0,
-            dragStartTime: 0,
-            dragThreshold: 5, // Minimum distance to be considered dragging
-            clickThreshold: 200 // Minimum time difference to be considered a click vs drag
-        };
+      let scene, camera, renderer, controls;
+      let composer;
+      let particles;
 
-        // Store references to eye-label groups for hover detection
-        let eyeLabelGroups = [];
-        let ringsRaycaster, ringsMouse;
+      // Separate variables for rings
+      let ringsScene, ringsCamera, ringsRenderer;
+      let rings;
+      let ringsRotation = {
+        isDragging: false,
+        previousX: 0,
+        previousY: 0,
+        rotationSpeedX: 0.0003,
+        rotationSpeedY: 0.0006,
+        manualRotationX: 0,
+        manualRotationY: 0,
+        dragStartTime: 0,
+        dragThreshold: 5, // Minimum distance to be considered dragging
+        clickThreshold: 200, // Minimum time difference to be considered a click vs drag
+      };
 
-        function createEyeSprite(imagePath) {
-            const textureLoader = new THREE.TextureLoader();
-            const texture = textureLoader.load(imagePath);
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
+      // Store references to eye-label groups for hover detection
+      let eyeLabelGroups = [];
+      let ringsRaycaster, ringsMouse;
 
-            const spriteMaterial = new THREE.SpriteMaterial({ 
-                map: texture,
-                transparent: true,
-                opacity: 1.0
-            });
+      function createEyeSprite(imagePath) {
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(imagePath);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
 
-            const sprite = new THREE.Sprite(spriteMaterial);
-
-            // Set scale based on image aspect ratio
-            const img = new window.Image();
-            img.src = imagePath;
-            img.onload = function() {
-                const baseHeight = 2; // units
-                const aspect = img.width / img.height;
-                sprite.scale.set(baseHeight * aspect, baseHeight, 1);
-            };
-            // Fallback scale until image loads
-            sprite.scale.set(2, 2, 1);
-            return sprite;
-        }
-
-        // Helper to create a horizontal text sprite (label above the eye)
-        function createArcTextSprite(text, fontSize = 100) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            // Ensure full transparency
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.globalAlpha = 1.0;
-            ctx.save();
-            ctx.globalCompositeOperation = 'copy';
-            ctx.fillStyle = 'rgba(0,0,0,0)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.restore();
-            ctx.font = `bold ${fontSize}px VT323, monospace`;
-            ctx.fillStyle = '#fff';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            // Draw the text as a single horizontal line
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            ctx.fillText(text, centerX, centerY);
-
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            const spriteMaterial = new THREE.SpriteMaterial({
-                map: texture,
-                transparent: true,
-                opacity: 1.0,
-                depthTest: false,
-                depthWrite: false
-            });
-            const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.scale.set(7, 1.5, 1);
-            sprite.material.renderOrder = 9999;
-            return sprite;
-        }
-
-        function createEyeWithLabel(eyePath, labelText, eyePos, upVector, eyeId) {
-            const group = new THREE.Group();
-            const eye = createEyeSprite(eyePath);
-            eye.position.copy(eyePos);
-            eye.userData.eyeId = eyeId; // Store the eye ID for navigation
-            eye.userData.title = labelText; // Store the title for hover display
-            group.add(eye);
-            // Store for raycasting
-            eyeLabelGroups.push({ eye });
-            return group;
-        }
-
-        function createRings() {
-            // Create an elliptical curve for the oblong ring
-            class CustomEllipseCurve extends THREE.Curve {
-                constructor() {
-                    super();
-                }
-                getPoint(t) {
-                    const a = 8;  // major axis
-                    const b = 5;  // minor axis
-                    const tx = Math.cos(2 * Math.PI * t) * a;
-                    const ty = Math.sin(2 * Math.PI * t) * b;
-                    return new THREE.Vector3(tx, ty, 0);
-                }
-            }
-
-            const ringsGroup = new THREE.Group(); // <-- ensure this is defined
-            eyeLabelGroups = [];
-            // Create the oblong ring geometry
-            const path = new CustomEllipseCurve();
-            const ringGeometry = new THREE.TubeGeometry(path, 100, 0.05, 16, false);
-
-            // Create materials with different render orders
-            const ringMaterial1 = new THREE.MeshBasicMaterial({ 
-                color: 0xffffff,
-                transparent: true,
-                opacity: 0.2,
-                side: THREE.DoubleSide,
-                depthWrite: true,
-                depthTest: true,
-                renderOrder: 1
-            });
-            const ringMaterial2 = ringMaterial1.clone();
-            ringMaterial2.renderOrder = 2;
-            const ringMaterial3 = ringMaterial1.clone();
-            ringMaterial3.renderOrder = 3;
-
-            // Ring 1 (horizontal, up is +Y)
-            const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
-            const group1a = createEyeWithLabel("Eyes/Temperament_open.png", "Temperament", new THREE.Vector3(9, 0, 0), new THREE.Vector3(0, 1, 0), "eye-temperament");
-            const group1b = createEyeWithLabel("Eyes/Rhizome_open.png", "Rhizome", new THREE.Vector3(-9, 0, 0), new THREE.Vector3(0, 1, 0), "eye-rhizome");
-            ring1.add(group1a);
-            ring1.add(group1b);
-            ring1.position.z = 1;
-
-            // Ring 2 (vertical, up is +Z)
-            const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
-            const group2a = createEyeWithLabel("Eyes/Artist_open.png", "Artist", new THREE.Vector3(0, 9, 0), new THREE.Vector3(0, 0, 1), "eye-artist");
-            const group2b = createEyeWithLabel("Eyes/Completeness_open.png", "Completeness", new THREE.Vector3(0, -9, 0), new THREE.Vector3(0, 0, 1), "eye-completeness");
-            ring2.rotation.x = Math.PI / 2;
-            ring2.position.z = 0;
-            ring2.add(group2a);
-            ring2.add(group2b);
-
-            // Ring 3 (side, up is +X)
-            const ring3 = new THREE.Mesh(ringGeometry, ringMaterial3);
-            const group3a = createEyeWithLabel("Eyes/SecretGallery_open.png", "idk", new THREE.Vector3(0, 6, 0), new THREE.Vector3(1, 0, 0), "eye-secret");
-            const group3b = createEyeWithLabel("Eyes/Intimacy_open.png", "Intimacy", new THREE.Vector3(0, -6, 0), new THREE.Vector3(1, 0, 0), "eye-intimacy");
-            ring3.rotation.y = Math.PI / 2;
-            ring3.position.z = -1;
-            ring3.add(group3a);
-            ring3.add(group3b);
-
-            ringsGroup.add(ring1);
-            ringsGroup.add(ring2);
-            ringsGroup.add(ring3);
-            return ringsGroup;
-        }
-
-        function initRings() {
-            // Create separate scene for rings
-            ringsScene = new THREE.Scene();
-            ringsCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 2000);
-            ringsCamera.position.z = 20;
-
-            // Create separate renderer for rings
-            ringsRenderer = new THREE.WebGLRenderer({ 
-                antialias: true, 
-                alpha: true,
-                logarithmicDepthBuffer: true,
-                preserveDrawingBuffer: true
-            });
-            ringsRenderer.setSize(500, 500);
-            ringsRenderer.setClearColor(0x000000, 0);
-            ringsRenderer.sortObjects = false; // Disable automatic sorting
-            document.getElementById('rings-container').appendChild(ringsRenderer.domElement);
-
-            // Create and add rings
-            rings = createRings();
-            ringsScene.add(rings);
-
-            // Add event listeners for rings rotation
-            ringsRenderer.domElement.addEventListener('mousedown', onRingsMouseDown);
-            ringsRenderer.domElement.addEventListener('mousemove', onRingsMouseMove);
-            ringsRenderer.domElement.addEventListener('mouseup', onRingsMouseUp);
-            ringsRenderer.domElement.addEventListener('mouseleave', onRingsMouseUp);
-            ringsRenderer.domElement.addEventListener('click', onRingsClick);
-            ringsRaycaster = new THREE.Raycaster();
-            ringsMouse = new THREE.Vector2();
-            ringsRenderer.domElement.addEventListener('mousemove', onRingsMouseHover);
-        }
-
-        function init() {
-            // Create main scene
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 2000);
-            camera.position.z = 30;
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0x000000, 1);
-            document.getElementById('visualization').appendChild(renderer.domElement);
-
-            // Set up composer for postprocessing (if needed)
-            composer = new THREE.EffectComposer(renderer);
-            const renderPass = new THREE.RenderPass(scene, camera);
-            composer.addPass(renderPass);
-
-            // Add event listener for resizing
-            window.addEventListener('resize', onWindowResize);
-
-            // Initialize rings
-            initRings();
-        }
-
-        function onRingsMouseDown(event) {
-            ringsRotation.dragStartTime = Date.now();
-            ringsRotation.previousX = event.clientX;
-            ringsRotation.previousY = event.clientY;
-            ringsRotation.isDragging = false; // Start as false, will be set to true if movement exceeds threshold
-        }
-
-        function onRingsMouseMove(event) {
-            // Only handle dragging if mouse button is pressed
-            if (event.buttons !== 1) {
-                return; // No mouse button pressed, don't handle dragging
-            }
-            
-            const deltaX = event.clientX - ringsRotation.previousX;
-            const deltaY = event.clientY - ringsRotation.previousY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            
-            // Check if we should start dragging (movement exceeds threshold)
-            if (!ringsRotation.isDragging && distance > ringsRotation.dragThreshold) {
-                ringsRotation.isDragging = true;
-            }
-            
-            if (ringsRotation.isDragging) {
-                rings.rotation.y += deltaX * 0.01;
-                rings.rotation.x += deltaY * 0.01;
-                
-                ringsRotation.previousX = event.clientX;
-                ringsRotation.previousY = event.clientY;
-            }
-        }
-
-        function onRingsMouseUp() {
-            ringsRotation.isDragging = false;
-        }
-
-        function onRingsMouseHover(event) {
-            // Calculate mouse position in normalized device coordinates
-            const rect = ringsRenderer.domElement.getBoundingClientRect();
-            ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-            ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-            // Raycast
-            ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
-            // Collect all eye meshes
-            const eyes = eyeLabelGroups.map(g => g.eye);
-            const intersects = ringsRaycaster.intersectObjects(eyes, false);
-            
-            const hoverTitle = document.getElementById('hover-title');
-            
-            // Hide title by default
-            if (hoverTitle) {
-                hoverTitle.style.opacity = '0';
-            }
-            
-            // Show title for hovered eye
-            if (intersects.length > 0) {
-                const hoveredEye = intersects[0].object;
-                if (hoveredEye.userData.title && hoverTitle) {
-                    hoverTitle.textContent = hoveredEye.userData.title;
-                    hoverTitle.style.opacity = '1';
-                }
-            }
-        }
-
-        function onRingsClick(event) {
-            // Check if this was a drag or a click
-            const timeSinceMouseDown = Date.now() - ringsRotation.dragStartTime;
-            const deltaX = event.clientX - ringsRotation.previousX;
-            const deltaY = event.clientY - ringsRotation.previousY;
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            
-            // Only handle clicks if:
-            // 1. Not dragging (or very minimal movement)
-            // 2. Quick click (less than threshold time)
-            // 3. Small movement (less than threshold distance)
-            if (ringsRotation.isDragging || 
-                timeSinceMouseDown > ringsRotation.clickThreshold || 
-                distance > ringsRotation.dragThreshold) {
-                return;
-            }
-            
-            // Calculate mouse position in normalized device coordinates
-            const rect = ringsRenderer.domElement.getBoundingClientRect();
-            ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-            ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-            
-            // Raycast
-            ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
-            const eyes = eyeLabelGroups.map(g => g.eye);
-            const intersects = ringsRaycaster.intersectObjects(eyes, false);
-            
-            if (intersects.length > 0) {
-                const clickedEye = intersects[0].object;
-                const eyeId = clickedEye.userData.eyeId;
-                
-                // Navigation logic
-                switch(eyeId) {
-                    case 'eye-temperament':
-                        window.location.href = 'views/temperament/temperament0606.html';
-                        break;
-                    case 'eye-secret':
-                        window.location.href = 'views/hashtag_gallery/hashtag_gallery.html';
-                        break;
-                    case 'eye-intimacy':
-                        window.location.href = 'views/intimacy/Intimacy.html';
-                        break;
-                    case 'eye-completeness':
-                        window.location.href = 'views/Completeness/Completeness.html';
-                        break;
-                    case 'eye-artist':
-                        window.location.href = 'views/Artists/Artist.html';
-                        break;
-                    case 'eye-rhizome':
-                        window.location.href = 'views/rhizome/rhizome.html';
-                        break;
-                    default:
-                        // Silently ignore unknown eye IDs
-                        break;
-                }
-            }
-        }
-
-        function onWindowResize() {
-            // Update main scene
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            // Animate particles
-            if (particles) {
-                const positions = particles.geometry.attributes.position.array;
-                const speeds = particles.userData.speeds;
-                const opacities = particles.userData.opacities;
-                
-                for (let i = 0; i < positions.length; i += 3) {
-                    // Move particles in a circular motion
-                    const speed = speeds[i / 3];
-                    const time = Date.now() * 0.001 * speed;
-                    
-                    positions[i] += Math.sin(time) * 0.01;
-                    positions[i + 1] += Math.cos(time) * 0.01;
-                    positions[i + 2] += Math.sin(time * 0.5) * 0.01;
-
-                    // Check if particle is in front of images (z > 0)
-                    const z = positions[i + 2];
-                    opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
-                }
-                
-                particles.geometry.attributes.position.needsUpdate = true;
-                particles.material.opacity = 0.3; // Base opacity
-            }
-            
-            // Animate rings - natural slow rotation when not dragging
-            if (rings && !ringsRotation.isDragging) {
-                // Very slow, natural rotation
-                rings.rotation.x += 0.0005; // Reduced from 0.0003
-                rings.rotation.y += 0.0008; // Reduced from 0.0006
-            }
-            
-            // Render both scenes
-            composer.render();
-            ringsRenderer.render(ringsScene, ringsCamera);
-        }
-
-        function updateLoadingUI(progress) {
-            const progressBar = document.getElementById('loading-progress');
-            const loadingText = document.getElementById('loading-text');
-            
-            if (progressBar && loadingText) {
-                progressBar.style.width = `${progress}%`;
-                loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
-            }
-        }
-
-        // Initialize the visualization
-        function startVisualization() {
-            // Ensure loading page is visible
-            document.getElementById('loading-container').style.display = 'block';
-            document.getElementById('black-overlay').style.display = 'block';
-            document.getElementById('black-overlay').style.opacity = '1';
-            document.getElementById('visualization').style.display = 'none';
-
-            // Simulate loading progress
-            let progress = 0;
-            const loadingInterval = setInterval(() => {
-                progress += 2;
-                updateLoadingUI(progress);
-                
-                if (progress >= 100) {
-                    clearInterval(loadingInterval);
-                    
-                    // Initialize the scene
-                    init();
-                    
-                    // Hide loading page and show visualization
-                    document.getElementById('loading-container').style.display = 'none';
-                    document.getElementById('visualization').style.display = 'block';
-                    document.getElementById('black-overlay').style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('black-overlay').style.display = 'none';
-                        
-                        // Show UI elements with fade-in effect
-                        const uiElements = [
-                            document.getElementById('search-bar'),
-                            document.getElementById('upload-hand-btn')
-                        ];
-                        
-                        uiElements.forEach(element => {
-                            if (element) {
-                                element.style.opacity = '1';
-                            }
-                        });
-                    }, 500);
-                    
-                    // Start animation
-                    animate();
-                }
-            }, 50);
-        }
-
-        // Search bar event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchBar = document.getElementById('search-bar');
-            let searchTimeout;
-
-            searchBar.addEventListener('input', (event) => {
-                const query = event.target.value.trim();
-                
-                // Clear previous timeout
-                if (searchTimeout) {
-                    clearTimeout(searchTimeout);
-                }
-                
-                // Set new timeout for search (debounce)
-                if (query.length > 0) {
-                    searchTimeout = setTimeout(() => {
-                        performSearch(query);
-                    }, 500); // Wait 500ms after user stops typing
-                }
-            });
-
-            searchBar.addEventListener('keypress', (event) => {
-                if (event.key === 'Enter') {
-                    const query = event.target.value.trim();
-                    if (query.length > 0) {
-                        // Clear timeout and perform search immediately
-                        if (searchTimeout) {
-                            clearTimeout(searchTimeout);
-                        }
-                        performSearch(query);
-                    }
-                }
-            });
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
         });
 
-        // Search functionality
-        function performSearch(query) {
-            console.log('Searching for:', query);
-            // For now, just log the search query
-            // You can implement the actual search logic here
-            // For example, navigate to a search results page or filter content
-            alert(`Searching for: ${query}`);
-        }
+        const sprite = new THREE.Sprite(spriteMaterial);
 
-        // Chatbot state
-        let chatbotState = {
-            currentQuestion: 0,
-            answers: {},
-            isTyping: false
+        // Set scale based on image aspect ratio
+        const img = new window.Image();
+        img.src = imagePath;
+        img.onload = function () {
+          const baseHeight = 2; // units
+          const aspect = img.width / img.height;
+          sprite.scale.set(baseHeight * aspect, baseHeight, 1);
         };
+        // Fallback scale until image loads
+        sprite.scale.set(2, 2, 1);
+        return sprite;
+      }
 
-        const questions = [
-            {
-                id: 'upload',
-                type: 'file',
-                message: "",
-                required: true
-            },
-            {
-                id: 'name',
-                type: 'text',
-                message: "Wannna give it a name? Or not. Totally your call.",
-                placeholder: "Give it a name...",
-                required: false
-            },
-            {
-                id: 'artist',
-                type: 'text',
-                message: "Who made it? Drop an alter ego, emoji, tag name… or stay anonymous.",
-                placeholder: "Your alter ego...",
-                required: false
-            },
-            {
-                id: 'location',
-                type: 'location',
-                message: "Where on Earth were you when this junk was born?",
-                placeholder: "Click to select location on map...",
-                required: false
-            },
-            {
-                id: 'specific_location',
-                type: 'text',
-                message: "Be real — bed? Park? Coffee shop? Closet floor?",
-                placeholder: "Bed, park, coffee shop...",
-                required: false
-            },
-            {
-                id: 'date',
-                type: 'text',
-                message: "Roughly when? A year, a season, a fuzzy memory...",
-                placeholder: "2020, last winter...",
-                required: false
-            },
-            {
-                id: 'time_window',
-                type: 'time_slider',
-                message: "What time of day are we talking? Morning sun or midnight soup?",
-                required: false
-            },
-            {
-                id: 'cooked_level',
-                type: 'slider',
-                message: "How cooked is this piece? Raw mess or nearly done?",
-                required: false
-            },
-            {
-                id: 'artwork_type',
-                type: 'text',
-                message: "What kind of junk is this? Sketch? Note? Blurry thing?",
-                placeholder: "Sketch, note, blurry thing...",
-                required: false
-            },
-            {
-                id: 'notes',
-                type: 'textarea',
-                message: "Leave a note, a rant, or a cryptic message... or not.",
-                placeholder: "Your note here...",
-                required: false
-            },
-            {
-                id: 'tags',
-                type: 'tags',
-                message: "Choose some tags — Weird? Wrong? Unfinished? Or type your own.",
-                required: false
-            }
-        ];
+      // Helper to create a horizontal text sprite (label above the eye)
+      function createArcTextSprite(text, fontSize = 100) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1024;
+        canvas.height = 256;
+        const ctx = canvas.getContext("2d");
+        // Ensure full transparency
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1.0;
+        ctx.save();
+        ctx.globalCompositeOperation = "copy";
+        ctx.fillStyle = "rgba(0,0,0,0)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        ctx.font = `bold ${fontSize}px VT323, monospace`;
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
-        // Add click event listener to upload button
-        document.addEventListener('DOMContentLoaded', function() {
-            const uploadBtn = document.getElementById('upload-hand-btn');
-            if (uploadBtn) {
-                uploadBtn.addEventListener('click', showChatbot);
-            }
-            
-            // Close chatbot with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeChatbot();
-                }
-            });
-            
-            // Close chatbot when clicking on backdrop
-            const backdrop = document.getElementById('chatbot-backdrop');
-            if (backdrop) {
-                backdrop.addEventListener('click', function(e) {
-                    if (e.target === backdrop) {
-                        closeChatbot();
-                    }
-                });
-            }
+        // Draw the text as a single horizontal line
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        ctx.fillText(text, centerX, centerY);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
+          depthTest: false,
+          depthWrite: false,
         });
-        
-        // Chatbot functions
-        function showChatbot() {
-            const chatbot = document.getElementById('chatbot-container');
-            const backdrop = document.getElementById('chatbot-backdrop');
-            
-            // Show backdrop first
-            backdrop.style.display = 'block';
-            setTimeout(() => {
-                backdrop.style.opacity = '1';
-            }, 10);
-            
-            chatbot.style.display = 'flex';
-            chatbotState.currentQuestion = 0;
-            chatbotState.answers = {};
-            
-            // Start with opening message
-            addBotMessage("Hi, friend. Before we dive in — a tiny heads-up: nothing here is mandatory except the junk. Everything else? Totally up to you.");
-            
-            // Disable persistent input initially
-            disablePersistentInput();
-            
-            // Start the conversation after a delay
-            setTimeout(() => {
-                addBotMessage("Let's begin. Upload your junk:");
-                setTimeout(() => {
-                    askNextQuestion();
-                }, 1500);
-            }, 2000);
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(7, 1.5, 1);
+        sprite.material.renderOrder = 9999;
+        return sprite;
+      }
+
+      function createEyeWithLabel(eyePath, labelText, eyePos, upVector, eyeId) {
+        const group = new THREE.Group();
+        const eye = createEyeSprite(eyePath);
+        eye.position.copy(eyePos);
+        eye.userData.eyeId = eyeId; // Store the eye ID for navigation
+        eye.userData.title = labelText; // Store the title for hover display
+        group.add(eye);
+        // Store for raycasting
+        eyeLabelGroups.push({ eye });
+        return group;
+      }
+
+      function createRings() {
+        // Create an elliptical curve for the oblong ring
+        class CustomEllipseCurve extends THREE.Curve {
+          constructor() {
+            super();
+          }
+          getPoint(t) {
+            const a = 8; // major axis
+            const b = 5; // minor axis
+            const tx = Math.cos(2 * Math.PI * t) * a;
+            const ty = Math.sin(2 * Math.PI * t) * b;
+            return new THREE.Vector3(tx, ty, 0);
+          }
         }
 
-        function closeChatbot() {
-            const chatbot = document.getElementById('chatbot-container');
-            const backdrop = document.getElementById('chatbot-backdrop');
-            
-            // Hide chatbot first
-            chatbot.style.display = 'none';
-            
-            // Fade out backdrop
-            backdrop.style.opacity = '0';
-            setTimeout(() => {
-                backdrop.style.display = 'none';
-            }, 300);
-            
-            // Clear messages and dynamic input
-            const messagesContainer = document.getElementById('chatbot-messages');
-            const dynamicContainer = document.getElementById('dynamic-input-container');
-            messagesContainer.innerHTML = '';
-            dynamicContainer.innerHTML = '';
-            disablePersistentInput();
+        const ringsGroup = new THREE.Group(); // <-- ensure this is defined
+        eyeLabelGroups = [];
+        // Create the oblong ring geometry
+        const path = new CustomEllipseCurve();
+        const ringGeometry = new THREE.TubeGeometry(path, 100, 0.05, 16, false);
+
+        // Create materials with different render orders
+        const ringMaterial1 = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide,
+          depthWrite: true,
+          depthTest: true,
+          renderOrder: 1,
+        });
+        const ringMaterial2 = ringMaterial1.clone();
+        ringMaterial2.renderOrder = 2;
+        const ringMaterial3 = ringMaterial1.clone();
+        ringMaterial3.renderOrder = 3;
+
+        // Ring 1 (horizontal, up is +Y)
+        const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
+        const group1a = createEyeWithLabel(
+          "Eyes/Temperament_open.png",
+          "Temperament",
+          new THREE.Vector3(9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-temperament"
+        );
+        const group1b = createEyeWithLabel(
+          "Eyes/Rhizome_open.png",
+          "Rhizome",
+          new THREE.Vector3(-9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-rhizome"
+        );
+        ring1.add(group1a);
+        ring1.add(group1b);
+        ring1.position.z = 1;
+
+        // Ring 2 (vertical, up is +Z)
+        const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
+        const group2a = createEyeWithLabel(
+          "Eyes/Artist_open.png",
+          "Artist",
+          new THREE.Vector3(0, 9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-artist"
+        );
+        const group2b = createEyeWithLabel(
+          "Eyes/Completeness_open.png",
+          "Completeness",
+          new THREE.Vector3(0, -9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-completeness"
+        );
+        ring2.rotation.x = Math.PI / 2;
+        ring2.position.z = 0;
+        ring2.add(group2a);
+        ring2.add(group2b);
+
+        // Ring 3 (side, up is +X)
+        const ring3 = new THREE.Mesh(ringGeometry, ringMaterial3);
+        const group3a = createEyeWithLabel(
+          "Eyes/SecretGallery_open.png",
+          "idk",
+          new THREE.Vector3(0, 6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-secret"
+        );
+        const group3b = createEyeWithLabel(
+          "Eyes/Intimacy_open.png",
+          "Intimacy",
+          new THREE.Vector3(0, -6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-intimacy"
+        );
+        ring3.rotation.y = Math.PI / 2;
+        ring3.position.z = -1;
+        ring3.add(group3a);
+        ring3.add(group3b);
+
+        ringsGroup.add(ring1);
+        ringsGroup.add(ring2);
+        ringsGroup.add(ring3);
+        return ringsGroup;
+      }
+
+      function initRings() {
+        // Create separate scene for rings
+        ringsScene = new THREE.Scene();
+        ringsCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 2000);
+        ringsCamera.position.z = 20;
+
+        // Create separate renderer for rings
+        ringsRenderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          logarithmicDepthBuffer: true,
+          preserveDrawingBuffer: true,
+        });
+        ringsRenderer.setSize(500, 500);
+        ringsRenderer.setClearColor(0x000000, 0);
+        ringsRenderer.sortObjects = false; // Disable automatic sorting
+        document
+          .getElementById("rings-container")
+          .appendChild(ringsRenderer.domElement);
+
+        // Create and add rings
+        rings = createRings();
+        ringsScene.add(rings);
+
+        // Add event listeners for rings rotation
+        ringsRenderer.domElement.addEventListener(
+          "mousedown",
+          onRingsMouseDown
+        );
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseMove
+        );
+        ringsRenderer.domElement.addEventListener("mouseup", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("mouseleave", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("click", onRingsClick);
+        ringsRaycaster = new THREE.Raycaster();
+        ringsMouse = new THREE.Vector2();
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseHover
+        );
+      }
+
+      function init() {
+        // Create main scene
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.01,
+          2000
+        );
+        camera.position.z = 30;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
+
+        // Set up composer for postprocessing (if needed)
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Add event listener for resizing
+        window.addEventListener("resize", onWindowResize);
+
+        // Initialize rings
+        initRings();
+      }
+
+      function onRingsMouseDown(event) {
+        ringsRotation.dragStartTime = Date.now();
+        ringsRotation.previousX = event.clientX;
+        ringsRotation.previousY = event.clientY;
+        ringsRotation.isDragging = false; // Start as false, will be set to true if movement exceeds threshold
+      }
+
+      function onRingsMouseMove(event) {
+        // Only handle dragging if mouse button is pressed
+        if (event.buttons !== 1) {
+          return; // No mouse button pressed, don't handle dragging
         }
 
-        function addBotMessage(message) {
-            const messagesContainer = document.getElementById('chatbot-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message bot';
-            messageDiv.innerHTML = `
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Check if we should start dragging (movement exceeds threshold)
+        if (
+          !ringsRotation.isDragging &&
+          distance > ringsRotation.dragThreshold
+        ) {
+          ringsRotation.isDragging = true;
+        }
+
+        if (ringsRotation.isDragging) {
+          rings.rotation.y += deltaX * 0.01;
+          rings.rotation.x += deltaY * 0.01;
+
+          ringsRotation.previousX = event.clientX;
+          ringsRotation.previousY = event.clientY;
+        }
+      }
+
+      function onRingsMouseUp() {
+        ringsRotation.isDragging = false;
+      }
+
+      function onRingsMouseHover(event) {
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        // Collect all eye meshes
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        const hoverTitle = document.getElementById("hover-title");
+
+        // Hide title by default
+        if (hoverTitle) {
+          hoverTitle.style.opacity = "0";
+        }
+
+        // Show title for hovered eye
+        if (intersects.length > 0) {
+          const hoveredEye = intersects[0].object;
+          if (hoveredEye.userData.title && hoverTitle) {
+            hoverTitle.textContent = hoveredEye.userData.title;
+            hoverTitle.style.opacity = "1";
+          }
+        }
+      }
+
+      function onRingsClick(event) {
+        // Check if this was a drag or a click
+        const timeSinceMouseDown = Date.now() - ringsRotation.dragStartTime;
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Only handle clicks if:
+        // 1. Not dragging (or very minimal movement)
+        // 2. Quick click (less than threshold time)
+        // 3. Small movement (less than threshold distance)
+        if (
+          ringsRotation.isDragging ||
+          timeSinceMouseDown > ringsRotation.clickThreshold ||
+          distance > ringsRotation.dragThreshold
+        ) {
+          return;
+        }
+
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        if (intersects.length > 0) {
+          const clickedEye = intersects[0].object;
+          const eyeId = clickedEye.userData.eyeId;
+
+          // Navigation logic
+          switch (eyeId) {
+            case "eye-temperament":
+              window.location.href = "views/temperament/temperament0606.html";
+              break;
+            case "eye-secret":
+              window.location.href =
+                "views/hashtag_gallery/hashtag_gallery.html";
+              break;
+            case "eye-intimacy":
+              window.location.href = "views/intimacy/Intimacy.html";
+              break;
+            case "eye-completeness":
+              window.location.href = "views/Completeness/Completeness.html";
+              break;
+            case "eye-artist":
+              window.location.href = "views/Artists/Artist.html";
+              break;
+            case "eye-rhizome":
+              window.location.href = "views/rhizome/rhizome.html";
+              break;
+            default:
+              // Silently ignore unknown eye IDs
+              break;
+          }
+        }
+      }
+
+      function onWindowResize() {
+        // Update main scene
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Animate particles
+        if (particles) {
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = particles.userData.speeds;
+          const opacities = particles.userData.opacities;
+
+          for (let i = 0; i < positions.length; i += 3) {
+            // Move particles in a circular motion
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.01;
+            positions[i + 1] += Math.cos(time) * 0.01;
+            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+            // Check if particle is in front of images (z > 0)
+            const z = positions[i + 2];
+            opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+          particles.material.opacity = 0.3; // Base opacity
+        }
+
+        // Animate rings - natural slow rotation when not dragging
+        if (rings && !ringsRotation.isDragging) {
+          // Very slow, natural rotation
+          rings.rotation.x += 0.0005; // Reduced from 0.0003
+          rings.rotation.y += 0.0008; // Reduced from 0.0006
+        }
+
+        // Render both scenes
+        composer.render();
+        ringsRenderer.render(ringsScene, ringsCamera);
+      }
+
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+        }
+      }
+
+      // Initialize the visualization
+      function startVisualization() {
+        // Ensure loading page is visible
+        document.getElementById("loading-container").style.display = "block";
+        document.getElementById("black-overlay").style.display = "block";
+        document.getElementById("black-overlay").style.opacity = "1";
+        document.getElementById("visualization").style.display = "none";
+
+        // Simulate loading progress
+        let progress = 0;
+        const loadingInterval = setInterval(() => {
+          progress += 2;
+          updateLoadingUI(progress);
+
+          if (progress >= 100) {
+            clearInterval(loadingInterval);
+
+            // Initialize the scene
+            init();
+
+            // Hide loading page and show visualization
+            document.getElementById("loading-container").style.display = "none";
+            document.getElementById("visualization").style.display = "block";
+            document.getElementById("black-overlay").style.opacity = "0";
+            setTimeout(() => {
+              document.getElementById("black-overlay").style.display = "none";
+
+              // Show UI elements with fade-in effect
+              const uiElements = [
+                document.getElementById("search-bar"),
+                document.getElementById("upload-hand-btn"),
+              ];
+
+              uiElements.forEach((element) => {
+                if (element) {
+                  element.style.opacity = "1";
+                }
+              });
+            }, 500);
+
+            // Start animation
+            animate();
+          }
+        }, 50);
+      }
+
+      // Search bar event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        const searchBar = document.getElementById("search-bar");
+        let searchTimeout;
+
+        searchBar.addEventListener("input", (event) => {
+          const query = event.target.value.trim();
+
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          // Set new timeout for search (debounce)
+          if (query.length > 0) {
+            searchTimeout = setTimeout(() => {
+              performSearch(query);
+            }, 500); // Wait 500ms after user stops typing
+          }
+        });
+
+        searchBar.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            const query = event.target.value.trim();
+            if (query.length > 0) {
+              // Clear timeout and perform search immediately
+              if (searchTimeout) {
+                clearTimeout(searchTimeout);
+              }
+              performSearch(query);
+            }
+          }
+        });
+      });
+
+      // Search functionality
+      function performSearch(query) {
+        console.log("Searching for:", query);
+        // For now, just log the search query
+        // You can implement the actual search logic here
+        // For example, navigate to a search results page or filter content
+        alert(`Searching for: ${query}`);
+      }
+
+      // Chatbot state
+      let chatbotState = {
+        currentQuestion: 0,
+        answers: {},
+        isTyping: false,
+      };
+
+      const questions = [
+        {
+          id: "upload",
+          type: "file",
+          message: "",
+          required: true,
+        },
+        {
+          id: "name",
+          type: "text",
+          message: "Wannna give it a name? Or not. Totally your call.",
+          placeholder: "Give it a name...",
+          required: false,
+        },
+        {
+          id: "artist",
+          type: "text",
+          message:
+            "Who made it? Drop an alter ego, emoji, tag name… or stay anonymous.",
+          placeholder: "Your alter ego...",
+          required: false,
+        },
+        {
+          id: "location",
+          type: "location",
+          message: "Where on Earth were you when this junk was born?",
+          placeholder: "Click to select location on map...",
+          required: false,
+        },
+        {
+          id: "specific_location",
+          type: "text",
+          message: "Be real — bed? Park? Coffee shop? Closet floor?",
+          placeholder: "Bed, park, coffee shop...",
+          required: false,
+        },
+        {
+          id: "date",
+          type: "text",
+          message: "Roughly when? A year, a season, a fuzzy memory...",
+          placeholder: "2020, last winter...",
+          required: false,
+        },
+        {
+          id: "time_window",
+          type: "time_slider",
+          message:
+            "What time of day are we talking? Morning sun or midnight soup?",
+          required: false,
+        },
+        {
+          id: "cooked_level",
+          type: "slider",
+          message: "How cooked is this piece? Raw mess or nearly done?",
+          required: false,
+        },
+        {
+          id: "artwork_type",
+          type: "text",
+          message: "What kind of junk is this? Sketch? Note? Blurry thing?",
+          placeholder: "Sketch, note, blurry thing...",
+          required: false,
+        },
+        {
+          id: "notes",
+          type: "textarea",
+          message: "Leave a note, a rant, or a cryptic message... or not.",
+          placeholder: "Your note here...",
+          required: false,
+        },
+        {
+          id: "tags",
+          type: "tags",
+          message:
+            "Choose some tags — Weird? Wrong? Unfinished? Or type your own.",
+          required: false,
+        },
+      ];
+
+      // Add click event listener to upload button
+      document.addEventListener("DOMContentLoaded", function () {
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        if (uploadBtn) {
+          uploadBtn.addEventListener("click", showChatbot);
+        }
+
+        // Close chatbot with Escape key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            closeChatbot();
+          }
+        });
+
+        // Close chatbot when clicking on backdrop
+        const backdrop = document.getElementById("chatbot-backdrop");
+        if (backdrop) {
+          backdrop.addEventListener("click", function (e) {
+            if (e.target === backdrop) {
+              closeChatbot();
+            }
+          });
+        }
+      });
+
+      // Chatbot functions
+      function showChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Show backdrop first
+        backdrop.style.display = "block";
+        setTimeout(() => {
+          backdrop.style.opacity = "1";
+        }, 10);
+
+        chatbot.style.display = "flex";
+        chatbotState.currentQuestion = 0;
+        chatbotState.answers = {};
+
+        // Start with opening message
+        addBotMessage(
+          "Hi, friend. Before we dive in — a tiny heads-up: nothing here is mandatory except the junk. Everything else? Totally up to you."
+        );
+
+        // Disable persistent input initially
+        disablePersistentInput();
+
+        // Start the conversation after a delay
+        setTimeout(() => {
+          addBotMessage("Let's begin. Upload your junk:");
+          setTimeout(() => {
+            askNextQuestion();
+          }, 1500);
+        }, 2000);
+      }
+
+      function closeChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Hide chatbot first
+        chatbot.style.display = "none";
+
+        // Fade out backdrop
+        backdrop.style.opacity = "0";
+        setTimeout(() => {
+          backdrop.style.display = "none";
+        }, 300);
+
+        // Clear messages and dynamic input
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        messagesContainer.innerHTML = "";
+        dynamicContainer.innerHTML = "";
+        disablePersistentInput();
+      }
+
+      function addBotMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message bot";
+        messageDiv.innerHTML = `
                 <div class="message-content">${message}</div>
             `;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
 
-        function addUserMessage(message) {
-            const messagesContainer = document.getElementById('chatbot-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message user';
-            messageDiv.innerHTML = `
+      function addUserMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message user";
+        messageDiv.innerHTML = `
                 <div class="message-content">${message}</div>
             `;
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
 
-        function showTypingIndicator() {
-            const messagesContainer = document.getElementById('chatbot-messages');
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot';
-            typingDiv.id = 'typing-indicator';
-            typingDiv.innerHTML = `
+      function showTypingIndicator() {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "message bot";
+        typingDiv.id = "typing-indicator";
+        typingDiv.innerHTML = `
                 <div class="typing-indicator">
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
                     <div class="typing-dot"></div>
                 </div>
             `;
-            messagesContainer.appendChild(typingDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        const typingIndicator = document.getElementById("typing-indicator");
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+      }
+
+      function askNextQuestion() {
+        if (chatbotState.currentQuestion >= questions.length) {
+          showSummary();
+          return;
         }
 
-        function hideTypingIndicator() {
-            const typingIndicator = document.getElementById('typing-indicator');
-            if (typingIndicator) {
-                typingIndicator.remove();
-            }
+        const question = questions[chatbotState.currentQuestion];
+
+        showTypingIndicator();
+
+        setTimeout(() => {
+          hideTypingIndicator();
+          // Only show message if it's not empty (for upload question)
+          if (question.message) {
+            addBotMessage(question.message);
+          }
+          showQuestionInput(question);
+        }, 1500);
+      }
+
+      function enablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = false;
+          sendBtn.disabled = false;
+          backBtn.disabled = false;
+          skipBtn.disabled = false;
+          finishBtn.disabled = false;
+          textInput.focus();
         }
+      }
 
-        function askNextQuestion() {
-            if (chatbotState.currentQuestion >= questions.length) {
-                showSummary();
-                return;
-            }
-
-            const question = questions[chatbotState.currentQuestion];
-            
-            showTypingIndicator();
-            
-            setTimeout(() => {
-                hideTypingIndicator();
-                // Only show message if it's not empty (for upload question)
-                if (question.message) {
-                    addBotMessage(question.message);
-                }
-                showQuestionInput(question);
-            }, 1500);
+      function disablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = true;
+          sendBtn.disabled = true;
+          backBtn.disabled = true;
+          skipBtn.disabled = true;
+          finishBtn.disabled = true;
+          textInput.value = "";
         }
+      }
 
-        function enablePersistentInput() {
-            const textInput = document.getElementById('persistent-text-input');
-            const sendBtn = document.getElementById('persistent-send-btn');
-            const backBtn = document.getElementById('persistent-back-btn');
-            const skipBtn = document.getElementById('persistent-skip-btn');
-            const finishBtn = document.getElementById('persistent-finish-btn');
-            if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
-                textInput.disabled = false;
-                sendBtn.disabled = false;
-                backBtn.disabled = false;
-                skipBtn.disabled = false;
-                finishBtn.disabled = false;
-                textInput.focus();
-            }
-        }
+      function showQuestionInput(question) {
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const inputDiv = document.createElement("div");
+        inputDiv.id = "question-input";
 
-        function disablePersistentInput() {
-            const textInput = document.getElementById('persistent-text-input');
-            const sendBtn = document.getElementById('persistent-send-btn');
-            const backBtn = document.getElementById('persistent-back-btn');
-            const skipBtn = document.getElementById('persistent-skip-btn');
-            const finishBtn = document.getElementById('persistent-finish-btn');
-            if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
-                textInput.disabled = true;
-                sendBtn.disabled = true;
-                backBtn.disabled = true;
-                skipBtn.disabled = true;
-                finishBtn.disabled = true;
-                textInput.value = '';
-            }
-        }
+        let inputHTML = '<div class="input-group">';
 
-        function showQuestionInput(question) {
-            const dynamicContainer = document.getElementById('dynamic-input-container');
-            const messagesContainer = document.getElementById('chatbot-messages');
-            const inputDiv = document.createElement('div');
-            inputDiv.id = 'question-input';
-            
-            let inputHTML = '<div class="input-group">';
-            
-            switch (question.type) {
-                case 'file':
-                    // For file upload, add the upload area to the messages container
-                    const uploadDiv = document.createElement('div');
-                    uploadDiv.className = 'message bot';
-                    uploadDiv.innerHTML = `
+        switch (question.type) {
+          case "file":
+            // For file upload, add the upload area to the messages container
+            const uploadDiv = document.createElement("div");
+            uploadDiv.className = "message bot";
+            uploadDiv.innerHTML = `
                         <div class="file-upload-area" id="file-upload-area">
                             <img src="assets/upload.png" alt="Upload" class="upload-icon" id="upload-icon">
                             <div id="file-upload-text" class="file-upload-text">Drag & drop your file here or click to browse</div>
@@ -1535,22 +1633,22 @@
                             <button class="btn" id="continue-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Continue</button>
                         </div>
                     `;
-                    messagesContainer.appendChild(uploadDiv);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    
-                    // No need to add continue button to dynamic container since it's now in the message
-                    break;
-                case 'location':
-                    // For location questions, we'll handle them differently
-                    // No need to add input elements to dynamic container
-                    break;
-                case 'text':
-                case 'textarea':
-                    // For text questions, we'll use the persistent input at the bottom
-                    // No need to add input elements to dynamic container
-                    break;
-                case 'slider':
-                    inputHTML += `
+            messagesContainer.appendChild(uploadDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // No need to add continue button to dynamic container since it's now in the message
+            break;
+          case "location":
+            // For location questions, we'll handle them differently
+            // No need to add input elements to dynamic container
+            break;
+          case "text":
+          case "textarea":
+            // For text questions, we'll use the persistent input at the bottom
+            // No need to add input elements to dynamic container
+            break;
+          case "slider":
+            inputHTML += `
                         <div style="width:100%;display:flex;align-items:center;gap:15px;box-sizing:border-box;">
                             <span style="white-space:nowrap;flex-shrink:0;">Raw</span>
                             <input type="range" class="slider" id="slider-input" min="0" max="100" value="50" style="flex:1;min-width:0;width:100%;">
@@ -1558,9 +1656,9 @@
                             <div class="slider-value" id="slider-value" style="white-space:nowrap;flex-shrink:0;">50%</div>
                         </div>
                     `;
-                    break;
-                case 'time_slider':
-                    inputHTML += `
+            break;
+          case "time_slider":
+            inputHTML += `
                         <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:20px;box-sizing:border-box;margin-bottom:30px;">
                             <div style="width:100%;display:flex;align-items:center;box-sizing:border-box;">
                                 <input type="range" class="slider" id="time-slider-input" min="0" max="4" value="0" step="0.1" style="flex:1;min-width:0;width:100%;">
@@ -1574,9 +1672,9 @@
                             </div>
                         </div>
                     `;
-                    break;
-                case 'tags':
-                    inputHTML += `
+            break;
+          case "tags":
+            inputHTML += `
                         <div class="tag-selector" id="tag-examples">
                             <button class="tag" data-tag="weird">Weird</button>
                             <button class="tag" data-tag="wrong">Wrong</button>
@@ -1588,101 +1686,106 @@
                         <input type="text" class="input-field" id="custom-tag-input" placeholder="Or type your own... (up to 8 tags)">
                         <div id="user-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
                     `;
-                    break;
+            break;
+        }
+
+        // Handle file upload case separately
+        if (question.type === "file") {
+          inputDiv.innerHTML = inputHTML;
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.appendChild(inputDiv);
+          dynamicContainer.style.display = "block";
+
+          // Disable persistent input for file upload
+          disablePersistentInput();
+
+          // Setup button handlers for file upload
+          const continueBtn = inputDiv.querySelector("#continue-btn");
+          if (continueBtn) {
+            continueBtn.addEventListener("click", submitAnswer);
+          }
+
+          // Also set up the continue button in the message
+          setTimeout(() => {
+            const messageContinueBtn = document.querySelector("#continue-btn");
+            if (messageContinueBtn) {
+              messageContinueBtn.addEventListener("click", submitAnswer);
             }
-            
-            // Handle file upload case separately
-            if (question.type === 'file') {
-                inputDiv.innerHTML = inputHTML;
-                dynamicContainer.innerHTML = '';
-                dynamicContainer.appendChild(inputDiv);
-                dynamicContainer.style.display = 'block';
-                
-                // Disable persistent input for file upload
-                disablePersistentInput();
-                
-                // Setup button handlers for file upload
-                const continueBtn = inputDiv.querySelector('#continue-btn');
-                if (continueBtn) {
-                    continueBtn.addEventListener('click', submitAnswer);
-                }
-                
-                // Also set up the continue button in the message
-                setTimeout(() => {
-                    const messageContinueBtn = document.querySelector('#continue-btn');
-                    if (messageContinueBtn) {
-                        messageContinueBtn.addEventListener('click', submitAnswer);
-                    }
-                }, 100);
-                
-                // Setup file input handlers
-                setupFileInputHandlers();
-                return;
+          }, 100);
+
+          // Setup file input handlers
+          setupFileInputHandlers();
+          return;
+        }
+
+        // For other question types, only add button group for specific question types
+        if (
+          question.type === "slider" ||
+          question.type === "time_slider" ||
+          question.type === "tags"
+        ) {
+          inputHTML += '<div class="button-group">';
+          if (chatbotState.currentQuestion > 0) {
+            inputHTML += '<button class="btn" id="back-btn">Back</button>';
+          }
+          inputHTML +=
+            '<button class="btn primary" id="continue-btn">Continue</button>';
+          inputHTML += "</div>";
+        }
+        inputHTML += "</div>";
+
+        inputDiv.innerHTML = inputHTML;
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.appendChild(inputDiv);
+
+        // Handle text input questions by enabling persistent input and removing dynamic input
+        if (question.type === "text" || question.type === "textarea") {
+          // Clear dynamic container for text questions
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.style.display = "none";
+          enablePersistentInput();
+          const textInput = document.getElementById("persistent-text-input");
+          const sendBtn = document.getElementById("persistent-send-btn");
+
+          // Set up send button handler
+          sendBtn.onclick = () => {
+            if (textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
             }
-            
-            // For other question types, only add button group for specific question types
-            if (question.type === 'slider' || question.type === 'time_slider' || question.type === 'tags') {
-                inputHTML += '<div class="button-group">';
-                if (chatbotState.currentQuestion > 0) {
-                    inputHTML += '<button class="btn" id="back-btn">Back</button>';
-                }
-                inputHTML += '<button class="btn primary" id="continue-btn">Continue</button>';
-                inputHTML += '</div>';
+          };
+
+          // Set up back button handler
+          const backBtn = document.getElementById("persistent-back-btn");
+          if (backBtn) {
+            backBtn.onclick = goBack;
+          }
+
+          // Set up skip button handler
+          const skipBtn = document.getElementById("persistent-skip-btn");
+          if (skipBtn) {
+            skipBtn.onclick = () => {
+              submitTextAnswer("Skipped");
+            };
+          }
+
+          // Set up finish button handler
+          const finishBtn = document.getElementById("persistent-finish-btn");
+          if (finishBtn) {
+            finishBtn.onclick = closeChatbot;
+          }
+
+          // Set up enter key handler
+          textInput.onkeypress = (e) => {
+            if (e.key === "Enter" && textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
             }
-            inputHTML += '</div>';
-            
-            inputDiv.innerHTML = inputHTML;
-            dynamicContainer.innerHTML = '';
-            dynamicContainer.appendChild(inputDiv);
-            
-            // Handle text input questions by enabling persistent input and removing dynamic input
-            if (question.type === 'text' || question.type === 'textarea') {
-                // Clear dynamic container for text questions
-                dynamicContainer.innerHTML = '';
-                dynamicContainer.style.display = 'none';
-                enablePersistentInput();
-                const textInput = document.getElementById('persistent-text-input');
-                const sendBtn = document.getElementById('persistent-send-btn');
-                
-                // Set up send button handler
-                sendBtn.onclick = () => {
-                    if (textInput.value.trim()) {
-                        submitTextAnswer(textInput.value.trim());
-                    }
-                };
-                
-                // Set up back button handler
-                const backBtn = document.getElementById('persistent-back-btn');
-                if (backBtn) {
-                    backBtn.onclick = goBack;
-                }
-                
-                // Set up skip button handler
-                const skipBtn = document.getElementById('persistent-skip-btn');
-                if (skipBtn) {
-                    skipBtn.onclick = () => {
-                        submitTextAnswer('Skipped');
-                    };
-                }
-                
-                // Set up finish button handler
-                const finishBtn = document.getElementById('persistent-finish-btn');
-                if (finishBtn) {
-                    finishBtn.onclick = closeChatbot;
-                }
-                
-                // Set up enter key handler
-                textInput.onkeypress = (e) => {
-                    if (e.key === 'Enter' && textInput.value.trim()) {
-                        submitTextAnswer(textInput.value.trim());
-                    }
-                };
-            } else if (question.type === 'location') {
-                // For location questions, add the pin location button as a user message
-                const messagesContainer = document.getElementById('chatbot-messages');
-                const pinMessageDiv = document.createElement('div');
-                pinMessageDiv.className = 'message user';
-                pinMessageDiv.innerHTML = `
+          };
+        } else if (question.type === "location") {
+          // For location questions, add the pin location button as a user message
+          const messagesContainer = document.getElementById("chatbot-messages");
+          const pinMessageDiv = document.createElement("div");
+          pinMessageDiv.className = "message user";
+          pinMessageDiv.innerHTML = `
                     <div class="message-content" style="
                         display: flex;
                         align-items: center;
@@ -1699,545 +1802,597 @@
                         Pin location
                     </div>
                 `;
-                messagesContainer.appendChild(pinMessageDiv);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                
-                // Clear dynamic container for location questions
-                dynamicContainer.innerHTML = '';
-                dynamicContainer.style.display = 'none';
-                enablePersistentInput();
-                
-                // Set up pin location button handler
-                const pinBtn = document.getElementById('pin-location-btn');
-                if (pinBtn) {
-                    pinBtn.addEventListener('click', openGoogleMaps);
-                }
-                
-                // Set up persistent input handlers
-                const textInput = document.getElementById('persistent-text-input');
-                const sendBtn = document.getElementById('persistent-send-btn');
-                
-                sendBtn.onclick = () => {
-                    if (textInput.value.trim()) {
-                        submitTextAnswer(textInput.value.trim());
-                    }
-                };
-                
-                // Set up back button handler
-                const backBtn = document.getElementById('persistent-back-btn');
-                if (backBtn) {
-                    backBtn.onclick = goBack;
-                }
-                
-                // Set up skip button handler
-                const skipBtn = document.getElementById('persistent-skip-btn');
-                if (skipBtn) {
-                    skipBtn.onclick = () => {
-                        submitTextAnswer('Skipped');
-                    };
-                }
-                
-                // Set up finish button handler
-                const finishBtn = document.getElementById('persistent-finish-btn');
-                if (finishBtn) {
-                    finishBtn.onclick = closeChatbot;
-                }
-                
-                textInput.onkeypress = (e) => {
-                    if (e.key === 'Enter' && textInput.value.trim()) {
-                        submitTextAnswer(textInput.value.trim());
-                    }
-                };
-            } else {
-                dynamicContainer.style.display = 'block';
-                disablePersistentInput();
-            }
-            
-            // Setup input handlers
-            setupInputHandlers(question);
-            
-            // Setup button handlers (only for specific question types)
-            if (question.type === 'slider' || question.type === 'time_slider' || question.type === 'tags') {
-                const backBtn = inputDiv.querySelector('#back-btn');
-                const continueBtn = inputDiv.querySelector('#continue-btn');
-                
-                if (backBtn) {
-                    backBtn.addEventListener('click', goBack);
-                }
-                if (continueBtn) {
-                    continueBtn.addEventListener('click', submitAnswer);
-                }
-            }
-        }
+          messagesContainer.appendChild(pinMessageDiv);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-        function setupFileInputHandlers() {
-            const fileArea = document.querySelector('#file-upload-area');
-            const fileInput = document.querySelector('#file-input');
-            const fileText = document.querySelector('#file-upload-text');
-            const continueBtn = document.querySelector('#continue-btn');
-            
-            if (fileArea && fileInput && fileText) {
-                fileArea.addEventListener('click', () => fileInput.click());
-                fileArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    fileArea.classList.add('dragover');
-                });
-                fileArea.addEventListener('dragleave', () => {
-                    fileArea.classList.remove('dragover');
-                });
-                fileArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    fileArea.classList.remove('dragover');
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        fileInput.files = files;
-                        showImagePreview(files[0], fileArea, fileText);
-                        enableContinueButton();
-                    }
-                });
-                fileInput.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        showImagePreview(e.target.files[0], fileArea, fileText);
-                        enableContinueButton();
-                    }
-                });
-            }
-        }
+          // Clear dynamic container for location questions
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.style.display = "none";
+          enablePersistentInput();
 
-        function enableContinueButton() {
-            const continueBtn = document.querySelector('#continue-btn');
-            if (continueBtn) {
-                continueBtn.disabled = false;
-                continueBtn.style.opacity = '1';
-                continueBtn.style.cursor = 'pointer';
-                continueBtn.classList.add('primary');
-            }
-        }
+          // Set up pin location button handler
+          const pinBtn = document.getElementById("pin-location-btn");
+          if (pinBtn) {
+            pinBtn.addEventListener("click", openGoogleMaps);
+          }
 
-        function disableContinueButton() {
-            const continueBtn = document.querySelector('#continue-btn');
-            if (continueBtn) {
-                continueBtn.disabled = true;
-                continueBtn.style.opacity = '0.5';
-                continueBtn.style.cursor = 'not-allowed';
-                continueBtn.classList.remove('primary');
-            }
-        }
+          // Set up persistent input handlers
+          const textInput = document.getElementById("persistent-text-input");
+          const sendBtn = document.getElementById("persistent-send-btn");
 
-        function setupInputHandlers(question) {
-            const questionInput = document.getElementById('question-input');
-            switch (question.type) {
-                case 'slider':
-                    const slider = questionInput.querySelector('#slider-input');
-                    const sliderValue = questionInput.querySelector('#slider-value');
-                    slider.addEventListener('input', (e) => {
-                        sliderValue.textContent = `${e.target.value}%`;
-                    });
-                    break;
-                case 'time_slider':
-                    const timeSlider = questionInput.querySelector('#time-slider-input');
-                    const timeIcons = [
-                        questionInput.querySelector('#icon-sun'),
-                        questionInput.querySelector('#icon-coffee'),
-                        questionInput.querySelector('#icon-pasta'),
-                        questionInput.querySelector('#icon-wine'),
-                        questionInput.querySelector('#icon-moon')
-                    ];
-                    const timeLabels = ['Sun', 'Coffee', 'Pasta', 'Wine', 'Moon'];
-                    timeSlider.addEventListener('input', (e) => {
-                        const value = parseFloat(e.target.value);
-                        timeIcons.forEach((icon, i) => {
-                            // Calculate opacity based on distance from current value
-                            const distance = Math.abs(value - i);
-                            const opacity = Math.max(0.3, 1 - distance * 0.7);
-                            icon.style.opacity = opacity;
-                        });
-                    });
-                    // Set initial state
-                    timeIcons.forEach((icon, i) => {
-                        icon.style.opacity = (i === 0) ? '1' : '0.3';
-                    });
-                    break;
-                case 'tags':
-                    const tagExamples = questionInput.querySelector('#tag-examples');
-                    const customTagInput = questionInput.querySelector('#custom-tag-input');
-                    const userTagsDiv = questionInput.querySelector('#user-tags');
-                    let userTags = [];
-                    // Add example tag click
-                    tagExamples.querySelectorAll('.tag').forEach(tagBtn => {
-                        tagBtn.addEventListener('click', () => {
-                            if (userTags.length < 8 && !userTags.includes(tagBtn.textContent)) {
-                                userTags.push(tagBtn.textContent);
-                                renderUserTags();
-                                if (userTags.length === 8) {
-                                    setTimeout(() => submitAnswer(), 500);
-                                }
-                            }
-                        });
-                    });
-                    // Add custom tag input
-                    customTagInput.addEventListener('input', (e) => {
-                        if (e.target.value.length > 0) {
-                            tagExamples.style.display = 'none';
-                        } else {
-                            tagExamples.style.display = '';
-                        }
-                    });
-                    customTagInput.addEventListener('keydown', (e) => {
-                        if ((e.key === 'Enter' || e.key === ',') && customTagInput.value.trim() && userTags.length < 8) {
-                            const val = customTagInput.value.trim();
-                            if (!userTags.includes(val)) {
-                                userTags.push(val);
-                                customTagInput.value = '';
-                                renderUserTags();
-                                if (userTags.length === 8) {
-                                    setTimeout(() => submitAnswer(), 500);
-                                }
-                            }
-                            e.preventDefault();
-                        }
-                    });
-                    function renderUserTags() {
-                        userTagsDiv.innerHTML = userTags.map(tag => `<span class='tag selected'>${tag} <span style='cursor:pointer;color:#ff6b6b;' onclick='this.parentNode.remove();'>×</span></span>`).join(' ');
-                    }
-                    break;
+          sendBtn.onclick = () => {
+            if (textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
             }
-        }
+          };
 
-        function showImagePreview(file, fileArea, fileText) {
-            // Hide upload icon
-            const uploadIcon = document.querySelector('#upload-icon');
-            if (uploadIcon) {
-                uploadIcon.style.display = 'none';
-            }
+          // Set up back button handler
+          const backBtn = document.getElementById("persistent-back-btn");
+          if (backBtn) {
+            backBtn.onclick = goBack;
+          }
 
-            // Remove existing image preview if any
-            const existingImage = fileArea.querySelector('.uploaded-image');
-            if (existingImage) {
-                existingImage.remove();
-            }
-
-            // Create image preview
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'uploaded-image';
-                img.alt = 'Uploaded image';
-                
-                // Insert image at the beginning of the file area
-                fileArea.insertBefore(img, fileArea.firstChild);
-                
-                // Update text to show filename with remove option
-                fileText.innerHTML = `File selected: ${file.name} <span style=\"color: #ff6b6b; cursor: pointer; margin-left: 10px;\" onclick=\"removeFile(event)\">×</span>`;
+          // Set up skip button handler
+          const skipBtn = document.getElementById("persistent-skip-btn");
+          if (skipBtn) {
+            skipBtn.onclick = () => {
+              submitTextAnswer("Skipped");
             };
-            reader.readAsDataURL(file);
+          }
+
+          // Set up finish button handler
+          const finishBtn = document.getElementById("persistent-finish-btn");
+          if (finishBtn) {
+            finishBtn.onclick = closeChatbot;
+          }
+
+          textInput.onkeypress = (e) => {
+            if (e.key === "Enter" && textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
+            }
+          };
+        } else {
+          dynamicContainer.style.display = "block";
+          disablePersistentInput();
         }
 
-        function submitTextAnswer(textValue) {
-            const question = questions[chatbotState.currentQuestion];
-            let answer = textValue;
-            
-            // Store answer
-            chatbotState.answers[question.id] = answer;
-            
-            // Show user's answer
-            addUserMessage(answer);
-            
-            // Clear persistent input
-            const textInput = document.getElementById('persistent-text-input');
-            if (textInput) {
-                textInput.value = '';
+        // Setup input handlers
+        setupInputHandlers(question);
+
+        // Setup button handlers (only for specific question types)
+        if (
+          question.type === "slider" ||
+          question.type === "time_slider" ||
+          question.type === "tags"
+        ) {
+          const backBtn = inputDiv.querySelector("#back-btn");
+          const continueBtn = inputDiv.querySelector("#continue-btn");
+
+          if (backBtn) {
+            backBtn.addEventListener("click", goBack);
+          }
+          if (continueBtn) {
+            continueBtn.addEventListener("click", submitAnswer);
+          }
+        }
+      }
+
+      function setupFileInputHandlers() {
+        const fileArea = document.querySelector("#file-upload-area");
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const continueBtn = document.querySelector("#continue-btn");
+
+        if (fileArea && fileInput && fileText) {
+          fileArea.addEventListener("click", () => fileInput.click());
+          fileArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            fileArea.classList.add("dragover");
+          });
+          fileArea.addEventListener("dragleave", () => {
+            fileArea.classList.remove("dragover");
+          });
+          fileArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            fileArea.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              fileInput.files = files;
+              showImagePreview(files[0], fileArea, fileText);
+              enableContinueButton();
             }
-            
-            // Remove dynamic input
-            const dynamicContainer = document.getElementById('dynamic-input-container');
-            dynamicContainer.innerHTML = '';
-            dynamicContainer.style.display = 'none';
-            disablePersistentInput();
-            
-            // Move to next question
-            chatbotState.currentQuestion++;
-            setTimeout(() => {
-                askNextQuestion();
-            }, 1000);
+          });
+          fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+              showImagePreview(e.target.files[0], fileArea, fileText);
+              enableContinueButton();
+            }
+          });
+        }
+      }
+
+      function enableContinueButton() {
+        const continueBtn = document.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.disabled = false;
+          continueBtn.style.opacity = "1";
+          continueBtn.style.cursor = "pointer";
+          continueBtn.classList.add("primary");
+        }
+      }
+
+      function disableContinueButton() {
+        const continueBtn = document.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.disabled = true;
+          continueBtn.style.opacity = "0.5";
+          continueBtn.style.cursor = "not-allowed";
+          continueBtn.classList.remove("primary");
+        }
+      }
+
+      function setupInputHandlers(question) {
+        const questionInput = document.getElementById("question-input");
+        switch (question.type) {
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            const sliderValue = questionInput.querySelector("#slider-value");
+            slider.addEventListener("input", (e) => {
+              sliderValue.textContent = `${e.target.value}%`;
+            });
+            break;
+          case "time_slider":
+            const timeSlider =
+              questionInput.querySelector("#time-slider-input");
+            const timeIcons = [
+              questionInput.querySelector("#icon-sun"),
+              questionInput.querySelector("#icon-coffee"),
+              questionInput.querySelector("#icon-pasta"),
+              questionInput.querySelector("#icon-wine"),
+              questionInput.querySelector("#icon-moon"),
+            ];
+            const timeLabels = ["Sun", "Coffee", "Pasta", "Wine", "Moon"];
+            timeSlider.addEventListener("input", (e) => {
+              const value = parseFloat(e.target.value);
+              timeIcons.forEach((icon, i) => {
+                // Calculate opacity based on distance from current value
+                const distance = Math.abs(value - i);
+                const opacity = Math.max(0.3, 1 - distance * 0.7);
+                icon.style.opacity = opacity;
+              });
+            });
+            // Set initial state
+            timeIcons.forEach((icon, i) => {
+              icon.style.opacity = i === 0 ? "1" : "0.3";
+            });
+            break;
+          case "tags":
+            const tagExamples = questionInput.querySelector("#tag-examples");
+            const customTagInput =
+              questionInput.querySelector("#custom-tag-input");
+            const userTagsDiv = questionInput.querySelector("#user-tags");
+            let userTags = [];
+            // Add example tag click
+            tagExamples.querySelectorAll(".tag").forEach((tagBtn) => {
+              tagBtn.addEventListener("click", () => {
+                if (
+                  userTags.length < 8 &&
+                  !userTags.includes(tagBtn.textContent)
+                ) {
+                  userTags.push(tagBtn.textContent);
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+              });
+            });
+            // Add custom tag input
+            customTagInput.addEventListener("input", (e) => {
+              if (e.target.value.length > 0) {
+                tagExamples.style.display = "none";
+              } else {
+                tagExamples.style.display = "";
+              }
+            });
+            customTagInput.addEventListener("keydown", (e) => {
+              if (
+                (e.key === "Enter" || e.key === ",") &&
+                customTagInput.value.trim() &&
+                userTags.length < 8
+              ) {
+                const val = customTagInput.value.trim();
+                if (!userTags.includes(val)) {
+                  userTags.push(val);
+                  customTagInput.value = "";
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+                e.preventDefault();
+              }
+            });
+            function renderUserTags() {
+              userTagsDiv.innerHTML = userTags
+                .map(
+                  (tag) =>
+                    `<span class='tag selected'>${tag} <span style='cursor:pointer;color:#ff6b6b;' onclick='this.parentNode.remove();'>×</span></span>`
+                )
+                .join(" ");
+            }
+            break;
+        }
+      }
+
+      function showImagePreview(file, fileArea, fileText) {
+        // Hide upload icon
+        const uploadIcon = document.querySelector("#upload-icon");
+        if (uploadIcon) {
+          uploadIcon.style.display = "none";
         }
 
-        function submitAnswer() {
-            const question = questions[chatbotState.currentQuestion];
-            const questionInput = document.getElementById('question-input');
-            let answer = '';
-            
-            switch (question.type) {
-                case 'file':
-                    const fileInput = document.querySelector('#file-input');
-                    if (fileInput && fileInput.files.length === 0) {
-                        alert('Please select a file');
-                        return;
-                    }
-                    answer = fileInput.files[0].name;
-                    break;
-                    
-                case 'text':
-                case 'textarea':
-                    // Text questions are handled by submitTextAnswer function
-                    // This should not be called for text questions
-                    return;
-                case 'location':
-                    // Location questions are handled by submitTextAnswer function
-                    // This should not be called for location questions
-                    return;
-                    
-                case 'slider':
-                    const slider = questionInput.querySelector('#slider-input');
-                    answer = slider ? `${slider.value}%` : '50%';
-                    break;
-                    
-                case 'time_slider':
-                    const timeSlider = questionInput.querySelector('#time-slider-input');
-                    const timeLabels = ['Sun', 'Coffee', 'Pasta', 'Wine', 'Moon'];
-                    const value = timeSlider ? parseFloat(timeSlider.value) : 0;
-                    // Find the closest label or create a blend
-                    const closestIndex = Math.round(value);
-                    const closestLabel = timeLabels[closestIndex];
-                    
-                    // If it's exactly on an icon, use that label
-                    if (Math.abs(value - closestIndex) < 0.1) {
-                        answer = closestLabel;
-                    } else {
-                        // If it's between icons, create a blend
-                        const lowerIndex = Math.floor(value);
-                        const upperIndex = Math.min(Math.ceil(value), timeLabels.length - 1);
-                        const lowerLabel = timeLabels[lowerIndex];
-                        const upperLabel = timeLabels[upperIndex];
-                        answer = `${lowerLabel}-${upperLabel}`;
-                    }
-                    break;
-                    
-                case 'tags':
-                    const selectedTags = questionInput.querySelectorAll('.tag.selected');
-                    const customTag = questionInput.querySelector('#custom-tag-input') ? questionInput.querySelector('#custom-tag-input').value.trim() : '';
-                    const tagTexts = Array.from(selectedTags).map(tag => tag.textContent.replace(' ×', ''));
-                    if (customTag) tagTexts.push(customTag);
-                    answer = tagTexts.join(', ');
-                    break;
+        // Remove existing image preview if any
+        const existingImage = fileArea.querySelector(".uploaded-image");
+        if (existingImage) {
+          existingImage.remove();
+        }
+
+        // Create image preview
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.className = "uploaded-image";
+          img.alt = "Uploaded image";
+
+          // Insert image at the beginning of the file area
+          fileArea.insertBefore(img, fileArea.firstChild);
+
+          // Update text to show filename with remove option
+          fileText.innerHTML = `File selected: ${file.name} <span style=\"color: #ff6b6b; cursor: pointer; margin-left: 10px;\" onclick=\"removeFile(event)\">×</span>`;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function submitTextAnswer(textValue) {
+        const question = questions[chatbotState.currentQuestion];
+        let answer = textValue;
+
+        // Store answer
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer
+        addUserMessage(answer);
+
+        // Clear persistent input
+        const textInput = document.getElementById("persistent-text-input");
+        if (textInput) {
+          textInput.value = "";
+        }
+
+        // Remove dynamic input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function submitAnswer() {
+        const question = questions[chatbotState.currentQuestion];
+        const questionInput = document.getElementById("question-input");
+        let answer = "";
+
+        switch (question.type) {
+          case "file":
+            const fileInput = document.querySelector("#file-input");
+            if (fileInput && fileInput.files.length === 0) {
+              alert("Please select a file");
+              return;
             }
-            
-            // Store answer (even if empty)
-            chatbotState.answers[question.id] = answer;
-            
-            // Show user's answer only if not empty
-            if (answer) {
-                addUserMessage(answer);
+            answer = fileInput.files[0].name;
+            break;
+
+          case "text":
+          case "textarea":
+            // Text questions are handled by submitTextAnswer function
+            // This should not be called for text questions
+            return;
+          case "location":
+            // Location questions are handled by submitTextAnswer function
+            // This should not be called for location questions
+            return;
+
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            answer = slider ? `${slider.value}%` : "50%";
+            break;
+
+          case "time_slider":
+            const timeSlider =
+              questionInput.querySelector("#time-slider-input");
+            const timeLabels = ["Sun", "Coffee", "Pasta", "Wine", "Moon"];
+            const value = timeSlider ? parseFloat(timeSlider.value) : 0;
+            // Find the closest label or create a blend
+            const closestIndex = Math.round(value);
+            const closestLabel = timeLabels[closestIndex];
+
+            // If it's exactly on an icon, use that label
+            if (Math.abs(value - closestIndex) < 0.1) {
+              answer = closestLabel;
             } else {
-                addUserMessage('Skipped');
+              // If it's between icons, create a blend
+              const lowerIndex = Math.floor(value);
+              const upperIndex = Math.min(
+                Math.ceil(value),
+                timeLabels.length - 1
+              );
+              const lowerLabel = timeLabels[lowerIndex];
+              const upperLabel = timeLabels[upperIndex];
+              answer = `${lowerLabel}-${upperLabel}`;
             }
-            
-            // Remove input and disable persistent input
-            const dynamicContainer = document.getElementById('dynamic-input-container');
-            dynamicContainer.innerHTML = '';
-            dynamicContainer.style.display = 'none';
-            disablePersistentInput();
-            
-            // Remove upload area from messages if it exists
-            const uploadMessage = document.querySelector('.message .file-upload-area');
-            if (uploadMessage) {
-                uploadMessage.closest('.message').remove();
-            }
-            
-            // Move to next question
-            chatbotState.currentQuestion++;
-            setTimeout(() => {
-                askNextQuestion();
-            }, 1000);
+            break;
+
+          case "tags":
+            const selectedTags =
+              questionInput.querySelectorAll(".tag.selected");
+            const customTag = questionInput.querySelector("#custom-tag-input")
+              ? questionInput.querySelector("#custom-tag-input").value.trim()
+              : "";
+            const tagTexts = Array.from(selectedTags).map((tag) =>
+              tag.textContent.replace(" ×", "")
+            );
+            if (customTag) tagTexts.push(customTag);
+            answer = tagTexts.join(", ");
+            break;
         }
 
-        function goBack() {
-            // Remove current input
-            const dynamicContainer = document.getElementById('dynamic-input-container');
-            dynamicContainer.innerHTML = '';
-            dynamicContainer.style.display = 'none';
-            disablePersistentInput();
-            
-            // Remove the last user message
-            const messagesContainer = document.getElementById('chatbot-messages');
-            const lastUserMessage = messagesContainer.querySelector('.message.user:last-child');
-            if (lastUserMessage) lastUserMessage.remove();
-            
-            // Remove upload area from messages if it exists
-            const uploadMessage = document.querySelector('.message .file-upload-area');
-            if (uploadMessage) {
-                uploadMessage.closest('.message').remove();
-            }
-            
-            // Go back to previous question
-            chatbotState.currentQuestion--;
-            
-            // Ask the previous question again
-            setTimeout(() => {
-                askNextQuestion();
-            }, 500);
+        // Store answer (even if empty)
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer only if not empty
+        if (answer) {
+          addUserMessage(answer);
+        } else {
+          addUserMessage("Skipped");
         }
 
-        function showSummary() {
-            addBotMessage("Here's what you gave me. Ready to launch the junk?");
-            
-            const messagesContainer = document.getElementById('chatbot-messages');
-            const summaryDiv = document.createElement('div');
-            summaryDiv.className = 'message bot';
-            summaryDiv.innerHTML = `
+        // Remove input and disable persistent input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function goBack() {
+        // Remove current input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove the last user message
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const lastUserMessage = messagesContainer.querySelector(
+          ".message.user:last-child"
+        );
+        if (lastUserMessage) lastUserMessage.remove();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Go back to previous question
+        chatbotState.currentQuestion--;
+
+        // Ask the previous question again
+        setTimeout(() => {
+          askNextQuestion();
+        }, 500);
+      }
+
+      function showSummary() {
+        addBotMessage("Here's what you gave me. Ready to launch the junk?");
+
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const summaryDiv = document.createElement("div");
+        summaryDiv.className = "message bot";
+        summaryDiv.innerHTML = `
                 <div class="summary-screen">
-                    ${Object.entries(chatbotState.answers).map(([key, value]) => {
-                        if (!value) return '';
-                        const question = questions.find(q => q.id === key);
+                    ${Object.entries(chatbotState.answers)
+                      .map(([key, value]) => {
+                        if (!value) return "";
+                        const question = questions.find((q) => q.id === key);
                         return `
                             <div class="summary-item">
-                                <span class="summary-label">${question ? question.message.split('?')[0] + '?' : key}:</span>
+                                <span class="summary-label">${
+                                  question
+                                    ? question.message.split("?")[0] + "?"
+                                    : key
+                                }:</span>
                                 <span class="summary-value">${value}</span>
                             </div>
                         `;
-                    }).join('')}
+                      })
+                      .join("")}
                 </div>
             `;
-            messagesContainer.appendChild(summaryDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            
-            // Add launch button to dynamic container
-            const dynamicContainer = document.getElementById('dynamic-input-container');
-            const launchDiv = document.createElement('div');
-            launchDiv.innerHTML = `
+        messagesContainer.appendChild(summaryDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Add launch button to dynamic container
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const launchDiv = document.createElement("div");
+        launchDiv.innerHTML = `
                 <div class="button-group" style="margin-top: 20px;">
                     <button class="btn primary" id="launch-btn">Launch the junk</button>
                 </div>
             `;
-            dynamicContainer.innerHTML = '';
-            dynamicContainer.style.display = 'block';
-            dynamicContainer.appendChild(launchDiv);
-            disablePersistentInput();
-            
-            // Setup launch button handler
-            const launchBtn = launchDiv.querySelector('#launch-btn');
-            if (launchBtn) {
-                launchBtn.addEventListener('click', launchJunk);
-            }
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "block";
+        dynamicContainer.appendChild(launchDiv);
+        disablePersistentInput();
+
+        // Setup launch button handler
+        const launchBtn = launchDiv.querySelector("#launch-btn");
+        if (launchBtn) {
+          launchBtn.addEventListener("click", launchJunk);
+        }
+      }
+
+      function launchJunk() {
+        // Log the form data (in a real app, you'd send this to a server)
+        console.log("Junk launched:", chatbotState.answers);
+
+        // Show success message
+        addBotMessage(
+          "Junk launched! (This is a demo - no actual upload occurred)"
+        );
+
+        // Close chatbot after a delay
+        setTimeout(() => {
+          closeChatbot();
+        }, 3000);
+      }
+
+      function removeFile(event) {
+        event.stopPropagation();
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const uploadIcon = document.querySelector("#upload-icon");
+        const fileArea = document.querySelector("#file-upload-area");
+
+        if (fileInput && fileText && uploadIcon && fileArea) {
+          fileInput.value = "";
+          fileText.innerHTML = "Drag & drop your file here or click to browse";
+
+          // Remove image preview if exists
+          const uploadedImage = fileArea.querySelector(".uploaded-image");
+          if (uploadedImage) {
+            uploadedImage.remove();
+          }
+
+          // Show upload icon again
+          uploadIcon.style.display = "block";
+
+          // Disable continue button
+          disableContinueButton();
+        }
+      }
+
+      function openGoogleMaps() {
+        // Add user message to show they clicked the button
+        addUserMessage("📍 Pin location");
+
+        // Show the custom map popup
+        showMapPopup();
+      }
+
+      // Map state
+      let mapState = {
+        map: null,
+        marker: null,
+        autocomplete: null,
+        selectedLocation: null,
+        googleMapsLoaded: false,
+      };
+
+      // Global function to initialize Google Maps
+      function initGoogleMaps() {
+        mapState.googleMapsLoaded = true;
+        console.log("Google Maps API loaded successfully");
+      }
+
+      // Check if Google Maps is loaded and working
+      function checkGoogleMapsLoaded() {
+        return typeof google !== "undefined" && google.maps && google.maps.Map;
+      }
+
+      // Check if Google Maps is actually working (not just loaded)
+      function checkGoogleMapsWorking() {
+        try {
+          // Try to create a test map to see if it actually works
+          const testDiv = document.createElement("div");
+          testDiv.style.cssText =
+            "width:1px;height:1px;position:absolute;left:-9999px;";
+          document.body.appendChild(testDiv);
+
+          const testMap = new google.maps.Map(testDiv, {
+            center: { lat: 0, lng: 0 },
+            zoom: 1,
+          });
+
+          document.body.removeChild(testDiv);
+          return true;
+        } catch (error) {
+          console.log("Google Maps test failed:", error.message);
+          return false;
+        }
+      }
+
+      // Wait for Google Maps to be ready
+      function waitForGoogleMaps(callback, maxAttempts = 50) {
+        let attempts = 0;
+        const checkInterval = setInterval(() => {
+          attempts++;
+          if (checkGoogleMapsLoaded() && checkGoogleMapsWorking()) {
+            clearInterval(checkInterval);
+            console.log("Google Maps is ready and working");
+            callback();
+          } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            console.log(
+              "Google Maps failed to load or not working, using fallback"
+            );
+            callback();
+          }
+        }, 100);
+      }
+
+      // Fallback map if Google Maps fails to load
+      function createFallbackMap() {
+        console.log("Creating fallback map...");
+        const mapElement = document.getElementById("map");
+
+        if (!mapElement) {
+          console.error("Map element not found!");
+          return;
         }
 
-        function launchJunk() {
-            // Log the form data (in a real app, you'd send this to a server)
-            console.log('Junk launched:', chatbotState.answers);
-            
-            // Show success message
-            addBotMessage("Junk launched! (This is a demo - no actual upload occurred)");
-            
-            // Close chatbot after a delay
-            setTimeout(() => {
-                closeChatbot();
-            }, 3000);
-        }
-
-        function removeFile(event) {
-            event.stopPropagation();
-            const fileInput = document.querySelector('#file-input');
-            const fileText = document.querySelector('#file-upload-text');
-            const uploadIcon = document.querySelector('#upload-icon');
-            const fileArea = document.querySelector('#file-upload-area');
-            
-            if (fileInput && fileText && uploadIcon && fileArea) {
-                fileInput.value = '';
-                fileText.innerHTML = 'Drag & drop your file here or click to browse';
-                
-                // Remove image preview if exists
-                const uploadedImage = fileArea.querySelector('.uploaded-image');
-                if (uploadedImage) {
-                    uploadedImage.remove();
-                }
-                
-                // Show upload icon again
-                uploadIcon.style.display = 'block';
-                
-                // Disable continue button
-                disableContinueButton();
-            }
-        }
-
-        function openGoogleMaps() {
-            // Add user message to show they clicked the button
-            addUserMessage("📍 Pin location");
-            
-            // Show the custom map popup
-            showMapPopup();
-        }
-
-        // Map state
-        let mapState = {
-            map: null,
-            marker: null,
-            autocomplete: null,
-            selectedLocation: null,
-            googleMapsLoaded: false
-        };
-
-        // Global function to initialize Google Maps
-        function initGoogleMaps() {
-            mapState.googleMapsLoaded = true;
-            console.log('Google Maps API loaded successfully');
-        }
-
-        // Check if Google Maps is loaded and working
-        function checkGoogleMapsLoaded() {
-            return typeof google !== 'undefined' && google.maps && google.maps.Map;
-        }
-
-        // Check if Google Maps is actually working (not just loaded)
-        function checkGoogleMapsWorking() {
-            try {
-                // Try to create a test map to see if it actually works
-                const testDiv = document.createElement('div');
-                testDiv.style.cssText = 'width:1px;height:1px;position:absolute;left:-9999px;';
-                document.body.appendChild(testDiv);
-                
-                const testMap = new google.maps.Map(testDiv, {
-                    center: { lat: 0, lng: 0 },
-                    zoom: 1
-                });
-                
-                document.body.removeChild(testDiv);
-                return true;
-            } catch (error) {
-                console.log('Google Maps test failed:', error.message);
-                return false;
-            }
-        }
-
-        // Wait for Google Maps to be ready
-        function waitForGoogleMaps(callback, maxAttempts = 50) {
-            let attempts = 0;
-            const checkInterval = setInterval(() => {
-                attempts++;
-                if (checkGoogleMapsLoaded() && checkGoogleMapsWorking()) {
-                    clearInterval(checkInterval);
-                    console.log('Google Maps is ready and working');
-                    callback();
-                } else if (attempts >= maxAttempts) {
-                    clearInterval(checkInterval);
-                    console.log('Google Maps failed to load or not working, using fallback');
-                    callback();
-                }
-            }, 100);
-        }
-
-        // Fallback map if Google Maps fails to load
-        function createFallbackMap() {
-            console.log('Creating fallback map...');
-            const mapElement = document.getElementById('map');
-            
-            if (!mapElement) {
-                console.error('Map element not found!');
-                return;
-            }
-            
-            console.log('Map element found, setting innerHTML...');
-            mapElement.innerHTML = `
+        console.log("Map element found, setting innerHTML...");
+        mapElement.innerHTML = `
                 <div style="
                     width: 100%;
                     height: 100%;
@@ -2276,18 +2431,18 @@
                     </div>
                 </div>
             `;
-            console.log('Fallback map HTML set');
-            
-            // Add click listener for fallback map
-            const fallbackMap = document.getElementById('fallback-map');
-            fallbackMap.addEventListener('click', (event) => {
-                const rect = fallbackMap.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-                
-                // Create a pin element
-                const pin = document.createElement('div');
-                pin.style.cssText = `
+        console.log("Fallback map HTML set");
+
+        // Add click listener for fallback map
+        const fallbackMap = document.getElementById("fallback-map");
+        fallbackMap.addEventListener("click", (event) => {
+          const rect = fallbackMap.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+
+          // Create a pin element
+          const pin = document.createElement("div");
+          pin.style.cssText = `
                     position: absolute;
                     left: ${x}px;
                     top: ${y}px;
@@ -2302,425 +2457,488 @@
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
                     animation: pinDrop 0.3s ease-out;
                 `;
-                pin.innerHTML = '📍';
-                pin.style.fontSize = '14px';
-                pin.style.textAlign = 'center';
-                pin.style.lineHeight = '20px';
-                
-                // Add animation keyframes
-                if (!document.querySelector('#pin-animation')) {
-                    const style = document.createElement('style');
-                    style.id = 'pin-animation';
-                    style.textContent = `
+          pin.innerHTML = "📍";
+          pin.style.fontSize = "14px";
+          pin.style.textAlign = "center";
+          pin.style.lineHeight = "20px";
+
+          // Add animation keyframes
+          if (!document.querySelector("#pin-animation")) {
+            const style = document.createElement("style");
+            style.id = "pin-animation";
+            style.textContent = `
                         @keyframes pinDrop {
                             0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
                             50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
                             100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
                         }
                     `;
-                    document.head.appendChild(style);
-                }
-                
-                // Remove previous pin
-                const existingPin = fallbackMap.querySelector('.fallback-pin');
-                if (existingPin) {
-                    existingPin.remove();
-                }
-                
-                pin.className = 'fallback-pin';
-                fallbackMap.appendChild(pin);
-                
-                // Store coordinates
-                mapState.selectedLocation = {
-                    lat: () => (y / rect.height * 180 - 90).toFixed(6),
-                    lng: () => (x / rect.width * 360 - 180).toFixed(6)
-                };
-                
-                updateCoordinatesDisplay(mapState.selectedLocation);
-            });
+            document.head.appendChild(style);
+          }
+
+          // Remove previous pin
+          const existingPin = fallbackMap.querySelector(".fallback-pin");
+          if (existingPin) {
+            existingPin.remove();
+          }
+
+          pin.className = "fallback-pin";
+          fallbackMap.appendChild(pin);
+
+          // Store coordinates
+          mapState.selectedLocation = {
+            lat: () => ((y / rect.height) * 180 - 90).toFixed(6),
+            lng: () => ((x / rect.width) * 360 - 180).toFixed(6),
+          };
+
+          updateCoordinatesDisplay(mapState.selectedLocation);
+        });
+      }
+
+      function showMapPopup() {
+        const mapPopup = document.getElementById("map-popup-overlay");
+
+        // Show popup first
+        mapPopup.style.display = "flex";
+
+        // Add bot response first
+        setTimeout(() => {
+          addBotMessage(
+            "Click on the map to place a pin, or type a location description!"
+          );
+        }, 500);
+
+        // Wait for popup to be visible, then initialize map
+        setTimeout(() => {
+          console.log("Starting map initialization...");
+          console.log("Google Maps loaded:", mapState.googleMapsLoaded);
+          console.log("Google Maps available:", checkGoogleMapsLoaded());
+
+          // Debug: Check if map element exists
+          const mapElement = document.getElementById("map");
+          console.log("Map element exists:", !!mapElement);
+          if (mapElement) {
+            console.log(
+              "Map element dimensions:",
+              mapElement.offsetWidth,
+              "x",
+              mapElement.offsetHeight
+            );
+            console.log(
+              "Map element current HTML:",
+              mapElement.innerHTML.substring(0, 100) + "..."
+            );
+          }
+
+          // Check if we can use Google Maps
+          if (checkGoogleMapsLoaded() && checkGoogleMapsWorking()) {
+            console.log("Google Maps is working, using it!");
+            initializeMap();
+            initializeAutocomplete();
+          } else {
+            console.log("Using fallback map - Google Maps not working");
+            createFallbackMap();
+            initializeFallbackAutocomplete();
+          }
+        }, 300);
+      }
+
+      function initializeMap() {
+        const mapElement = document.getElementById("map");
+
+        // Clear any existing content
+        mapElement.innerHTML = "";
+
+        // Ensure the map element is properly sized and visible
+        mapElement.style.width = "100%";
+        mapElement.style.height = "100%";
+        mapElement.style.minHeight = "400px";
+        mapElement.style.display = "block";
+        mapElement.style.position = "relative";
+
+        console.log(
+          "Map element dimensions:",
+          mapElement.offsetWidth,
+          "x",
+          mapElement.offsetHeight
+        );
+
+        // Create map centered on a default location
+        mapState.map = new google.maps.Map(mapElement, {
+          center: { lat: 40.7128, lng: -74.006 }, // New York City
+          zoom: 10,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          disableDefaultUI: false,
+          zoomControl: true,
+          mapTypeControl: true,
+          scaleControl: true,
+          streetViewControl: true,
+          rotateControl: true,
+          fullscreenControl: true,
+          styles: [
+            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+            {
+              elementType: "labels.text.stroke",
+              stylers: [{ color: "#242f3e" }],
+            },
+            {
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#746855" }],
+            },
+            {
+              featureType: "administrative.locality",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "poi",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "poi.park",
+              elementType: "geometry",
+              stylers: [{ color: "#263c3f" }],
+            },
+            {
+              featureType: "poi.park",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#6b9a76" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry",
+              stylers: [{ color: "#38414e" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#212a37" }],
+            },
+            {
+              featureType: "road",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#9ca5b3" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry",
+              stylers: [{ color: "#746855" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#1f2835" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#f3d19c" }],
+            },
+            {
+              featureType: "transit",
+              elementType: "geometry",
+              stylers: [{ color: "#2f3948" }],
+            },
+            {
+              featureType: "transit.station",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "water",
+              elementType: "geometry",
+              stylers: [{ color: "#17263c" }],
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#515c6d" }],
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.stroke",
+              stylers: [{ color: "#17263c" }],
+            },
+          ],
+        });
+
+        // Add click listener to map
+        mapState.map.addListener("click", (event) => {
+          placeMarker(event.latLng);
+        });
+
+        // Trigger a resize event to ensure proper rendering
+        setTimeout(() => {
+          if (mapState.map) {
+            google.maps.event.trigger(mapState.map, "resize");
+            console.log("Map resize triggered");
+          }
+        }, 300);
+      }
+
+      function initializeAutocomplete() {
+        const input = document.getElementById("map-location-input");
+        mapState.autocomplete = new google.maps.places.Autocomplete(input);
+
+        mapState.autocomplete.addListener("place_changed", () => {
+          const place = mapState.autocomplete.getPlace();
+
+          if (place.geometry) {
+            // Center map on selected place
+            mapState.map.setCenter(place.geometry.location);
+            mapState.map.setZoom(15);
+
+            // Place marker at the selected location
+            placeMarker(place.geometry.location);
+
+            // Update coordinates display
+            updateCoordinatesDisplay(place.geometry.location);
+          }
+        });
+      }
+
+      function initializeFallbackAutocomplete() {
+        const input = document.getElementById("map-location-input");
+
+        // Simple location suggestions
+        const commonLocations = [
+          "Home",
+          "Work",
+          "School",
+          "Gym",
+          "Coffee Shop",
+          "Restaurant",
+          "Park",
+          "Mall",
+          "Airport",
+          "Train Station",
+          "Bus Stop",
+          "Hospital",
+          "Library",
+          "Museum",
+          "Theater",
+          "Stadium",
+        ];
+
+        // Create a simple datalist for suggestions
+        const datalist = document.createElement("datalist");
+        datalist.id = "location-suggestions";
+
+        commonLocations.forEach((location) => {
+          const option = document.createElement("option");
+          option.value = location;
+          datalist.appendChild(option);
+        });
+
+        // Add datalist to input
+        input.setAttribute("list", "location-suggestions");
+        document.body.appendChild(datalist);
+
+        // Add placeholder text
+        input.placeholder =
+          "Type location name (e.g., Home, Work, Coffee Shop)";
+      }
+
+      function placeMarker(latLng) {
+        // Remove existing marker
+        if (mapState.marker) {
+          mapState.marker.setMap(null);
         }
 
-        function showMapPopup() {
-            const mapPopup = document.getElementById('map-popup-overlay');
-            
-            // Show popup first
-            mapPopup.style.display = 'flex';
-            
-            // Add bot response first
-            setTimeout(() => {
-                addBotMessage("Click on the map to place a pin, or type a location description!");
-            }, 500);
-            
-            // Wait for popup to be visible, then initialize map
-            setTimeout(() => {
-                console.log('Starting map initialization...');
-                console.log('Google Maps loaded:', mapState.googleMapsLoaded);
-                console.log('Google Maps available:', checkGoogleMapsLoaded());
-                
-                // Debug: Check if map element exists
-                const mapElement = document.getElementById('map');
-                console.log('Map element exists:', !!mapElement);
-                if (mapElement) {
-                    console.log('Map element dimensions:', mapElement.offsetWidth, 'x', mapElement.offsetHeight);
-                    console.log('Map element current HTML:', mapElement.innerHTML.substring(0, 100) + '...');
-                }
-                
-                // Check if we can use Google Maps
-                if (checkGoogleMapsLoaded() && checkGoogleMapsWorking()) {
-                    console.log('Google Maps is working, using it!');
-                    initializeMap();
-                    initializeAutocomplete();
-                } else {
-                    console.log('Using fallback map - Google Maps not working');
-                    createFallbackMap();
-                    initializeFallbackAutocomplete();
-                }
-            }, 300);
-        }
-
-        function initializeMap() {
-            const mapElement = document.getElementById('map');
-            
-            // Clear any existing content
-            mapElement.innerHTML = '';
-            
-            // Ensure the map element is properly sized and visible
-            mapElement.style.width = '100%';
-            mapElement.style.height = '100%';
-            mapElement.style.minHeight = '400px';
-            mapElement.style.display = 'block';
-            mapElement.style.position = 'relative';
-            
-            console.log('Map element dimensions:', mapElement.offsetWidth, 'x', mapElement.offsetHeight);
-            
-            // Create map centered on a default location
-            mapState.map = new google.maps.Map(mapElement, {
-                center: { lat: 40.7128, lng: -74.0060 }, // New York City
-                zoom: 10,
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
-                disableDefaultUI: false,
-                zoomControl: true,
-                mapTypeControl: true,
-                scaleControl: true,
-                streetViewControl: true,
-                rotateControl: true,
-                fullscreenControl: true,
-                styles: [
-                    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-                    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-                    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-                    {
-                        featureType: 'administrative.locality',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#d59563' }]
-                    },
-                    {
-                        featureType: 'poi',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#d59563' }]
-                    },
-                    {
-                        featureType: 'poi.park',
-                        elementType: 'geometry',
-                        stylers: [{ color: '#263c3f' }]
-                    },
-                    {
-                        featureType: 'poi.park',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#6b9a76' }]
-                    },
-                    {
-                        featureType: 'road',
-                        elementType: 'geometry',
-                        stylers: [{ color: '#38414e' }]
-                    },
-                    {
-                        featureType: 'road',
-                        elementType: 'geometry.stroke',
-                        stylers: [{ color: '#212a37' }]
-                    },
-                    {
-                        featureType: 'road',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#9ca5b3' }]
-                    },
-                    {
-                        featureType: 'road.highway',
-                        elementType: 'geometry',
-                        stylers: [{ color: '#746855' }]
-                    },
-                    {
-                        featureType: 'road.highway',
-                        elementType: 'geometry.stroke',
-                        stylers: [{ color: '#1f2835' }]
-                    },
-                    {
-                        featureType: 'road.highway',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#f3d19c' }]
-                    },
-                    {
-                        featureType: 'transit',
-                        elementType: 'geometry',
-                        stylers: [{ color: '#2f3948' }]
-                    },
-                    {
-                        featureType: 'transit.station',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#d59563' }]
-                    },
-                    {
-                        featureType: 'water',
-                        elementType: 'geometry',
-                        stylers: [{ color: '#17263c' }]
-                    },
-                    {
-                        featureType: 'water',
-                        elementType: 'labels.text.fill',
-                        stylers: [{ color: '#515c6d' }]
-                    },
-                    {
-                        featureType: 'water',
-                        elementType: 'labels.text.stroke',
-                        stylers: [{ color: '#17263c' }]
-                    }
-                ]
-            });
-
-            // Add click listener to map
-            mapState.map.addListener('click', (event) => {
-                placeMarker(event.latLng);
-            });
-            
-            // Trigger a resize event to ensure proper rendering
-            setTimeout(() => {
-                if (mapState.map) {
-                    google.maps.event.trigger(mapState.map, 'resize');
-                    console.log('Map resize triggered');
-                }
-            }, 300);
-        }
-
-        function initializeAutocomplete() {
-            const input = document.getElementById('map-location-input');
-            mapState.autocomplete = new google.maps.places.Autocomplete(input);
-            
-            mapState.autocomplete.addListener('place_changed', () => {
-                const place = mapState.autocomplete.getPlace();
-                
-                if (place.geometry) {
-                    // Center map on selected place
-                    mapState.map.setCenter(place.geometry.location);
-                    mapState.map.setZoom(15);
-                    
-                    // Place marker at the selected location
-                    placeMarker(place.geometry.location);
-                    
-                    // Update coordinates display
-                    updateCoordinatesDisplay(place.geometry.location);
-                }
-            });
-        }
-
-        function initializeFallbackAutocomplete() {
-            const input = document.getElementById('map-location-input');
-            
-            // Simple location suggestions
-            const commonLocations = [
-                'Home', 'Work', 'School', 'Gym', 'Coffee Shop', 'Restaurant', 
-                'Park', 'Mall', 'Airport', 'Train Station', 'Bus Stop',
-                'Hospital', 'Library', 'Museum', 'Theater', 'Stadium'
-            ];
-            
-            // Create a simple datalist for suggestions
-            const datalist = document.createElement('datalist');
-            datalist.id = 'location-suggestions';
-            
-            commonLocations.forEach(location => {
-                const option = document.createElement('option');
-                option.value = location;
-                datalist.appendChild(option);
-            });
-            
-            // Add datalist to input
-            input.setAttribute('list', 'location-suggestions');
-            document.body.appendChild(datalist);
-            
-            // Add placeholder text
-            input.placeholder = 'Type location name (e.g., Home, Work, Coffee Shop)';
-        }
-
-        function placeMarker(latLng) {
-            // Remove existing marker
-            if (mapState.marker) {
-                mapState.marker.setMap(null);
-            }
-            
-            // Create new marker
-            mapState.marker = new google.maps.Marker({
-                position: latLng,
-                map: mapState.map,
-                title: 'Selected Location',
-                icon: {
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+        // Create new marker
+        mapState.marker = new google.maps.Marker({
+          position: latLng,
+          map: mapState.map,
+          title: "Selected Location",
+          icon: {
+            url:
+              "data:image/svg+xml;charset=UTF-8," +
+              encodeURIComponent(`
                         <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="15" cy="15" r="12" fill="#ff4444" stroke="#fff" stroke-width="2"/>
                             <text x="15" y="20" text-anchor="middle" fill="#fff" font-size="16">📍</text>
                         </svg>
                     `),
-                    scaledSize: new google.maps.Size(30, 30),
-                    anchor: new google.maps.Point(15, 15)
-                }
-            });
-            
-            mapState.selectedLocation = latLng;
-            updateCoordinatesDisplay(latLng);
+            scaledSize: new google.maps.Size(30, 30),
+            anchor: new google.maps.Point(15, 15),
+          },
+        });
+
+        mapState.selectedLocation = latLng;
+        updateCoordinatesDisplay(latLng);
+      }
+
+      function updateCoordinatesDisplay(latLng) {
+        const coordinatesDisplay = document.getElementById(
+          "coordinates-display"
+        );
+        coordinatesDisplay.textContent = `Pinned at: ${latLng
+          .lat()
+          .toFixed(6)}, ${latLng.lng().toFixed(6)}`;
+      }
+
+      function clearPin() {
+        if (mapState.marker) {
+          mapState.marker.setMap(null);
+          mapState.marker = null;
         }
 
-        function updateCoordinatesDisplay(latLng) {
-            const coordinatesDisplay = document.getElementById('coordinates-display');
-            coordinatesDisplay.textContent = `Pinned at: ${latLng.lat().toFixed(6)}, ${latLng.lng().toFixed(6)}`;
+        // Also clear fallback pin
+        const fallbackPin = document.querySelector(".fallback-pin");
+        if (fallbackPin) {
+          fallbackPin.remove();
         }
 
-        function clearPin() {
-            if (mapState.marker) {
-                mapState.marker.setMap(null);
-                mapState.marker = null;
-            }
-            
-            // Also clear fallback pin
-            const fallbackPin = document.querySelector('.fallback-pin');
-            if (fallbackPin) {
-                fallbackPin.remove();
-            }
-            
-            mapState.selectedLocation = null;
-            
-            const coordinatesDisplay = document.getElementById('coordinates-display');
-            coordinatesDisplay.textContent = 'Click on the map to pin your location';
-        }
-        
-        function showMapPopup(callback) {
-            const mapPopup = document.getElementById('map-popup-overlay');
-            const mapInput = document.getElementById('map-location-input');
-            
-            // Store callback for later use
-            window.mapLocationCallback = callback;
-            
-            // Show popup
-            mapPopup.style.display = 'flex';
-            mapInput.focus();
-            
-            // Handle Enter key
-            mapInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    confirmMapLocation();
-                }
-            });
+        mapState.selectedLocation = null;
+
+        const coordinatesDisplay = document.getElementById(
+          "coordinates-display"
+        );
+        coordinatesDisplay.textContent =
+          "Click on the map to pin your location";
+      }
+
+      function showMapPopup(callback) {
+        const mapPopup = document.getElementById("map-popup-overlay");
+        const mapInput = document.getElementById("map-location-input");
+
+        // Store callback for later use
+        window.mapLocationCallback = callback;
+
+        // Show popup
+        mapPopup.style.display = "flex";
+        mapInput.focus();
+
+        // Handle Enter key
+        mapInput.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") {
+            confirmMapLocation();
+          }
+        });
+      }
+
+      function closeMapPopup() {
+        const mapPopup = document.getElementById("map-popup-overlay");
+        const mapInput = document.getElementById("map-location-input");
+
+        mapPopup.style.display = "none";
+        mapInput.value = "";
+
+        // Clear pin state
+        clearPin();
+
+        // Reset coordinates display
+        const coordinatesDisplay = document.getElementById(
+          "coordinates-display"
+        );
+        coordinatesDisplay.textContent =
+          "Click on the map to pin your location";
+      }
+
+      function confirmMapLocation() {
+        const mapInput = document.getElementById("map-location-input");
+        const locationDescription = mapInput.value.trim();
+
+        if (!mapState.selectedLocation) {
+          alert("Please pin a location on the map first!");
+          return;
         }
 
-        function closeMapPopup() {
-            const mapPopup = document.getElementById('map-popup-overlay');
-            const mapInput = document.getElementById('map-location-input');
-            
-            mapPopup.style.display = 'none';
-            mapInput.value = '';
-            
-            // Clear pin state
-            clearPin();
-            
-            // Reset coordinates display
-            const coordinatesDisplay = document.getElementById('coordinates-display');
-            coordinatesDisplay.textContent = 'Click on the map to pin your location';
-        }
+        // Create location string
+        const lat = mapState.selectedLocation.lat().toFixed(6);
+        const lng = mapState.selectedLocation.lng().toFixed(6);
+        const locationString = locationDescription
+          ? `${locationDescription} (${lat}, ${lng})`
+          : `Location: ${lat}, ${lng}`;
 
-        function confirmMapLocation() {
-            const mapInput = document.getElementById('map-location-input');
-            const locationDescription = mapInput.value.trim();
-            
-            if (!mapState.selectedLocation) {
-                alert('Please pin a location on the map first!');
-                return;
-            }
-            
-            // Create location string
-            const lat = mapState.selectedLocation.lat().toFixed(6);
-            const lng = mapState.selectedLocation.lng().toFixed(6);
-            const locationString = locationDescription 
-                ? `${locationDescription} (${lat}, ${lng})`
-                : `Location: ${lat}, ${lng}`;
-            
-            // Submit the location answer
-            submitTextAnswer(locationString);
-            
-            closeMapPopup();
-        }
+        // Submit the location answer
+        submitTextAnswer(locationString);
 
-        // Start the visualization when the page loads
-        window.addEventListener('load', startVisualization);
-        
-        // Initialize Google Maps when the API loads
-        function initGoogleMaps() {
-            mapState.googleMapsLoaded = true;
-            console.log('Google Maps API loaded successfully');
-        }
+        closeMapPopup();
+      }
 
-        // Make the function globally available
-        window.initGoogleMaps = initGoogleMaps;
+      // Start the visualization when the page loads
+      window.addEventListener("load", startVisualization);
+
+      // Initialize Google Maps when the API loads
+      function initGoogleMaps() {
+        mapState.googleMapsLoaded = true;
+        console.log("Google Maps API loaded successfully");
+      }
+
+      // Make the function globally available
+      window.initGoogleMaps = initGoogleMaps;
     </script>
-    
+
     <!-- Chatbot Backdrop -->
     <div id="chatbot-backdrop" class="chatbot-backdrop"></div>
-    
+
     <!-- Chatbot Upload Interface -->
     <div id="chatbot-container" class="chatbot-container">
-        <button class="close-btn" onclick="closeChatbot()">×</button>
-        <div class="chatbot-header">Junk Upload Bot</div>
-        <div class="chatbot-messages" id="chatbot-messages">
-            <!-- Messages will be added here dynamically -->
+      <button class="close-btn" onclick="closeChatbot()">×</button>
+      <div class="chatbot-header">Junk Upload Bot</div>
+      <div class="chatbot-messages" id="chatbot-messages">
+        <!-- Messages will be added here dynamically -->
+      </div>
+      <div class="chatbot-input-area" id="chatbot-input-area">
+        <div class="persistent-input">
+          <button id="persistent-back-btn" disabled>Back</button>
+          <input
+            type="text"
+            id="persistent-text-input"
+            placeholder="Type your message..."
+            disabled
+          />
+          <div class="persistent-input-actions">
+            <button id="persistent-send-btn" disabled>Send</button>
+            <button id="persistent-skip-btn" disabled>Skip</button>
+            <button id="persistent-finish-btn" disabled>Finish</button>
+          </div>
         </div>
-        <div class="chatbot-input-area" id="chatbot-input-area">
-            <div class="persistent-input">
-                <button id="persistent-back-btn" disabled>Back</button>
-                <input type="text" id="persistent-text-input" placeholder="Type your message..." disabled>
-                <div class="persistent-input-actions">
-                    <button id="persistent-send-btn" disabled>Send</button>
-                    <button id="persistent-skip-btn" disabled>Skip</button>
-                    <button id="persistent-finish-btn" disabled>Finish</button>
-                </div>
-            </div>
-            <div id="dynamic-input-container">
-                <!-- Dynamic input elements will be added here -->
-            </div>
+        <div id="dynamic-input-container">
+          <!-- Dynamic input elements will be added here -->
         </div>
+      </div>
     </div>
 
     <!-- Map Popup -->
     <div id="map-popup-overlay" class="map-popup-overlay">
-        <div class="map-popup-content">
-            <div class="map-popup-header">
-                <span>Pin your location!</span>
-                <button class="map-popup-close" onclick="closeMapPopup()">×</button>
-            </div>
-            <div class="coordinates-display" id="coordinates-display">
-                Click on the map to pin your location
-            </div>
-            <div class="map-controls">
-                <input type="text" class="map-input" id="map-location-input" placeholder="Enter location name or description...">
-                <button class="map-popup-btn" onclick="clearPin()">Clear Pin</button>
-            </div>
-            <div class="map-container">
-                <div id="map"></div>
-                <div class="map-overlay">
-                    <div class="map-instructions">Click on the map to place a pin, or search for an address above</div>
-                </div>
-                <div class="map-pin-button" id="map-pin-button">📍</div>
-            </div>
-            <div class="map-popup-buttons">
-                <button class="map-popup-btn" onclick="closeMapPopup()">Cancel</button>
-                <button class="map-popup-btn primary" onclick="confirmMapLocation()">Confirm Location</button>
-            </div>
+      <div class="map-popup-content">
+        <div class="map-popup-header">
+          <span>Pin your location!</span>
+          <button class="map-popup-close" onclick="closeMapPopup()">×</button>
         </div>
+        <div class="coordinates-display" id="coordinates-display">
+          Click on the map to pin your location
+        </div>
+        <div class="map-controls">
+          <input
+            type="text"
+            class="map-input"
+            id="map-location-input"
+            placeholder="Enter location name or description..."
+          />
+          <button class="map-popup-btn" onclick="clearPin()">Clear Pin</button>
+        </div>
+        <div class="map-container">
+          <div id="map"></div>
+          <div class="map-overlay">
+            <div class="map-instructions">
+              Click on the map to place a pin, or search for an address above
+            </div>
+          </div>
+          <div class="map-pin-button" id="map-pin-button">📍</div>
+        </div>
+        <div class="map-popup-buttons">
+          <button class="map-popup-btn" onclick="closeMapPopup()">
+            Cancel
+          </button>
+          <button class="map-popup-btn primary" onclick="confirmMapLocation()">
+            Confirm Location
+          </button>
+        </div>
+      </div>
     </div>
-</body>
+  </body>
 </html>
