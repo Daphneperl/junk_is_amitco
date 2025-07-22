@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Total Galaxy - Unified Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+      @font-face {
+        font-family: "Pixel";
+        src: url("../../assets/pixel.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "VT323";
+        src: url("../../assets/VT323-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Heming";
+        src: url("../../assets/Heming.ttf") format("truetype");
+      }
+
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+        font-family: "VT323", monospace;
+      }
+
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+
+      #black-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+        opacity: 1;
+      }
+
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
+
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
+
+      #view-labels {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 100;
+        color: white;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+      }
+
+      .view-label {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .view-label:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+
+      .view-label.active {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.8);
+      }
+
+      #camera-info {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        color: white;
+        font-family: "VT323", monospace;
+        font-size: 14px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px;
+        border-radius: 4px;
+        z-index: 100;
+      }
+
+      #search-bar {
+        position: fixed;
+        left: 50%;
+        bottom: 3vw;
+        transform: translateX(-50%);
+        width: 420px;
+        max-width: 80vw;
+        min-width: 280px;
+        height: 54px;
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 2px 16px #0003;
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        border: none;
+        outline: none;
+        padding: 0 32px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+
+      #upload-hand-btn {
+        position: fixed;
+        right: 2vw;
+        bottom: 2vw;
+        width: 280px;
+        height: 280px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 2100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        flex-direction: unset;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+
+      #upload-hand-btn-text {
+        position: absolute;
+        left: 30%;
+        top: 55%;
+        transform: translate(-50%, -50%);
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        background: none;
+        border: none;
+        text-align: center;
+        pointer-events: none;
+        width: 180px;
+        line-height: 0.9;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.5px;
+      }
+
+      #upload-hand-btn-img {
+        width: 270px;
+        height: 270px;
+        object-fit: contain;
+        display: block;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="black-overlay"></div>
+    <div id="loading-container">
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING GALAXY... 0%
+      </div>
+    </div>
+
+    <div id="visualization"></div>
+
+    <div id="view-labels">
+      <div class="view-label" data-view="rhizome">Rhizome</div>
+      <div class="view-label" data-view="artist">Artist</div>
+      <div class="view-label" data-view="open-question">Open Question</div>
+      <div class="view-label" data-view="hashtag-gallery">Hashtag Gallery</div>
+      <div class="view-label" data-view="completeness">Completeness</div>
+      <div class="view-label" data-view="intimacy">Intimacy</div>
+      <div class="view-label" data-view="temperament">Temperament</div>
+    </div>
+
+    <div id="camera-info">
+      <div>Camera Position: <span id="camera-pos">0, 0, 0</span></div>
+      <div>Current View: <span id="current-view">Galaxy Overview</span></div>
+    </div>
+
+    <!-- Search Bar -->
+    <input id="search-bar" type="text" placeholder="I want to see..." />
+
+    <!-- Upload Hand Button -->
+    <button id="upload-hand-btn">
+      <img
+        id="upload-hand-btn-img"
+        src="../../UploadButton/BiggerHand.png"
+        alt="Upload hand"
+      />
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
+    </button>
+
+    <script>
+      let scene, camera, renderer, controls;
+      let composer;
+      let particles;
+      let artisticData = [];
+      let imageDataMap = new Map();
+      let totalImages = 0;
+      let loadedImages = 0;
+      let currentView = "galaxy";
+
+      // View positions in 3D space (galaxy layout)
+      const viewPositions = {
+        rhizome: { x: 0, y: 0, z: 0 },
+        artist: { x: 800, y: 200, z: 400 },
+        "open-question": { x: -600, y: 300, z: 500 },
+        "hashtag-gallery": { x: 400, y: -400, z: 600 },
+        completeness: { x: -400, y: -600, z: 300 },
+        intimacy: { x: 600, y: 500, z: -400 },
+        temperament: { x: -800, y: 100, z: -200 },
+      };
+
+      // View groups to store each visualization
+      let viewGroups = {};
+
+      // Load artistic analysis data
+      async function loadArtisticData() {
+        try {
+          const response = await fetch(
+            "../../image_analysis/artistic_analysis_filtered.json"
+          );
+          artisticData = await response.json();
+
+          artisticData.forEach((item) => {
+            imageDataMap.set(item.filename, item);
+          });
+
+          console.log(`Loaded ${artisticData.length} image analysis records`);
+          return artisticData;
+        } catch (error) {
+          console.error("Error loading artistic data:", error);
+          return [];
+        }
+      }
+
+      // Load all images
+      async function loadAllImages() {
+        try {
+          const response = await fetch("../../images/images.json");
+          const imageList = await response.json();
+          totalImages = imageList.length;
+
+          const textureLoader = new THREE.TextureLoader();
+          const texturePromises = imageList.map((imageName, index) => {
+            return new Promise((resolve) => {
+              textureLoader.load(
+                `../../images/${imageName}`,
+                (texture) => {
+                  loadedImages++;
+                  updateLoadingUI((loadedImages / totalImages) * 100);
+                  resolve({ texture, index, filename: imageName });
+                },
+                undefined,
+                (error) => {
+                  console.warn(`Failed to load ${imageName}:`, error);
+                  loadedImages++;
+                  updateLoadingUI((loadedImages / totalImages) * 100);
+                  resolve({ texture: null, index, filename: imageName });
+                }
+              );
+            });
+          });
+
+          return await Promise.all(texturePromises);
+        } catch (error) {
+          console.error("Error loading images:", error);
+          return [];
+        }
+      }
+
+      // Create Rhizome view (keyword-based clustering)
+      function createRhizomeView(textures) {
+        const group = new THREE.Group();
+        group.position.set(
+          viewPositions.rhizome.x,
+          viewPositions.rhizome.y,
+          viewPositions.rhizome.z
+        );
+
+        // Create semantic categories
+        const semanticCategories = {
+          text_documents: [
+            "manuscript",
+            "document",
+            "text",
+            "writing",
+            "letter",
+            "signature",
+            "list",
+            "catalogue",
+            "menu",
+            "notes",
+            "scripts",
+            "correspondence",
+            "point",
+            "word",
+            "boundary",
+            "names",
+            "roster",
+          ],
+          people_faces: [
+            "face",
+            "head",
+            "person",
+            "people",
+            "portrait",
+            "figure",
+            "human",
+          ],
+          nature_landscape: [
+            "landscape",
+            "nature",
+            "tree",
+            "plant",
+            "flower",
+            "sky",
+            "mountain",
+            "water",
+            "ocean",
+            "forest",
+            "animals",
+            "zebra",
+            "center",
+          ],
+          architecture_buildings: [
+            "building",
+            "architecture",
+            "house",
+            "structure",
+            "wall",
+            "door",
+            "window",
+            "room",
+          ],
+          objects_things: [
+            "object",
+            "thing",
+            "item",
+            "tool",
+            "instrument",
+            "device",
+            "machine",
+          ],
+          abstract_patterns: [
+            "pattern",
+            "abstract",
+            "design",
+            "shape",
+            "form",
+            "texture",
+            "color",
+          ],
+          animals_creatures: [
+            "animal",
+            "creature",
+            "bird",
+            "fish",
+            "insect",
+            "mammal",
+          ],
+          food_dining: [
+            "food",
+            "meal",
+            "dish",
+            "plate",
+            "cup",
+            "drink",
+            "wine",
+            "coffee",
+            "pasta",
+          ],
+        };
+
+        // Group images by category
+        const categoryGroups = {};
+        textures.forEach((textureData, index) => {
+          const imageData = artisticData.find(
+            (item) => item.filename === textureData.filename
+          );
+          if (imageData) {
+            const keywordTexts = imageData.keywords.map((k) =>
+              k.keyword.toLowerCase()
+            );
+            let bestCategory = "other";
+            let maxScore = 0;
+
+            for (const [category, keywords] of Object.entries(
+              semanticCategories
+            )) {
+              let score = 0;
+              for (const keyword of keywords) {
+                if (keywordTexts.includes(keyword)) {
+                  score += 1;
+                }
+              }
+              if (score > maxScore) {
+                maxScore = score;
+                bestCategory = category;
+              }
+            }
+
+            if (!categoryGroups[bestCategory]) {
+              categoryGroups[bestCategory] = [];
+            }
+            categoryGroups[bestCategory].push({
+              textureData,
+              imageData,
+              index,
+            });
+          }
+        });
+
+        // Position categories in a circle
+        const categoryPositions = {
+          text_documents: { x: -200, y: 0, z: 0 },
+          people_faces: { x: 200, y: 0, z: 0 },
+          nature_landscape: { x: 0, y: 200, z: 0 },
+          architecture_buildings: { x: 0, y: -200, z: 0 },
+          objects_things: { x: 0, y: 0, z: 200 },
+          abstract_patterns: { x: 0, y: 0, z: -200 },
+          animals_creatures: { x: -200, y: 200, z: 0 },
+          food_dining: { x: 200, y: -200, z: 0 },
+          other: { x: 0, y: 0, z: 0 },
+        };
+
+        Object.entries(categoryGroups).forEach(([category, images]) => {
+          const categoryGroup = new THREE.Group();
+          const pos = categoryPositions[category] || { x: 0, y: 0, z: 0 };
+          categoryGroup.position.set(pos.x, pos.y, pos.z);
+
+          images.forEach((imageData, imageIndex) => {
+            if (imageData.textureData.texture) {
+              const aspectRatio =
+                imageData.textureData.texture.image.width /
+                imageData.textureData.texture.image.height;
+              const width = 15;
+              const height = width / aspectRatio;
+
+              const material = new THREE.SpriteMaterial({
+                map: imageData.textureData.texture,
+                transparent: true,
+                opacity: 1,
+              });
+              const sprite = new THREE.Sprite(material);
+              sprite.scale.set(width, height, 1);
+
+              // Position in a spiral within category
+              const angle = (imageIndex / images.length) * Math.PI * 4;
+              const radius = (imageIndex / images.length) * 50;
+              const heightOffset = Math.sin(angle * 2) * 20;
+
+              sprite.position.set(
+                radius * Math.cos(angle),
+                radius * Math.sin(angle),
+                heightOffset
+              );
+
+              categoryGroup.add(sprite);
+            }
+          });
+
+          group.add(categoryGroup);
+        });
+
+        return group;
+      }
+
+      // Create Artist view (helix structure)
+      function createArtistView(textures) {
+        const group = new THREE.Group();
+        group.position.set(
+          viewPositions.artist.x,
+          viewPositions.artist.y,
+          viewPositions.artist.z
+        );
+
+        // Create helix structure
+        const turns = 8;
+        const radius = 30;
+        const totalHeight = 400;
+        const segments = 200;
+
+        // Create helix outline
+        const points = [];
+        for (let i = 0; i <= segments; i++) {
+          const angle = (i / segments) * Math.PI * 2 * turns;
+          const y = (i / segments) * totalHeight - totalHeight / 2;
+          const x = radius * Math.cos(angle);
+          const z = radius * Math.sin(angle);
+          points.push(new THREE.Vector3(x, y, z));
+        }
+
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.6,
+        });
+        const helixLine = new THREE.Line(geometry, material);
+        group.add(helixLine);
+
+        // Position images along helix
+        const clusterSize = 5;
+        const clusters = Math.ceil(textures.length / clusterSize);
+
+        for (let clusterIndex = 0; clusterIndex < clusters; clusterIndex++) {
+          const clusterGroup = new THREE.Group();
+          const angle = (clusterIndex / clusters) * Math.PI * 2 * turns;
+          const y = (clusterIndex / clusters) * totalHeight - totalHeight / 2;
+          const x = radius * Math.cos(angle);
+          const z = radius * Math.sin(angle);
+
+          clusterGroup.position.set(x, y, z);
+
+          // Add images to cluster
+          for (
+            let i = 0;
+            i < clusterSize && clusterIndex * clusterSize + i < textures.length;
+            i++
+          ) {
+            const textureData = textures[clusterIndex * clusterSize + i];
+            if (textureData.texture) {
+              const aspectRatio =
+                textureData.texture.image.width /
+                textureData.texture.image.height;
+              const width = 8;
+              const height = width / aspectRatio;
+
+              const material = new THREE.SpriteMaterial({
+                map: textureData.texture,
+                transparent: true,
+                opacity: 1,
+              });
+              const sprite = new THREE.Sprite(material);
+              sprite.scale.set(width, height, 1);
+
+              // Grid layout within cluster
+              const gridCols = Math.ceil(Math.sqrt(clusterSize));
+              const gridRows = Math.ceil(clusterSize / gridCols);
+              const spacing = 12;
+
+              const row = Math.floor(i / gridCols);
+              const col = i % gridCols;
+
+              sprite.position.set(
+                (col - gridCols / 2) * spacing,
+                (row - gridRows / 2) * spacing,
+                0
+              );
+
+              clusterGroup.add(sprite);
+            }
+          }
+
+          group.add(clusterGroup);
+        }
+
+        return group;
+      }
+
+      // Create Open Question view (layered score circle)
+      function createOpenQuestionView(textures) {
+        const group = new THREE.Group();
+        group.position.set(
+          viewPositions["open-question"].x,
+          viewPositions["open-question"].y,
+          viewPositions["open-question"].z
+        );
+
+        // Create circular arrangement with multiple layers
+        const layers = 5;
+        const imagesPerLayer = Math.ceil(textures.length / layers);
+
+        for (let layer = 0; layer < layers; layer++) {
+          const layerGroup = new THREE.Group();
+          const layerRadius = 40 + layer * 20;
+          const layerHeight = layer * 30;
+
+          const startIndex = layer * imagesPerLayer;
+          const endIndex = Math.min(
+            startIndex + imagesPerLayer,
+            textures.length
+          );
+          const layerImages = textures.slice(startIndex, endIndex);
+
+          layerImages.forEach((textureData, index) => {
+            if (textureData.texture) {
+              const aspectRatio =
+                textureData.texture.image.width /
+                textureData.texture.image.height;
+              const width = 10;
+              const height = width / aspectRatio;
+
+              const material = new THREE.SpriteMaterial({
+                map: textureData.texture,
+                transparent: true,
+                opacity: 0.8,
+              });
+              const sprite = new THREE.Sprite(material);
+              sprite.scale.set(width, height, 1);
+
+              const angle = (index / layerImages.length) * Math.PI * 2;
+              sprite.position.set(
+                layerRadius * Math.cos(angle),
+                layerHeight,
+                layerRadius * Math.sin(angle)
+              );
+
+              layerGroup.add(sprite);
+            }
+          });
+
+          group.add(layerGroup);
+        }
+
+        return group;
+      }
+
+      // Create Hashtag Gallery view (curved wall)
+      function createHashtagGalleryView(textures) {
+        const group = new THREE.Group();
+        group.position.set(
+          viewPositions["hashtag-gallery"].x,
+          viewPositions["hashtag-gallery"].y,
+          viewPositions["hashtag-gallery"].z
+        );
+
+        // Create curved wall arrangement
+        const wallRadius = 80;
+        const wallHeight = 200;
+        const imagesPerRow = 10;
+        const rows = Math.ceil(textures.length / imagesPerRow);
+
+        for (let row = 0; row < rows; row++) {
+          const rowGroup = new THREE.Group();
+          const rowHeight = (row - rows / 2) * 25;
+
+          const startIndex = row * imagesPerRow;
+          const endIndex = Math.min(startIndex + imagesPerRow, textures.length);
+          const rowImages = textures.slice(startIndex, endIndex);
+
+          rowImages.forEach((textureData, index) => {
+            if (textureData.texture) {
+              const aspectRatio =
+                textureData.texture.image.width /
+                textureData.texture.image.height;
+              const width = 12;
+              const height = width / aspectRatio;
+
+              const material = new THREE.SpriteMaterial({
+                map: textureData.texture,
+                transparent: true,
+                opacity: 1,
+              });
+              const sprite = new THREE.Sprite(material);
+              sprite.scale.set(width, height, 1);
+
+              const angle = (index / rowImages.length) * Math.PI * 1.5; // Curved wall
+              sprite.position.set(
+                wallRadius * Math.cos(angle),
+                rowHeight,
+                wallRadius * Math.sin(angle)
+              );
+
+              rowGroup.add(sprite);
+            }
+          });
+
+          group.add(rowGroup);
+        }
+
+        return group;
+      }
+
+      // Create Completeness view (score-based arrangement)
+      function createCompletenessView(textures) {
+        const group = new THREE.Group();
+        group.position.set(
+          viewPositions.completeness.x,
+          viewPositions.completeness.y,
+          viewPositions.completeness.z
+        );
+
+        // Create score-based arrangement (simplified)
+        const scoreGroups = {
+          high: [],
+          medium: [],
+          low: [],
+        };
+
+        textures.forEach((textureData, index) => {
+          const imageData = artisticData.find(
+            (item) => item.filename === textureData.filename
+          );
+          if (imageData) {
+            // Simplified scoring - use first keyword confidence as score
+            const score =
+              imageData.keywords.length > 0
+                ? imageData.keywords[0].confidence
+                : 0.5;
+
+            if (score > 0.7) scoreGroups.high.push({ textureData, score });
+            else if (score > 0.4)
+              scoreGroups.medium.push({ textureData, score });
+            else scoreGroups.low.push({ textureData, score });
+          }
+        });
+
+        // Position groups by score
+        const groupPositions = {
+          high: { x: 0, y: 100, z: 0 },
+          medium: { x: 0, y: 0, z: 0 },
+          low: { x: 0, y: -100, z: 0 },
+        };
+
+        Object.entries(scoreGroups).forEach(([scoreLevel, images]) => {
+          const scoreGroup = new THREE.Group();
+          const pos = groupPositions[scoreLevel];
+          scoreGroup.position.set(pos.x, pos.y, pos.z);
+
+          images.forEach((imageData, index) => {
+            if (imageData.textureData.texture) {
+              const aspectRatio =
+                imageData.textureData.texture.image.width /
+                imageData.textureData.texture.image.height;
+              const width = 10;
+              const height = width / aspectRatio;
+
+              const material = new THREE.SpriteMaterial({
+                map: imageData.textureData.texture,
+                transparent: true,
+                opacity: 0.8,
+              });
+              const sprite = new THREE.Sprite(material);
+              sprite.scale.set(width, height, 1);
+
+              // Grid layout
+              const gridCols = Math.ceil(Math.sqrt(images.length));
+              const gridRows = Math.ceil(images.length / gridCols);
+              const spacing = 15;
+
+              const row = Math.floor(index / gridCols);
+              const col = index % gridCols;
+
+              sprite.position.set(
+                (col - gridCols / 2) * spacing,
+                (row - gridRows / 2) * spacing,
+                0
+              );
+
+              scoreGroup.add(sprite);
+            }
+          });
+
+          group.add(scoreGroup);
+        });
+
+        return group;
+      }
+
+      // Create Intimacy view (tunnel structure)
+      function createIntimacyView(textures) {
+        const group = new THREE.Group();
+        group.position.set(
+          viewPositions.intimacy.x,
+          viewPositions.intimacy.y,
+          viewPositions.intimacy.z
+        );
+
+        // Create tunnel-like structure
+        const tunnelRadius = 60;
+        const tunnelLength = 300;
+        const rings = 8;
+
+        for (let ring = 0; ring < rings; ring++) {
+          const ringGroup = new THREE.Group();
+          const ringZ = (ring - rings / 2) * 40;
+
+          const startIndex = ring * Math.ceil(textures.length / rings);
+          const endIndex = Math.min(
+            startIndex + Math.ceil(textures.length / rings),
+            textures.length
+          );
+          const ringImages = textures.slice(startIndex, endIndex);
+
+          ringImages.forEach((textureData, index) => {
+            if (textureData.texture) {
+              const aspectRatio =
+                textureData.textureData.texture.image.width /
+                textureData.textureData.texture.image.height;
+              const width = 8;
+              const height = width / aspectRatio;
+
+              const material = new THREE.SpriteMaterial({
+                map: textureData.texture,
+                transparent: true,
+                opacity: 0.9,
+              });
+              const sprite = new THREE.Sprite(material);
+              sprite.scale.set(width, height, 1);
+
+              const angle = (index / ringImages.length) * Math.PI * 2;
+              const radius = tunnelRadius - ring * 5; // Decreasing radius for tunnel effect
+
+              sprite.position.set(
+                radius * Math.cos(angle),
+                radius * Math.sin(angle),
+                ringZ
+              );
+
+              ringGroup.add(sprite);
+            }
+          });
+
+          group.add(ringGroup);
+        }
+
+        return group;
+      }
+
+      // Create Temperament view (score-based spiral)
+      function createTemperamentView(textures) {
+        const group = new THREE.Group();
+        group.position.set(
+          viewPositions.temperament.x,
+          viewPositions.temperament.y,
+          viewPositions.temperament.z
+        );
+
+        // Create spiral arrangement based on temperament scores
+        const spiralTurns = 6;
+        const spiralRadius = 50;
+        const spiralHeight = 200;
+
+        textures.forEach((textureData, index) => {
+          if (textureData.texture) {
+            const aspectRatio =
+              textureData.texture.image.width /
+              textureData.texture.image.height;
+            const width = 10;
+            const spriteHeight = width / aspectRatio;
+
+            const material = new THREE.SpriteMaterial({
+              map: textureData.texture,
+              transparent: true,
+              opacity: 0.8,
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(width, spriteHeight, 1);
+
+            const progress = index / textures.length;
+            const angle = progress * Math.PI * 2 * spiralTurns;
+            const radius = spiralRadius * (1 - progress * 0.5); // Decreasing radius
+            const spiralZ = (progress - 0.5) * spiralHeight;
+
+            sprite.position.set(
+              radius * Math.cos(angle),
+              spiralZ,
+              radius * Math.sin(angle)
+            );
+
+            group.add(sprite);
+          }
+        });
+
+        return group;
+      }
+
+      // Create particle system for galaxy effect
+      function createParticleSystem() {
+        const particleCount = 2000;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleSizes = new Float32Array(particleCount);
+        const particleColors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+          // Distribute particles throughout the galaxy
+          const radius = 1000 + Math.random() * 500;
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+
+          particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+          particlePositions[i * 3 + 1] =
+            radius * Math.sin(phi) * Math.sin(theta);
+          particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+
+          // Color variation
+          const hue = i / particleCount + Math.random() * 0.2;
+          const saturation = 0.3 + Math.random() * 0.4;
+          const lightness = 0.4 + Math.random() * 0.4;
+
+          // Convert HSL to RGB
+          const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+          const hueX = c * (1 - Math.abs(((hue * 6) % 2) - 1));
+          const m = lightness - c / 2;
+
+          let r, g, b;
+          if (hue < 1 / 6) {
+            r = c;
+            g = hueX;
+            b = 0;
+          } else if (hue < 2 / 6) {
+            r = hueX;
+            g = c;
+            b = 0;
+          } else if (hue < 3 / 6) {
+            r = 0;
+            g = c;
+            b = hueX;
+          } else if (hue < 4 / 6) {
+            r = 0;
+            g = hueX;
+            b = c;
+          } else if (hue < 5 / 6) {
+            r = hueX;
+            g = 0;
+            b = c;
+          } else {
+            r = c;
+            g = 0;
+            b = hueX;
+          }
+
+          particleColors[i * 3] = r + m;
+          particleColors[i * 3 + 1] = g + m;
+          particleColors[i * 3 + 2] = b + m;
+
+          particleSizes[i] = 2 + Math.random() * 3;
+        }
+
+        particleGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(particlePositions, 3)
+        );
+        particleGeometry.setAttribute(
+          "size",
+          new THREE.BufferAttribute(particleSizes, 1)
+        );
+        particleGeometry.setAttribute(
+          "color",
+          new THREE.BufferAttribute(particleColors, 3)
+        );
+
+        const particleMaterial = new THREE.PointsMaterial({
+          size: 2,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.6,
+          sizeAttenuation: true,
+          depthWrite: false,
+        });
+
+        particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+      }
+
+      // Initialize the galaxy
+      async function init() {
+        try {
+          console.log("Starting galaxy initialization...");
+
+          // Load data first
+          console.log("Loading artistic data...");
+          await loadArtisticData();
+          console.log("Artistic data loaded successfully");
+
+          console.log("Loading images...");
+          const textures = await loadAllImages();
+          console.log(`Loaded ${textures.length} textures`);
+
+          // Create scene
+          scene = new THREE.Scene();
+          scene.background = new THREE.Color(0x000000);
+
+        // Create noise texture for background
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const value = Math.random() * 50;
+          data[i] = value;
+          data[i + 1] = value;
+          data[i + 2] = value;
+          data[i + 3] = 20;
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        const noiseTexture = new THREE.CanvasTexture(canvas);
+        noiseTexture.wrapS = THREE.RepeatWrapping;
+        noiseTexture.wrapT = THREE.RepeatWrapping;
+        scene.background = noiseTexture;
+
+        // Create particle system
+        createParticleSystem();
+
+        // Create all views
+        viewGroups.rhizome = createRhizomeView(textures);
+        viewGroups.artist = createArtistView(textures);
+        viewGroups["open-question"] = createOpenQuestionView(textures);
+        viewGroups["hashtag-gallery"] = createHashtagGalleryView(textures);
+        viewGroups.completeness = createCompletenessView(textures);
+        viewGroups.intimacy = createIntimacyView(textures);
+        viewGroups.temperament = createTemperamentView(textures);
+
+        // Add all view groups to scene
+        Object.values(viewGroups).forEach((group) => scene.add(group));
+
+        // Create camera
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          3000
+        );
+        camera.position.set(0, 0, 1000);
+
+        // Create renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
+
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Add vignette effect
+        const vignetteShader = {
+          uniforms: {
+            tDiffuse: { value: null },
+            offset: { value: 1.0 },
+            darkness: { value: 1.0 },
+          },
+          vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+          fragmentShader: `
+                    uniform sampler2D tDiffuse;
+                    uniform float offset;
+                    uniform float darkness;
+                    varying vec2 vUv;
+
+                    void main() {
+                        vec2 uv = vUv;
+                        vec4 color = texture2D(tDiffuse, uv);
+                        vec2 center = vec2(0.5, 0.5);
+                        float dist = distance(uv, center);
+                        float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                        color.rgb *= vignette;
+                        gl_FragColor = color;
+                    }
+                `,
+        };
+
+        const vignettePass = new THREE.ShaderPass(vignetteShader);
+        vignettePass.uniforms.offset.value = 0.5;
+        vignettePass.uniforms.darkness.value = 0.5;
+        composer.addPass(vignettePass);
+
+        // Add orbit controls
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 100;
+        controls.maxDistance = 2000;
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        // Handle window resize
+        window.addEventListener("resize", onWindowResize, false);
+
+        // Setup view navigation
+        setupViewNavigation();
+
+        // Setup search functionality
+        setupSearch();
+
+        // Setup upload button
+        setupUploadButton();
+
+        console.log("Galaxy initialization completed successfully!");
+      } catch (error) {
+        console.error("Error during galaxy initialization:", error);
+        // Show error message to user
+        const loadingText = document.getElementById("loading-text");
+        if (loadingText) {
+          loadingText.textContent = "ERROR: Failed to load galaxy. Please refresh the page.";
+          loadingText.style.color = "#ff4444";
+        }
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function setupViewNavigation() {
+        const viewLabels = document.querySelectorAll(".view-label");
+
+        viewLabels.forEach((label) => {
+          label.addEventListener("click", () => {
+            const viewName = label.dataset.view;
+            navigateToView(viewName);
+
+            // Update active state
+            viewLabels.forEach((l) => l.classList.remove("active"));
+            label.classList.add("active");
+          });
+        });
+      }
+
+      function navigateToView(viewName) {
+        if (viewName === "galaxy") {
+          // Return to galaxy overview
+          camera.position.set(0, 0, 1000);
+          controls.target.set(0, 0, 0);
+          currentView = "galaxy";
+          document.getElementById("current-view").textContent =
+            "Galaxy Overview";
+        } else if (viewPositions[viewName]) {
+          // Navigate to specific view
+          const pos = viewPositions[viewName];
+          camera.position.set(pos.x, pos.y, pos.z + 200);
+          controls.target.set(pos.x, pos.y, pos.z);
+          currentView = viewName;
+          document.getElementById("current-view").textContent =
+            viewName.charAt(0).toUpperCase() +
+            viewName.slice(1).replace("-", " ");
+        }
+
+        controls.update();
+      }
+
+      function setupSearch() {
+        const searchBar = document.getElementById("search-bar");
+        let searchTimeout;
+
+        searchBar.addEventListener("input", (event) => {
+          const query = event.target.value.trim();
+
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          if (query.length > 0) {
+            searchTimeout = setTimeout(() => {
+              performSearch(query);
+            }, 500);
+          }
+        });
+
+        searchBar.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            const query = event.target.value.trim();
+            if (query.length > 0) {
+              if (searchTimeout) {
+                clearTimeout(searchTimeout);
+              }
+              performSearch(query);
+            }
+          }
+        });
+      }
+
+      function performSearch(query) {
+        console.log("Searching for:", query);
+        // Implement search functionality here
+      }
+
+      function setupUploadButton() {
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        if (uploadBtn) {
+          uploadBtn.addEventListener("click", () => {
+            console.log("Upload functionality would open here");
+          });
+        }
+      }
+
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING GALAXY... ${Math.floor(
+            progress
+          )}%`;
+        }
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        const time = Date.now();
+
+        // Animate particles
+        if (particles) {
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = new Float32Array(positions.length / 3);
+
+          for (let i = 0; i < positions.length; i += 3) {
+            const speed = 0.001 + Math.random() * 0.002;
+            const time = Date.now() * speed;
+
+            const originalX = positions[i];
+            const originalY = positions[i + 1];
+            const originalZ = positions[i + 2];
+
+            positions[i] = originalX + Math.sin(time) * 0.5;
+            positions[i + 1] = originalY + Math.cos(time) * 0.5;
+            positions[i + 2] = originalZ + Math.sin(time * 0.5) * 0.5;
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // Animate view groups with gentle rotation
+        Object.values(viewGroups).forEach((group, index) => {
+          const rotationSpeed = 0.0001 + index * 0.00005;
+          group.rotation.y += rotationSpeed;
+          group.rotation.x += rotationSpeed * 0.5;
+        });
+
+        // Update camera info
+        const cameraPos = camera.position;
+        document.getElementById("camera-pos").textContent = `${Math.round(
+          cameraPos.x
+        )}, ${Math.round(cameraPos.y)}, ${Math.round(cameraPos.z)}`;
+
+        controls.update();
+        composer.render();
+      }
+
+      // Initialize the visualization
+      async function startVisualization() {
+        try {
+          document.getElementById("loading-container").style.display = "block";
+          document.getElementById("black-overlay").style.display = "block";
+          document.getElementById("black-overlay").style.opacity = "1";
+          document.getElementById("visualization").style.display = "none";
+
+          console.log("Starting visualization...");
+          await init();
+          console.log("Initialization completed, starting animation...");
+
+          // Hide loading page and show visualization
+          document.getElementById("loading-container").style.display = "none";
+          document.getElementById("visualization").style.display = "block";
+          document.getElementById("black-overlay").style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("black-overlay").style.display = "none";
+          }, 500);
+
+          // Start animation
+          animate();
+          console.log("Visualization started successfully!");
+        } catch (error) {
+          console.error("Error in startVisualization:", error);
+          const loadingText = document.getElementById("loading-text");
+          if (loadingText) {
+            loadingText.textContent = "ERROR: Failed to start visualization. Please refresh the page.";
+            loadingText.style.color = "#ff4444";
+          }
+        }
+      }
+
+      // Start the visualization when the page loads
+      window.addEventListener("load", startVisualization);
+
+      // Add cleanup on page unload to prevent memory leaks
+      window.addEventListener("beforeunload", () => {
+        if (renderer) {
+          renderer.dispose();
+        }
+        if (composer) {
+          composer.dispose();
+        }
+        if (scene) {
+          scene.traverse((object) => {
+            if (object.geometry) {
+              object.geometry.dispose();
+            }
+            if (object.material) {
+              if (Array.isArray(object.material)) {
+                object.material.forEach((material) => material.dispose());
+              } else {
+                object.material.dispose();
+              }
+            }
+          });
+        }
+      });
+
+      // Add error handling for WebGL context loss
+      window.addEventListener("webglcontextlost", (event) => {
+        event.preventDefault();
+        console.warn("WebGL context lost. Reloading page...");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

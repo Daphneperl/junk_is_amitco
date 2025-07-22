@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>3D View Generator - All Views</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="../js/real-views-embedder.js"></script>
+    <style>
+      @font-face {
+        font-family: "Pixel";
+        src: url("../assets/pixel.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "VT323";
+        src: url("../assets/VT323-Regular.ttf") format("truetype");
+      }
+
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+        font-family: "VT323", monospace;
+      }
+
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+
+      #navigation-panel {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 100;
+        color: white;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        max-width: 300px;
+      }
+
+      .view-button {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: "VT323", monospace;
+        font-size: 14px;
+      }
+
+      .view-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+
+      .view-button.active {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.8);
+      }
+
+      #current-view-info {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 100;
+        color: white;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        font-family: "VT323", monospace;
+        font-size: 12px;
+      }
+
+      #camera-info {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+        color: white;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        font-family: "VT323", monospace;
+        font-size: 12px;
+      }
+
+      .view-marker {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 50;
+      }
+
+      .view-marker:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: scale(1.2);
+      }
+
+      .view-marker.active {
+        background: rgba(255, 255, 0, 1);
+        box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="visualization"></div>
+
+    <div id="navigation-panel">
+      <h3 style="margin: 0 0 15px 0; font-size: 16px">VIEW NAVIGATION</h3>
+      <div id="view-buttons"></div>
+    </div>
+
+    <div id="current-view-info">
+      <div>Current View: <span id="current-view-name">None</span></div>
+      <div>Position: <span id="current-position">0, 0, 0</span></div>
+    </div>
+
+    <div id="camera-info">
+      <div>Camera: <span id="camera-position">0, 0, 0</span></div>
+      <div>Distance: <span id="camera-distance">0</span></div>
+    </div>
+
+    <script>
+      // Global variables
+      let scene, camera, renderer, controls;
+      let composer;
+      let realViewsEmbedder;
+      let currentView = null;
+      let isTransitioning = false;
+
+      // View configurations - Grid layout with 500 unit spacing
+      const viewConfigs = {
+        artists: {
+          position: { x: 0, y: 0, z: 0 },
+          name: "Artists Gallery",
+          type: "artist-gallery",
+          dataPath: "../views/Artists/Artist.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+        intimacy: {
+          position: { x: 500, y: 0, z: 0 },
+          name: "Intimacy Tunnel",
+          type: "tunnel-gallery",
+          dataPath: "../views/intimacy/Intimacy.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+        rhizome: {
+          position: { x: 0, y: 0, z: 500 },
+          name: "Rhizome Network",
+          type: "network-gallery",
+          dataPath: "../views/rhizome/rhizome.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+        temperament: {
+          position: { x: 500, y: 0, z: 500 },
+          name: "Temperament Scores",
+          type: "score-gallery",
+          dataPath: "../views/temperament/temperament0606.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+        completeness: {
+          position: { x: 0, y: 500, z: 0 },
+          name: "Completeness Analysis",
+          type: "completeness-gallery",
+          dataPath: "../views/Completeness/Completeness.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+        hashtag: {
+          position: { x: 500, y: 500, z: 0 },
+          name: "Hashtag Gallery",
+          type: "hashtag-gallery",
+          dataPath: "../views/hashtag_gallery/hashtag_gallery.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+        "open-question": {
+          position: { x: 0, y: 500, z: 500 },
+          name: "Open Question",
+          type: "question-gallery",
+          dataPath: "../views/open_question/openQuestion.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+        "total-galaxy": {
+          position: { x: 500, y: 500, z: 500 },
+          name: "Total Galaxy",
+          type: "galaxy-gallery",
+          dataPath: "total_galaxy_accurate.html",
+          scale: 1.0,
+          rotation: { x: 0, y: 0, z: 0 },
+        },
+      };
+
+      // Initialize the application
+      async function init() {
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+
+        // Create camera
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          10000
+        );
+        camera.position.set(0, 100, 200);
+
+        // Create renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
+
+        // Setup controls
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false;
+        controls.minDistance = 50;
+        controls.maxDistance = 2000;
+
+        // Initialize real views embedder
+        realViewsEmbedder = new RealViewsEmbedder(scene, camera, renderer);
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(100, 100, 50);
+        scene.add(directionalLight);
+
+        // Embed all real views from views directory
+        await realViewsEmbedder.embedAllViews();
+
+        // Create navigation buttons
+        createNavigationButtons();
+
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Start animation loop
+        animate();
+
+        // Handle window resize
+        window.addEventListener("resize", onWindowResize);
+
+        // Handle mouse clicks
+        window.addEventListener("click", onMouseClick);
+      }
+
+      // Create navigation buttons
+      function createNavigationButtons() {
+        const buttonContainer = document.getElementById("view-buttons");
+
+        Object.entries(viewConfigs).forEach(([name, config]) => {
+          const button = document.createElement("button");
+          button.className = "view-button";
+          button.textContent = config.name;
+          button.onclick = () => {
+            // Move camera to the model position
+            const targetPosition = new THREE.Vector3(
+              config.position.x,
+              config.position.y + 100,
+              config.position.z + 200
+            );
+
+            // Smooth camera transition
+            const startPosition = camera.position.clone();
+            const startTime = Date.now();
+            const transitionDuration = 2000;
+
+            const animateTransition = () => {
+              const elapsed = Date.now() - startTime;
+              const progress = Math.min(elapsed / transitionDuration, 1);
+
+              // Easing function for smooth transition
+              const easeInOutCubic = (t) =>
+                t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+              const easedProgress = easeInOutCubic(progress);
+
+              camera.position.lerpVectors(
+                startPosition,
+                targetPosition,
+                easedProgress
+              );
+              controls.target.lerp(
+                new THREE.Vector3(
+                  config.position.x,
+                  config.position.y,
+                  config.position.z
+                ),
+                easedProgress
+              );
+
+              if (progress < 1) {
+                requestAnimationFrame(animateTransition);
+              } else {
+                updateCurrentViewInfo(name, config);
+              }
+            };
+
+            animateTransition();
+          };
+          buttonContainer.appendChild(button);
+        });
+      }
+
+      // Update current view info display
+      function updateCurrentViewInfo(name, config) {
+        document.getElementById("current-view-name").textContent = config.name;
+        document.getElementById(
+          "current-position"
+        ).textContent = `${config.position.x}, ${config.position.y}, ${config.position.z}`;
+
+        // Update button states
+        document.querySelectorAll(".view-button").forEach((btn) => {
+          btn.classList.remove("active");
+          if (btn.textContent === config.name) {
+            btn.classList.add("active");
+          }
+        });
+      }
+
+      // Update camera info display
+      function updateCameraInfo() {
+        const pos = camera.position;
+        document.getElementById("camera-position").textContent = `${Math.round(
+          pos.x
+        )}, ${Math.round(pos.y)}, ${Math.round(pos.z)}`;
+
+        const distance = camera.position.distanceTo(controls.target);
+        document.getElementById("camera-distance").textContent =
+          Math.round(distance);
+      }
+
+      // Handle window resize
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      // Raycaster for mouse interaction
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+
+      // Handle mouse click
+      function onMouseClick(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // First check if we clicked on a view plane
+        if (
+          realViewsEmbedder &&
+          realViewsEmbedder.handleClick(raycaster, mouse)
+        ) {
+          return; // View plane handled the click
+        }
+
+        // Otherwise handle other click interactions here if needed
+      }
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+
+        controls.update();
+        updateCameraInfo();
+
+        // Update iframe visibility based on camera position
+        if (realViewsEmbedder) {
+          realViewsEmbedder.updateIframeVisibility(camera.position);
+        }
+
+        if (composer) {
+          composer.render();
+        } else {
+          renderer.render(scene, camera);
+        }
+      }
+
+      // Initialize when page loads
+      window.addEventListener("load", init);
+    </script>
+  </body>
+</html>
