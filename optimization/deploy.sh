@@ -36,7 +36,7 @@ echo "🔍 Running performance analysis..."
 npm run analyze
 
 echo "🚀 Deploying to Vercel..."
-cd .. && vercel --prod
+vercel --prod
 
 echo "✅ Deployment complete!"
 echo "📊 Check your Vercel dashboard for performance metrics"

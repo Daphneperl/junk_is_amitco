@@ -14,7 +14,7 @@ class AdvancedImageOptimizer {
       webp: 85,
       png: 90,
     };
-    this.imageDirs = ["../images", "../assets", "../Eyes", "../UploadButton"];
+    this.imageDirs = ["images", "assets", "Eyes", "UploadButton"];
   }
 
   async optimizeImages() {
@@ -183,10 +183,10 @@ class AdvancedImageOptimizer {
     }
 
     await fs.writeFile(
-      "../image-manifest.json",
+      "image-manifest.json",
       JSON.stringify(manifest, null, 2)
     );
-    console.log("✅ Image manifest generated: ../image-manifest.json");
+    console.log("✅ Image manifest generated: image-manifest.json");
   }
 }
 
@@ -203,7 +203,7 @@ async function main() {
   await optimizer.generateImageManifest();
 
   console.log("🎉 All optimizations complete!");
-  console.log("📊 Check ../image-manifest.json for optimized image references");
+  console.log("📊 Check image-manifest.json for optimized image references");
 }
 
 main().catch(console.error);

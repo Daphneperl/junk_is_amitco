@@ -6,15 +6,15 @@ function minifyHtml() {
   console.log("📄 Minifying HTML files...");
 
   const htmlFiles = [
-    "../index.html",
-    "../base.html",
-    "../base_w_rings.html",
-    "../glitchy_eye.html",
-    "../SearchFieldView.html",
-    "../UI-menu.html",
+    "index.html",
+    "base.html",
+    "base_w_rings.html",
+    "glitchy_eye.html",
+    "SearchFieldView.html",
+    "UI-menu.html",
   ];
 
-  const viewDirs = ["../views"];
+  const viewDirs = ["views"];
 
   // Get all HTML files from views subdirectories
   function getHtmlFiles(dir) {

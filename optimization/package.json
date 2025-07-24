@@ -8,7 +8,7 @@
     "minify-html": "node scripts/minify-html.js",
     "generate-sitemap": "node scripts/generate-sitemap.js",
     "deploy": "npm run build",
-    "analyze": "npm run build && npx lighthouse --output=json --output-path=../lighthouse-report.json"
+    "analyze": "npm run build && npx lighthouse --output=json --output-path=./lighthouse-report.json"
   },
   "devDependencies": {
     "imagemin": "^8.0.1",

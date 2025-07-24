@@ -33,7 +33,7 @@ async function generateSitemap() {
   }
 
   // Add view pages
-  const viewDirs = ["../views"];
+  const viewDirs = ["views"];
 
   for (const viewDir of viewDirs) {
     if (await directoryExists(viewDir)) {
@@ -55,8 +55,8 @@ async function generateSitemap() {
 
   sitemap.push("</urlset>");
 
-  await fs.writeFile("../public/sitemap.xml", sitemap.join("\n"));
-  console.log("✅ Sitemap generated: ../public/sitemap.xml");
+  await fs.writeFile("public/sitemap.xml", sitemap.join("\n"));
+  console.log("✅ Sitemap generated: public/sitemap.xml");
 }
 
 async function directoryExists(dirPath) {
@@ -93,9 +93,9 @@ async function findHtmlFiles(dir) {
 // Create public directory if it doesn't exist
 async function ensurePublicDir() {
   try {
-    await fs.access("../public");
+    await fs.access("public");
   } catch {
-    await fs.mkdir("../public");
+    await fs.mkdir("public");
   }
 }
 
