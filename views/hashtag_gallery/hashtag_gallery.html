@@ -373,6 +373,9 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
+        // Create wireframe grid for walls and floor
+        createWireframeGrid();
+
         // Handle window resize
         window.addEventListener("resize", onWindowResize, false);
       }
@@ -450,7 +453,7 @@
         const numImages = imageList.length;
         const arcAngle = Math.PI * 1.22; // 220 degrees
         let radius = wallRadius; // Use shared wall radius
-        const yCenter = 0;
+        const yCenter = 8; // Moved images higher
         const fixedHeight = 18; // All images have this height
         const zOffset = 0;
 
@@ -593,7 +596,7 @@
             }
             // Set camera in front of the images, facing the center, and store radius/y for animation
             wallRadius = usedRadius; // Update global wall radius for text
-            cameraRadius = usedRadius + 70;
+            cameraRadius = usedRadius + 40; // More zoomed in (reduced from 70)
             cameraY = yCenter;
             camera.position.set(0, yCenter, cameraRadius);
             camera.lookAt(0, yCenter, 0);
@@ -629,6 +632,76 @@
         console.log("Cleared previous images");
       }
 
+      // Create wireframe grid for walls and floor
+      function createWireframeGrid() {
+        // Wall wireframe removed - only floor remains
+
+        // Define variables needed for floor grid
+        const gridRadius = wallRadius + 15; // Larger radius for grid to be well behind images
+        const height = 25; // Height of the wall grid
+
+        // Create floor wireframe (full circle)
+        const floorGeometry = new THREE.BufferGeometry();
+        const floorVertices = [];
+        const floorIndices = [];
+
+        // Create a full circular grid for the floor
+        const floorRadius = gridRadius; // Match the wall grid radius for alignment
+        const floorSegments = 32; // Number of segments around the full circle
+        const radialSegments = 8; // Number of radial lines
+        const y = -height; // Floor height - moved lower
+
+        // Generate vertices for full circular floor grid
+        for (let i = 0; i <= radialSegments; i++) {
+          for (let j = 0; j <= floorSegments; j++) {
+            const angle = (2 * Math.PI * j) / floorSegments; // Full 360 degrees
+            const currentRadius = (floorRadius * i) / radialSegments;
+            const x = currentRadius * Math.cos(angle);
+            const z = currentRadius * Math.sin(angle);
+            floorVertices.push(x, y, z);
+          }
+        }
+
+        // Generate indices for rounded floor grid
+        for (let i = 0; i < radialSegments; i++) {
+          for (let j = 0; j < floorSegments; j++) {
+            const a = i * (floorSegments + 1) + j;
+            const b = a + 1;
+            const c = (i + 1) * (floorSegments + 1) + j;
+            const d = c + 1;
+
+            // Radial lines (from center outward)
+            floorIndices.push(a, c);
+            floorIndices.push(b, d);
+
+            // Arc lines (around the circle)
+            floorIndices.push(a, b);
+            floorIndices.push(c, d);
+          }
+        }
+
+        floorGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(floorVertices, 3)
+        );
+        floorGeometry.setIndex(floorIndices);
+
+        const floorMaterial = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.4, // Increased opacity for more weight
+          linewidth: 2, // Increased line width for more weight
+          depthWrite: false, // Don't write to depth buffer
+          depthTest: false, // Don't test depth - always render behind
+        });
+        const floorWireframe = new THREE.LineSegments(
+          floorGeometry,
+          floorMaterial
+        );
+        floorWireframe.renderOrder = -999; // Render very first (behind everything)
+        scene.add(floorWireframe);
+      }
+
       // Create a fallback wall if no images load
       function createFallbackWall() {
         console.log("Creating fallback wall");
@@ -646,7 +719,7 @@
         scene.userData.imagePlanes = [fallbackPlane];
 
         // Set camera position
-        cameraRadius = 50;
+        cameraRadius = 30; // More zoomed in for fallback
         cameraY = 0;
         camera.position.set(0, 0, cameraRadius);
         camera.lookAt(0, 0, 0);
@@ -676,10 +749,28 @@
         const quotes = Object.keys(quoteConnections);
         if (quotes.length === 0) return null;
 
-        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        // Filter quotes to only include those with 5 or more images
+        const validQuotes = quotes.filter((quote) => {
+          const quoteData = quoteConnections[quote];
+          return (
+            quoteData.matching_images && quoteData.matching_images.length >= 5
+          );
+        });
+
+        if (validQuotes.length === 0) {
+          console.log("No quotes found with 5 or more images");
+          return null;
+        }
+
+        const randomQuote =
+          validQuotes[Math.floor(Math.random() * validQuotes.length)];
         currentQuoteData = quoteConnections[randomQuote];
         console.log("Selected quote:", currentQuoteData.quote);
         console.log("Matching images:", currentQuoteData.matching_images);
+        console.log(
+          "Number of images:",
+          currentQuoteData.matching_images.length
+        );
         return currentQuoteData;
       }
 
@@ -757,7 +848,7 @@
         curvedText = new THREE.Mesh(geometry, material);
 
         // Position and curve the text
-        curvedText.position.set(0, 15, 0); // Above the images
+        curvedText.position.set(0, 32, 0); // Above the images - moved even higher
         curvedText.rotation.y = Math.PI / 2; // Face outward
 
         // Apply curvature by bending the geometry
