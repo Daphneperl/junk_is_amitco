@@ -17,11 +17,11 @@
     <style>
       @font-face {
         font-family: "Pixel";
-        src: url("../../assets/pixel.ttf") format("truetype");
+        src: url("assets/pixel.ttf") format("truetype");
       }
       @font-face {
         font-family: "VT323";
-        src: url("../../assets/VT323-Regular.ttf") format("truetype");
+        src: url("assets/VT323-Regular.ttf") format("truetype");
         font-weight: normal;
         font-style: normal;
       }
@@ -884,7 +884,7 @@
     <!-- Floating Eye -->
     <div id="floating-eye">
       <img
-        src="../../assets/GlitchyEyeGif.gif"
+        src="assets/GlitchyEyeGif.gif"
         alt="Glitchy Eye"
         style="width: 100%; height: 100%; object-fit: contain"
       />
@@ -905,7 +905,7 @@
     <button id="upload-hand-btn">
       <img
         id="upload-hand-btn-img"
-        src="../../UploadButton/BiggerHand.png"
+        src="UploadButton/BiggerHand.png"
         alt="Upload hand"
       />
       <div id="upload-hand-btn-text">Upload<br />junk</div>
@@ -963,7 +963,7 @@
       async function loadArtisticData() {
         try {
           const response = await fetch(
-            "../../image_analysis/artistic_analysis_filtered.json"
+            "image_analysis/artistic_analysis_filtered.json"
           );
           artisticData = await response.json();
 
@@ -1277,7 +1277,7 @@
               return new Promise((resolve, reject) => {
                 const loader = new THREE.TextureLoader();
                 loader.load(
-                  `../../images/${imageName}`,
+                  `images/${imageName}`,
                   (texture) => {
                     loadedImages++;
                     updateLoadingUI((loadedImages / totalImages) * 100);
@@ -1516,14 +1516,14 @@
         // Ring 1 (horizontal, up is +Y)
         const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
         const group1a = createEyeWithLabel(
-          "../../Eyes/Temperament_open.png",
+          "Eyes/Temperament_open.png",
           "Temperament",
           new THREE.Vector3(9, 0, 0),
           new THREE.Vector3(0, 1, 0),
           "eye-temperament"
         );
         const group1b = createEyeWithLabel(
-          "../../Eyes/Rhizome_open.png",
+          "Eyes/Rhizome_open.png",
           "Rhizome",
           new THREE.Vector3(-9, 0, 0),
           new THREE.Vector3(0, 1, 0),
@@ -1536,14 +1536,14 @@
         // Ring 2 (vertical, up is +Z)
         const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
         const group2a = createEyeWithLabel(
-          "../../Eyes/Artist_open.png",
+          "Eyes/Artist_open.png",
           "Artist",
           new THREE.Vector3(0, 9, 0),
           new THREE.Vector3(0, 0, 1),
           "eye-artist"
         );
         const group2b = createEyeWithLabel(
-          "../../Eyes/Completeness_open.png",
+          "Eyes/Completeness_open.png",
           "Completeness",
           new THREE.Vector3(0, -9, 0),
           new THREE.Vector3(0, 0, 1),
@@ -1557,14 +1557,14 @@
         // Ring 3 (side, up is +X)
         const ring3 = new THREE.Mesh(ringGeometry, ringMaterial3);
         const group3a = createEyeWithLabel(
-          "../../Eyes/SecretGallery_open.png",
+          "Eyes/SecretGallery_open.png",
           "idk",
           new THREE.Vector3(0, 6, 0),
           new THREE.Vector3(1, 0, 0),
           "eye-secret"
         );
         const group3b = createEyeWithLabel(
-          "../../Eyes/Intimacy_open.png",
+          "Eyes/Intimacy_open.png",
           "Intimacy",
           new THREE.Vector3(0, -6, 0),
           new THREE.Vector3(1, 0, 0),
@@ -2097,19 +2097,20 @@
           // Navigation logic
           switch (eyeId) {
             case "eye-temperament":
-              window.location.href = "../temperament/temperament0606.html";
+              window.location.href = "views/temperament/temperament0606.html";
               break;
             case "eye-secret":
-              window.location.href = "../hashtag_gallery/hashtag_gallery.html";
+              window.location.href =
+                "views/hashtag_gallery/hashtag_gallery.html";
               break;
             case "eye-intimacy":
-              window.location.href = "../intimacy/Intimacy.html";
+              window.location.href = "views/intimacy/Intimacy.html";
               break;
             case "eye-completeness":
-              window.location.href = "../Completeness/Completeness.html";
+              window.location.href = "views/Completeness/Completeness.html";
               break;
             case "eye-artist":
-              window.location.href = "../Artists/Artist.html";
+              window.location.href = "views/Artists/Artist.html";
               break;
             case "eye-rhizome":
               // Already on rhizome page
@@ -2989,7 +2990,7 @@
             uploadDiv.className = "message bot";
             uploadDiv.innerHTML = `
                         <div class="file-upload-area" id="file-upload-area">
-                            <img src="../../assets/upload.png" alt="Upload" class="upload-icon" id="upload-icon">
+                            <img src="assets/upload.png" alt="Upload" class="upload-icon" id="upload-icon">
                             <div id="file-upload-text" class="file-upload-text">Drag & drop your file here or click to browse</div>
                             <input type="file" id="file-input" accept="image/*" style="display: none;">
                         </div>
@@ -3028,11 +3029,11 @@
                                 <input type="range" class="slider" id="time-slider-input" min="0" max="4" value="0" step="0.1" style="flex:1;min-width:0;width:100%;">
                             </div>
                             <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
-                                <img src="../../assets/Sun.png" class="time-icon" id="icon-sun" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:1;object-fit:contain;">
-                                <img src="../../assets/Coffee.png" class="time-icon" id="icon-coffee" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
-                                <img src="../../assets/Pasta.png" class="time-icon" id="icon-pasta" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
-                                <img src="../../assets/Wine.png" class="time-icon" id="icon-wine" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
-                                <img src="../../assets/Moon2.png" class="time-icon" id="icon-moon" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="assets/Sun.png" class="time-icon" id="icon-sun" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:1;object-fit:contain;">
+                                <img src="assets/Coffee.png" class="time-icon" id="icon-coffee" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="assets/Pasta.png" class="time-icon" id="icon-pasta" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="assets/Wine.png" class="time-icon" id="icon-wine" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="assets/Moon2.png" class="time-icon" id="icon-moon" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
                             </div>
                         </div>
                     `;
