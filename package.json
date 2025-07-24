@@ -1,1 +1,22 @@
- 
+{
+  "name": "junk-is-amitco",
+  "version": "1.0.0",
+  "description": "Interactive 3D image visualization project",
+  "scripts": {
+    "build": "npm run optimize-images && npm run minify-html",
+    "optimize-images": "node scripts/optimize-images.js",
+    "minify-html": "node scripts/minify-html.js",
+    "deploy": "npm run build"
+  },
+  "devDependencies": {
+    "imagemin": "^8.0.1",
+    "imagemin-mozjpeg": "^10.0.0",
+    "imagemin-pngquant": "^9.0.2",
+    "imagemin-webp": "^8.0.0",
+    "html-minifier": "^4.0.0",
+    "terser": "^5.14.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
