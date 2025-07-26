@@ -164,6 +164,42 @@
         z-index: 1;
         display: none; /* Hidden by default, can be enabled for debugging */
       }
+
+      /* Pixel Arrow Indicator */
+      #pixel-arrow-indicator {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        animation: arrow-bounce 2s ease-in-out infinite;
+      }
+
+      #pixel-arrow-indicator.show {
+        opacity: 0.7;
+      }
+
+      #pixel-arrow-indicator img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
+
+      @keyframes arrow-bounce {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0px);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-8px);
+        }
+      }
       #hover-title {
         position: absolute;
         top: 70px;
@@ -894,6 +930,11 @@
     <div id="eye-tooltip">
       Here is the Rhizome View. Navigate through the interconnected network of
       images and discover hidden connections between different pieces of junk.
+    </div>
+
+    <!-- Pixel Arrow Indicator -->
+    <div id="pixel-arrow-indicator">
+      <img src="assets/pixel_arrow.png" alt="Arrow pointing up" />
     </div>
 
     <div id="rings-container">
@@ -2657,16 +2698,24 @@
         const ringsContainer = document.getElementById("rings-container");
         const searchBar = document.getElementById("search-bar");
         const uploadBtn = document.getElementById("upload-hand-btn");
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
 
         let dockTimeout;
         let isDockVisible = false;
         const dockDelay = 400; // Delay before hiding dock (ms)
-        const hoverZoneHeight = 40; // Height of hover zone from bottom (px)
+        const hoverZoneHeight = 120; // Height of hover zone from bottom (px) - increased for easier access
 
         // Initialize dock state - hidden by default
         ringsContainer.classList.add("dock-hidden");
         searchBar.classList.add("dock-hidden");
         uploadBtn.classList.add("dock-hidden");
+
+        // Show pixel arrow indicator initially since dock is hidden
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.add("show");
+        }
 
         function showDock() {
           if (!isDockVisible) {
@@ -2677,6 +2726,11 @@
             searchBar.classList.add("dock-visible");
             uploadBtn.classList.remove("dock-hidden");
             uploadBtn.classList.add("dock-visible");
+
+            // Hide pixel arrow indicator when dock is visible
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.remove("show");
+            }
           }
         }
 
@@ -2689,6 +2743,11 @@
             searchBar.classList.add("dock-hidden");
             uploadBtn.classList.remove("dock-visible");
             uploadBtn.classList.add("dock-hidden");
+
+            // Show pixel arrow indicator when dock is hidden
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.add("show");
+            }
           }
         }
 
