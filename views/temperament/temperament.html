@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Hashtag Gallery Visualization</title>
+    <title>Temperament Scores Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -15,8 +15,10 @@
         src: url("../../assets/pixel.ttf") format("truetype");
       }
       @font-face {
-        font-family: "Heming";
-        src: url("../../assets/Heming.ttf") format("truetype");
+        font-family: "VT323";
+        src: url("../../assets/VT323-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
       }
       body {
         margin: 0;
@@ -63,50 +65,35 @@
         background: #ffffff;
         transition: width 0.3s ease;
       }
-      #quote-info {
-        position: fixed;
-        top: 20px;
-        left: 20px;
+      #score-overlay {
+        position: absolute;
         color: white;
-        font-family: "Heming", monospace;
-        font-size: 14px;
-        z-index: 100;
-        background: rgba(0, 0, 0, 0.7);
+        font-family: "Pixel", monospace;
+        padding: 5px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 3px;
+        pointer-events: none; /* Allows mouse events to pass through */
+        display: none; /* Hide by default */
+        z-index: 100; /* Ensure it's above the canvas */
+        transform: translate(-50%, -100%); /* Position above the cursor */
+      }
+      #focus-info-overlay {
+        position: absolute;
+        color: white;
+        font-family: "Pixel", monospace;
         padding: 15px;
-        border-radius: 8px;
-        max-width: 400px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 3px;
+        pointer-events: none;
         display: none;
-      }
-      #quote-info h3 {
-        margin: 0 0 10px 0;
-        font-size: 16px;
-        color: #ffffff;
-      }
-      #quote-info p {
-        margin: 5px 0;
-        color: #cccccc;
-      }
-      #quote-info .bottom-line {
-        color: #ffaa00;
-        font-weight: bold;
-      }
-      #refresh-button {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 10px 15px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-family: "Heming", monospace;
-        font-size: 14px;
         z-index: 100;
-        transition: background 0.3s ease;
-      }
-      #refresh-button:hover {
-        background: rgba(255, 255, 255, 0.3);
+        /* Position at the bottom, aligned to the right */
+        bottom: 20px;
+        right: 20px;
+        left: unset; /* Ensure it's not affected by a left property */
+        transform: none; /* Remove the horizontal centering transform */
+        white-space: pre-line;
+        line-height: 1.5;
       }
 
       /* Floating Eye Styles */
@@ -144,7 +131,7 @@
         border: 2px solid rgba(255, 255, 255, 0.8);
         border-radius: 8px;
         font-family: "VT323", monospace;
-        font-size: 18px;
+        font-size: 26px;
         width: 350px;
         height: 200px;
         z-index: 1000;
@@ -203,12 +190,10 @@
         opacity: 0;
         transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         animation: arrow-bounce 2s ease-in-out infinite;
-        display: none; /* Hidden by default */
       }
 
       #pixel-arrow-indicator.show {
         opacity: 0.7;
-        display: block; /* Show when needed */
       }
 
       #pixel-arrow-indicator img {
@@ -234,7 +219,7 @@
         transform: translateX(-50%);
         color: #ffffff;
         font-family: "VT323", monospace;
-        font-size: 24px;
+        font-size: 32px;
         font-weight: bold;
         text-align: center;
         opacity: 0;
@@ -254,7 +239,7 @@
         background: #fff;
         border-radius: 32px;
         box-shadow: 0 2px 16px #0003;
-        font-size: 20px;
+        font-size: 28px;
         font-family: "VT323", monospace, sans-serif;
         color: #888;
         border: none;
@@ -311,7 +296,7 @@
         left: 30%;
         top: 55%;
         transform: translate(-50%, -50%);
-        font-size: 20px;
+        font-size: 28px;
         font-family: "VT323", monospace, sans-serif;
         color: #888;
         background: none;
@@ -319,7 +304,7 @@
         text-align: center;
         pointer-events: none;
         width: 180px;
-        line-height: 1.2;
+        line-height: 0.9;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -782,13 +767,8 @@
       </div>
     </div>
     <div id="visualization"></div>
-    <div id="quote-info">
-      <h3 id="quote-title"></h3>
-      <p class="bottom-line" id="quote-bottom-line"></p>
-      <p id="quote-origin"></p>
-      <p id="quote-images-count"></p>
-    </div>
-    <button id="refresh-button" onclick="refreshGallery()">New Quote</button>
+    <div id="score-overlay"></div>
+    <div id="focus-info-overlay"></div>
 
     <!-- Floating Eye -->
     <div id="floating-eye">
@@ -801,9 +781,8 @@
 
     <!-- Tooltip -->
     <div id="eye-tooltip">
-      Here is the Hashtag Gallery View. Navigate through the interconnected
-      network of images and discover hidden connections between different pieces
-      of junk.
+      Here is the Temperament View. Explore the emotional landscape of junk
+      through temperament scores.
     </div>
 
     <!-- Pixel Arrow Indicator -->
@@ -825,23 +804,49 @@
       />
       <div id="upload-hand-btn-text">Upload<br />junk</div>
     </button>
+
+    <!-- Chatbot Backdrop -->
+    <div id="chatbot-backdrop" class="chatbot-backdrop"></div>
+
+    <!-- Chatbot Upload Interface -->
+    <div id="chatbot-container" class="chatbot-container">
+      <button class="close-btn" onclick="closeChatbot()">×</button>
+      <div class="chatbot-header">Junk Upload Bot</div>
+      <div class="chatbot-messages" id="chatbot-messages">
+        <!-- Messages will be added here dynamically -->
+      </div>
+      <div class="chatbot-input-area" id="chatbot-input-area">
+        <div class="persistent-input">
+          <button id="persistent-back-btn" disabled>Back</button>
+          <input
+            type="text"
+            id="persistent-text-input"
+            placeholder="Type your message..."
+            disabled
+          />
+          <div class="persistent-input-actions">
+            <button id="persistent-send-btn" disabled>Send</button>
+            <button id="persistent-skip-btn" disabled>Skip</button>
+            <button id="persistent-finish-btn" disabled>Finish</button>
+          </div>
+        </div>
+        <div id="dynamic-input-container">
+          <!-- Dynamic input elements will be added here -->
+        </div>
+      </div>
+    </div>
     <script>
       let scene, camera, renderer, controls;
+      let imageSprites = [];
+      let raycaster, mouse;
+      let selectedSprite = null;
       let composer;
       let particles;
-      let curvedText; // 3D curved text object
-      let wallRadius = 55; // Shared radius for both image and text walls
-      // Animation state for camera rotation
-      let isRotating = false;
-      let rotationStart = 0;
-      let rotationDuration = 3000; // ms
-      let initialAngle = 0;
-      let targetAngle = -Math.PI / 2; // 90 degrees to the left
-      let cameraRadius = 125; // Default, will be set after images are loaded
-      let cameraY = 0; // Default, will be set after images are loaded
-      let raycaster, mouse;
-      let quoteConnections = {}; // Store the quote connections data
-      let currentQuoteData = null; // Store current quote data
+      let focusedSprite = null;
+      let isTransitioning = false;
+      let originalCameraPosition = null;
+      let originalSpritePositions = new Map();
+      let originalSpriteScales = new Map();
 
       // Separate variables for rings
       let ringsScene, ringsCamera, ringsRenderer;
@@ -863,10 +868,26 @@
       let eyeLabelGroups = [];
       let ringsRaycaster, ringsMouse;
 
-      // Easing function for even smoother animation (quartic)
-      function easeInOutQuart(t) {
-        return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
-      }
+      // Chatbot state
+      let chatbotState = {
+        currentQuestion: 0,
+        answers: {},
+        isTyping: false,
+      };
+
+      // Organic Floating Eye Animation
+      let eyeX = 100;
+      let eyeY = 100;
+      let eyeTargetX = 100;
+      let eyeTargetY = 100;
+      let eyeSpeed = 0.008; // Much slower movement
+      let lastEyeMoveTime = 0;
+      let eyeMoveInterval = 8000; // Longer intervals between movements
+      let eyeIsHovered = false;
+      let eyeDriftX = 0;
+      let eyeDriftY = 0;
+      let eyeDriftSpeed = 0.001; // Very slow drift
+      let eyeDriftAmplitude = 15; // Small drift amplitude
 
       function init() {
         // Create scene
@@ -1022,35 +1043,35 @@
             darkness: { value: 1.0 },
           },
           vertexShader: `
-                    varying vec2 vUv;
-                    void main() {
-                        vUv = uv;
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    }
-                `,
+                          varying vec2 vUv;
+                          void main() {
+                              vUv = uv;
+                              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                          }
+                      `,
           fragmentShader: `
-                    uniform sampler2D tDiffuse;
-                    uniform float offset;
-                    uniform float darkness;
-                    varying vec2 vUv;
+                          uniform sampler2D tDiffuse;
+                          uniform float offset;
+                          uniform float darkness;
+                          varying vec2 vUv;
 
-                    void main() {
-                        vec2 uv = vUv;
-                        vec4 color = texture2D(tDiffuse, uv);
+                          void main() {
+                              vec2 uv = vUv;
+                              vec4 color = texture2D(tDiffuse, uv);
 
-                        // Calculate distance from center
-                        vec2 center = vec2(0.5, 0.5);
-                        float dist = distance(uv, center);
+                              // Calculate distance from center
+                              vec2 center = vec2(0.5, 0.5);
+                              float dist = distance(uv, center);
 
-                        // Create vignette effect
-                        float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                              // Create vignette effect
+                              float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
 
-                        // Apply vignette
-                        color.rgb *= vignette;
+                              // Apply vignette
+                              color.rgb *= vignette;
 
-                        gl_FragColor = color;
-                    }
-                `,
+                              gl_FragColor = color;
+                          }
+                      `,
         };
 
         const vignettePass = new THREE.ShaderPass(vignetteShader);
@@ -1063,355 +1084,59 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        // Limit controls to only zoom and horizontal rotation
-        controls.enablePan = false; // Disable panning
-        controls.minPolarAngle = Math.PI / 2; // Lock vertical angle to horizontal
-        controls.maxPolarAngle = Math.PI / 2; // Lock vertical angle to horizontal
-        controls.enableZoom = true; // Keep zoom enabled
-        controls.enableRotate = true; // Keep rotation enabled
+        // Initialize raycaster for mouse interaction
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        // Add double click handler for focus mode
+        renderer.domElement.addEventListener("dblclick", (event) => {
+          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObjects(imageSprites);
+
+          if (intersects.length > 0) {
+            const clickedSprite = intersects[0].object;
+            if (focusedSprite === clickedSprite) {
+              // Exit focus mode
+              exitFocusMode();
+            } else {
+              // Enter focus mode
+              enterFocusMode(clickedSprite);
+            }
+          }
+        });
+
+        // Add click handler to exit focus mode when clicking outside images
+        renderer.domElement.addEventListener("click", (event) => {
+          if (!focusedSprite) return;
+
+          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+          raycaster.setFromCamera(mouse, camera);
+          const intersects = raycaster.intersectObjects(imageSprites);
+
+          if (intersects.length === 0) {
+            exitFocusMode();
+          }
+        });
+
+        // Add Esc key handler to exit focus mode
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && focusedSprite) {
+            exitFocusMode();
+          }
+        });
 
         // Add ambient light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
         scene.add(ambientLight);
 
-        // Create wireframe grid for walls and floor
-        createWireframeGrid();
+        // Handle window resize
+        window.addEventListener("resize", onWindowResize, false);
 
         // Initialize rings
         initRings();
-
-        // Handle window resize
-        window.addEventListener("resize", onWindowResize, false);
-      }
-
-      function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setSize(window.innerWidth, window.innerHeight);
-      }
-
-      function animate() {
-        requestAnimationFrame(animate);
-
-        // Animate camera position in a circular arc if needed
-        if (isRotating) {
-          const now = performance.now();
-          const elapsed = now - rotationStart;
-          if (elapsed < rotationDuration) {
-            const t = elapsed / rotationDuration;
-            const easedT = easeInOutQuart(t);
-            const angle = initialAngle + (targetAngle - initialAngle) * easedT;
-            camera.position.x = cameraRadius * Math.sin(angle);
-            camera.position.z = cameraRadius * Math.cos(angle);
-            camera.position.y = cameraY;
-            camera.lookAt(0, cameraY, 0);
-          } else {
-            camera.position.x = cameraRadius * Math.sin(targetAngle);
-            camera.position.z = cameraRadius * Math.cos(targetAngle);
-            camera.position.y = cameraY;
-            camera.lookAt(0, cameraY, 0);
-            isRotating = false;
-          }
-        }
-
-        // Animate particles
-        if (particles) {
-          const positions = particles.geometry.attributes.position.array;
-          const speeds = particles.userData.speeds;
-          const opacities = particles.userData.opacities;
-
-          for (let i = 0; i < positions.length; i += 3) {
-            // Move particles in a circular motion
-            const speed = speeds[i / 3];
-            const time = Date.now() * 0.001 * speed;
-
-            positions[i] += Math.sin(time) * 0.01;
-            positions[i + 1] += Math.cos(time) * 0.01;
-            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
-
-            // Check if particle is in front of images (z > 0)
-            const z = positions[i + 2];
-            opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
-          }
-
-          particles.geometry.attributes.position.needsUpdate = true;
-          particles.material.opacity = 0.3; // Base opacity
-        }
-
-        // Animate rings - natural slow rotation when not dragging
-        if (rings && !ringsRotation.isDragging) {
-          // Very slow, natural rotation
-          rings.rotation.x += 0.0005; // Reduced from 0.0003
-          rings.rotation.y += 0.0008; // Reduced from 0.0006
-        }
-
-        controls.update();
-        composer.render();
-        ringsRenderer.render(ringsScene, ringsCamera);
-      }
-
-      function updateLoadingUI(progress) {
-        const progressBar = document.getElementById("loading-progress");
-        const loadingText = document.getElementById("loading-text");
-
-        if (progressBar && loadingText) {
-          progressBar.style.width = `${progress}%`;
-          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
-        }
-      }
-
-      function addImageWall(imageList) {
-        const numImages = imageList.length;
-        const arcAngle = Math.PI * 1.22; // 220 degrees
-        let radius = wallRadius; // Use shared wall radius
-        const yCenter = 8; // Moved images higher
-        const fixedHeight = 18; // All images have this height
-        const zOffset = 0;
-
-        console.log("Adding image wall with", numImages, "images:", imageList);
-
-        // Remove previous images if any
-        clearPreviousImages();
-
-        // Helper to load image and return a promise with aspect ratio
-        function loadImageAspect(imageName) {
-          return new Promise((resolve) => {
-            const img = new window.Image();
-
-            // Try different file extensions
-            const extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
-            let currentExtensionIndex = 0;
-
-            function tryNextExtension() {
-              if (currentExtensionIndex >= extensions.length) {
-                console.warn(`Could not load image: ${imageName}`);
-                // Return a fallback with default aspect ratio
-                resolve({ url: "", aspect: 1.5, success: false });
-                return;
-              }
-
-              const extension = extensions[currentExtensionIndex];
-              // Add cache-busting parameter to prevent browser caching
-              const cacheBuster = Date.now() + Math.random();
-              const url = `../../images/${imageName}${extension}?cb=${cacheBuster}`;
-
-              img.onload = function () {
-                console.log(`Successfully loaded: ${url}`);
-                resolve({
-                  url,
-                  aspect: img.naturalWidth / img.naturalHeight,
-                  success: true,
-                });
-              };
-
-              img.onerror = function () {
-                console.log(`Failed to load: ${url}`);
-                currentExtensionIndex++;
-                tryNextExtension();
-              };
-
-              img.src = url;
-            }
-
-            tryNextExtension();
-          });
-        }
-
-        // Load all images to get aspect ratios
-        Promise.all(imageList.map((img) => loadImageAspect(`${img}`))).then(
-          (imagesWithAspect) => {
-            console.log(
-              "Successfully loaded images:",
-              imagesWithAspect.filter((img) => img.success).length,
-              "out of",
-              imageList.length
-            );
-
-            // Filter out images that failed to load
-            const validImages = imagesWithAspect.filter((img) => img.success);
-
-            if (validImages.length === 0) {
-              console.error("No images loaded successfully!");
-              // Create a fallback wall with placeholder
-              createFallbackWall();
-              return;
-            }
-
-            // Calculate total arc length needed (sum of widths + gaps)
-            const gap = 3; // Gap between images (in world units)
-            const widths = validImages.map((img) => img.aspect * fixedHeight);
-            const totalWidth =
-              widths.reduce((a, b) => a + b, 0) +
-              gap * (validImages.length - 1);
-            const arcLength = radius * arcAngle;
-            // If totalWidth > arcLength, increase radius
-            let usedRadius = radius;
-            if (totalWidth > arcLength) {
-              usedRadius = totalWidth / arcAngle;
-            }
-
-            console.log("Placing", validImages.length, "images on wall");
-
-            // Place images along the arc, centered
-            // Calculate total width of all images plus gaps
-            const totalImagesWidth =
-              widths.reduce((a, b) => a + b, 0) +
-              gap * (validImages.length - 1);
-
-            // Calculate the starting arc position to center the images
-            const availableArcLength = usedRadius * arcAngle;
-            const startArc =
-              -arcAngle / 2 +
-              (availableArcLength - totalImagesWidth) / (2 * usedRadius);
-
-            let currentArc = startArc;
-            for (let i = 0; i < validImages.length; i++) {
-              const width = widths[i];
-              const angle = currentArc + width / (2 * usedRadius); // Center of this image
-              const x = usedRadius * Math.cos(angle);
-              const z = usedRadius * Math.sin(angle);
-
-              console.log(
-                `Placing image ${i + 1} at position (${x.toFixed(
-                  2
-                )}, ${yCenter}, ${z.toFixed(2)})`
-              );
-
-              // Texture loader
-              const texture = new THREE.TextureLoader().load(
-                validImages[i].url,
-                function (texture) {
-                  console.log(`Texture loaded successfully for image ${i + 1}`);
-                },
-                undefined,
-                function (error) {
-                  console.error(
-                    `Failed to load texture for image ${i + 1}:`,
-                    error
-                  );
-                }
-              );
-              const material = new THREE.MeshBasicMaterial({
-                map: texture,
-                side: THREE.DoubleSide,
-              });
-              const geometry = new THREE.PlaneGeometry(width, fixedHeight);
-              const plane = new THREE.Mesh(geometry, material);
-              plane.position.set(x, yCenter, zOffset + z);
-              plane.lookAt(0, yCenter, 0); // Face the center
-              scene.add(plane);
-              scene.userData.imagePlanes.push(plane);
-
-              // Move to next position (arc advances by width + gap)
-              currentArc += (width + gap) / usedRadius;
-            }
-            // Set camera in front of the images, facing the center, and store radius/y for animation
-            wallRadius = usedRadius; // Update global wall radius for text
-            cameraRadius = usedRadius + 40; // More zoomed in (reduced from 70)
-            cameraY = yCenter;
-            camera.position.set(0, yCenter, cameraRadius);
-            camera.lookAt(0, yCenter, 0);
-
-            console.log(
-              "Image wall setup complete. Camera positioned at:",
-              camera.position
-            );
-          }
-        );
-      }
-
-      // Function to properly clear previous images and textures
-      function clearPreviousImages() {
-        if (scene.userData.imagePlanes) {
-          scene.userData.imagePlanes.forEach((plane) => {
-            // Dispose of geometry
-            if (plane.geometry) {
-              plane.geometry.dispose();
-            }
-            // Dispose of material and texture
-            if (plane.material) {
-              if (plane.material.map) {
-                plane.material.map.dispose();
-              }
-              plane.material.dispose();
-            }
-            // Remove from scene
-            scene.remove(plane);
-          });
-        }
-        scene.userData.imagePlanes = [];
-        console.log("Cleared previous images");
-      }
-
-      // Create wireframe grid for walls and floor
-      function createWireframeGrid() {
-        // Wall wireframe removed - only floor remains
-
-        // Define variables needed for floor grid
-        const gridRadius = wallRadius + 15; // Larger radius for grid to be well behind images
-        const height = 25; // Height of the wall grid
-
-        // Create floor wireframe (full circle)
-        const floorGeometry = new THREE.BufferGeometry();
-        const floorVertices = [];
-        const floorIndices = [];
-
-        // Create a full circular grid for the floor
-        const floorRadius = gridRadius; // Match the wall grid radius for alignment
-        const floorSegments = 32; // Number of segments around the full circle
-        const radialSegments = 8; // Number of radial lines
-        const y = -height; // Floor height - moved lower
-
-        // Generate vertices for full circular floor grid
-        for (let i = 0; i <= radialSegments; i++) {
-          for (let j = 0; j <= floorSegments; j++) {
-            const angle = (2 * Math.PI * j) / floorSegments; // Full 360 degrees
-            const currentRadius = (floorRadius * i) / radialSegments;
-            const x = currentRadius * Math.cos(angle);
-            const z = currentRadius * Math.sin(angle);
-            floorVertices.push(x, y, z);
-          }
-        }
-
-        // Generate indices for rounded floor grid
-        for (let i = 0; i < radialSegments; i++) {
-          for (let j = 0; j < floorSegments; j++) {
-            const a = i * (floorSegments + 1) + j;
-            const b = a + 1;
-            const c = (i + 1) * (floorSegments + 1) + j;
-            const d = c + 1;
-
-            // Radial lines (from center outward)
-            floorIndices.push(a, c);
-            floorIndices.push(b, d);
-
-            // Arc lines (around the circle)
-            floorIndices.push(a, b);
-            floorIndices.push(c, d);
-          }
-        }
-
-        floorGeometry.setAttribute(
-          "position",
-          new THREE.Float32BufferAttribute(floorVertices, 3)
-        );
-        floorGeometry.setIndex(floorIndices);
-
-        const floorMaterial = new THREE.LineBasicMaterial({
-          color: 0xffffff,
-          transparent: true,
-          opacity: 0.4, // Increased opacity for more weight
-          linewidth: 2, // Increased line width for more weight
-          depthWrite: false, // Don't write to depth buffer
-          depthTest: false, // Don't test depth - always render behind
-        });
-        const floorWireframe = new THREE.LineSegments(
-          floorGeometry,
-          floorMaterial
-        );
-        floorWireframe.renderOrder = -999; // Render very first (behind everything)
-        scene.add(floorWireframe);
       }
 
       function createEyeSprite(imagePath) {
@@ -1743,21 +1468,19 @@
           // Navigation logic
           switch (eyeId) {
             case "eye-temperament":
-              window.location.href = "../../views/temperament/temperament.html";
+              // Already on temperament page
               break;
             case "eye-secret":
-              window.location.href =
-                "../../views/hashtag_gallery/hashtag_gallery.html";
+              window.location.href = "../hashtag_gallery/hashtag_gallery.html";
               break;
             case "eye-intimacy":
-              window.location.href = "../../views/intimacy/Intimacy.html";
+              window.location.href = "../intimacy/Intimacy.html";
               break;
             case "eye-completeness":
-              window.location.href =
-                "../../views/Completeness/Completeness.html";
+              window.location.href = "../Completeness/Completeness.html";
               break;
             case "eye-artist":
-              window.location.href = "../../views/Artists/Artist.html";
+              window.location.href = "../Artists/Artist.html";
               break;
             case "eye-rhizome":
               window.location.href = "../../index.html";
@@ -1769,343 +1492,162 @@
         }
       }
 
-      // Create a fallback wall if no images load
-      function createFallbackWall() {
-        console.log("Creating fallback wall");
-        const fallbackGeometry = new THREE.PlaneGeometry(20, 15);
-        const fallbackMaterial = new THREE.MeshBasicMaterial({
-          color: 0x444444,
-          side: THREE.DoubleSide,
+      // Organic Floating Eye Animation
+      function initFloatingEye() {
+        console.log("Initializing floating eye...");
+        const eye = document.getElementById("floating-eye");
+        const tooltip = document.getElementById("eye-tooltip");
+
+        console.log("Eye element:", eye);
+        console.log("Tooltip element:", tooltip);
+
+        if (!eye || !tooltip) {
+          console.error("Missing elements!");
+          return;
+        }
+
+        // Set up hover events
+        eye.addEventListener("mouseenter", () => {
+          console.log("Eye hovered!");
+          eyeIsHovered = true;
+          tooltip.classList.add("show");
         });
-        const fallbackPlane = new THREE.Mesh(
-          fallbackGeometry,
-          fallbackMaterial
+
+        eye.addEventListener("mouseleave", () => {
+          console.log("Eye unhovered!");
+          eyeIsHovered = false;
+          tooltip.classList.remove("show");
+        });
+
+        // Update tooltip position
+        eye.addEventListener("mousemove", (e) => {
+          const rect = eye.getBoundingClientRect();
+          const eyeCenterX = rect.left + rect.width / 2;
+          const screenCenterX = window.innerWidth / 2;
+
+          // Determine if eye is on left or right side of screen
+          if (eyeCenterX < screenCenterX) {
+            // Eye is on left side - show tooltip on the right
+            tooltip.style.left = rect.right + 10 + "px";
+            tooltip.style.transform = "translateX(0)"; // Reset transform
+          } else {
+            // Eye is on right side - show tooltip on the left
+            tooltip.style.left = rect.left - 10 + "px";
+            tooltip.style.transform = "translateX(-100%)"; // Move tooltip to the left of the eye
+          }
+
+          tooltip.style.top = rect.top - 10 + "px";
+        });
+
+        // Set initial position
+        eye.style.left = eyeX + "px";
+        eye.style.top = eyeY + "px";
+
+        // Show the floating eye after initialization
+        eye.style.display = "block";
+
+        console.log("Eye positioned at:", eyeX, eyeY);
+        console.log("Eye should be visible now!");
+      }
+
+      function updateFloatingEye() {
+        const eye = document.getElementById("floating-eye");
+        if (!eye || eye.style.display === "none") return;
+
+        // Don't move if hovered
+        if (eyeIsHovered) return;
+
+        const now = Date.now();
+        const time = now * 0.001; // Convert to seconds
+
+        // Change target position periodically with more organic timing
+        if (now - lastEyeMoveTime > eyeMoveInterval) {
+          const margin = 150;
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
+
+          // Create perimeter-based movement - prefer edges and corners
+          const perimeterChoice = Math.random();
+
+          if (perimeterChoice < 0.4) {
+            // Top edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = margin + Math.random() * 50;
+          } else if (perimeterChoice < 0.7) {
+            // Bottom edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = screenHeight - margin - Math.random() * 50;
+          } else if (perimeterChoice < 0.85) {
+            // Left edge
+            eyeTargetX = margin + Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          } else {
+            // Right edge
+            eyeTargetX = screenWidth - margin - Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          }
+
+          lastEyeMoveTime = now;
+        }
+
+        // Add subtle organic drift using sine waves
+        eyeDriftX = Math.sin(time * eyeDriftSpeed) * eyeDriftAmplitude;
+        eyeDriftY =
+          Math.cos(time * eyeDriftSpeed * 0.7) * eyeDriftAmplitude * 0.8;
+
+        // Smooth movement towards target with easing
+        const dx = eyeTargetX - eyeX;
+        const dy = eyeTargetY - eyeY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate distance from center to avoid it
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const distanceFromCenter = Math.sqrt(
+          (eyeX - centerX) ** 2 + (eyeY - centerY) ** 2
         );
-        fallbackPlane.position.set(0, 0, 0);
-        scene.add(fallbackPlane);
-        scene.userData.imagePlanes = [fallbackPlane];
+        const centerAvoidanceRadius =
+          Math.min(window.innerWidth, window.innerHeight) * 0.4; // Increased from 0.25 to 0.4
 
-        // Set camera position
-        cameraRadius = 30; // More zoomed in for fallback
-        cameraY = 0;
-        camera.position.set(0, 0, cameraRadius);
-        camera.lookAt(0, 0, 0);
-      }
-
-      // Load quote connections and select a random quote
-      function loadQuoteConnections() {
-        return fetch("quote_to_images_connections.json")
-          .then((response) => response.json())
-          .then((data) => {
-            quoteConnections = data;
-            console.log(
-              "Loaded quote connections:",
-              Object.keys(data).length,
-              "quotes"
-            );
-            return selectRandomQuote();
-          })
-          .catch((err) => {
-            console.error("Failed to load quote connections", err);
-            return null;
-          });
-      }
-
-      // Select a random quote from the connections
-      function selectRandomQuote() {
-        const quotes = Object.keys(quoteConnections);
-        if (quotes.length === 0) return null;
-
-        // Filter quotes to only include those with 5 or more images
-        const validQuotes = quotes.filter((quote) => {
-          const quoteData = quoteConnections[quote];
-          return (
-            quoteData.matching_images && quoteData.matching_images.length >= 5
+        // Add center avoidance force
+        let avoidanceX = 0;
+        let avoidanceY = 0;
+        if (distanceFromCenter < centerAvoidanceRadius) {
+          const avoidanceStrength = 0.05; // Increased from 0.02 to 0.05
+          const centerDx = eyeX - centerX;
+          const centerDy = eyeY - centerY;
+          const centerDistance = Math.sqrt(
+            centerDx * centerDx + centerDy * centerDy
           );
-        });
-
-        if (validQuotes.length === 0) {
-          console.log("No quotes found with 5 or more images");
-          return null;
+          if (centerDistance > 0) {
+            // Stronger avoidance when closer to center
+            const avoidanceMultiplier =
+              1 + (1 - distanceFromCenter / centerAvoidanceRadius);
+            avoidanceX =
+              (centerDx / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+            avoidanceY =
+              (centerDy / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+          }
         }
 
-        const randomQuote =
-          validQuotes[Math.floor(Math.random() * validQuotes.length)];
-        currentQuoteData = quoteConnections[randomQuote];
-        console.log("Selected quote:", currentQuoteData.quote);
-        console.log("Matching images:", currentQuoteData.matching_images);
-        console.log(
-          "Number of images:",
-          currentQuoteData.matching_images.length
-        );
-        return currentQuoteData;
+        // Slower movement when closer to target (easing)
+        const currentSpeed = eyeSpeed * (0.5 + (distance / 200) * 0.5);
+
+        eyeX += dx * currentSpeed + avoidanceX;
+        eyeY += dy * currentSpeed + avoidanceY;
+
+        // Add drift to final position
+        const finalX = eyeX + eyeDriftX;
+        const finalY = eyeY + eyeDriftY;
+
+        // Update position
+        eye.style.left = finalX + "px";
+        eye.style.top = finalY + "px";
       }
-
-      // Update quote info display
-      function updateQuoteInfo() {
-        if (!currentQuoteData) return;
-
-        const quoteInfo = document.getElementById("quote-info");
-        const quoteTitle = document.getElementById("quote-title");
-        const quoteBottomLine = document.getElementById("quote-bottom-line");
-        const quoteOrigin = document.getElementById("quote-origin");
-        const quoteImagesCount = document.getElementById("quote-images-count");
-
-        // Format quote text (replace underscores with spaces)
-        const formattedQuote = currentQuoteData.quote.replace(/_/g, " ");
-
-        quoteTitle.textContent = formattedQuote;
-        quoteBottomLine.textContent = currentQuoteData.bottom_line;
-        quoteOrigin.textContent = currentQuoteData.origin;
-        quoteImagesCount.textContent = `${currentQuoteData.num_images} semantically connected images`;
-
-        // Show the quote info
-        quoteInfo.style.display = "block";
-      }
-
-      // Create curved 3D text wrapped around the cylinder
-      function createCurvedText(text) {
-        // Remove existing curved text if any
-        if (curvedText) {
-          scene.remove(curvedText);
-        }
-
-        // Create canvas for text
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        canvas.width = 5000;
-        canvas.height = 300;
-
-        // Set text style (smaller font)
-        context.fillStyle = "white";
-        context.font = "bold 200px Heming, monospace";
-        context.textAlign = "center";
-        context.textBaseline = "middle";
-
-        // Draw text on canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillText(text, canvas.width / 2, canvas.height / 2);
-
-        // Create texture from canvas (flip Y to fix mirroring)
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.needsUpdate = true;
-        texture.center = new THREE.Vector2(0.5, 0.5);
-        texture.rotation = Math.PI; // Flip vertically
-        texture.flipY = false;
-
-        // Create curved geometry
-        const radius = wallRadius; // Use shared wall radius
-        const arcAngle = Math.PI * 0.61; // Half of the semi-cylinder (about 110 degrees)
-        const height = 8; // Increased height for larger text
-        const segments = 128;
-
-        const geometry = new THREE.PlaneGeometry(
-          arcAngle * radius * 1.5,
-          height,
-          segments,
-          1
-        );
-        const material = new THREE.MeshBasicMaterial({
-          map: texture,
-          transparent: true,
-          side: THREE.DoubleSide,
-        });
-
-        // Create mesh
-        curvedText = new THREE.Mesh(geometry, material);
-
-        // Position and curve the text
-        curvedText.position.set(0, 32, 0); // Above the images - moved even higher
-        curvedText.rotation.y = Math.PI / 2; // Face outward
-
-        // Apply curvature by bending the geometry
-        const positions = geometry.attributes.position.array;
-        for (let i = 0; i < positions.length; i += 3) {
-          const x = positions[i];
-          const y = positions[i + 1];
-          const z = positions[i + 2];
-
-          // Calculate angle based on x position
-          const angle = (x / ((arcAngle * radius) / 2)) * (arcAngle / 2);
-
-          // Apply cylindrical transformation
-          positions[i] = radius * Math.sin(angle);
-          positions[i + 1] = y;
-          positions[i + 2] = radius * Math.cos(angle);
-        }
-
-        geometry.attributes.position.needsUpdate = true;
-        geometry.computeVertexNormals();
-
-        // Add to scene
-        scene.add(curvedText);
-      }
-
-      // Initialize the visualization
-      function startVisualization() {
-        // Ensure loading page is visible
-        document.getElementById("loading-container").style.display = "block";
-        document.getElementById("black-overlay").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "1";
-        document.getElementById("visualization").style.display = "none";
-
-        // Simulate loading progress
-        let progress = 0;
-        const loadingInterval = setInterval(() => {
-          progress += 2;
-          updateLoadingUI(progress);
-
-          if (progress >= 100) {
-            clearInterval(loadingInterval);
-
-            // Load quote connections and initialize
-            loadQuoteConnections().then((quoteData) => {
-              if (quoteData) {
-                // Initialize the scene
-                init();
-
-                // Add image wall with semantically connected images
-                addImageWall(quoteData.matching_images);
-
-                // Create curved text with the quote
-                const formattedQuote = quoteData.quote.replace(/_/g, " ");
-                createCurvedText(formattedQuote);
-
-                // Update quote info display
-                updateQuoteInfo();
-              }
-
-              // Hide loading page and show visualization
-              document.getElementById("loading-container").style.display =
-                "none";
-              document.getElementById("visualization").style.display = "block";
-              document.getElementById("black-overlay").style.opacity = "0";
-              setTimeout(() => {
-                document.getElementById("black-overlay").style.display = "none";
-              }, 500);
-
-              // Start animation
-              animate();
-
-              // Start camera position animation after loading
-              isRotating = true;
-              rotationStart = performance.now();
-              initialAngle = 0;
-            });
-          }
-        }, 50);
-      }
-
-      // Start the visualization when the page loads
-      window.addEventListener("load", startVisualization);
-
-      function refreshGallery() {
-        document.getElementById("loading-container").style.display = "block";
-        document.getElementById("black-overlay").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "1";
-        document.getElementById("visualization").style.display = "none";
-
-        // Clear current images and text without reinitializing the scene
-        clearPreviousImages();
-        if (curvedText) {
-          scene.remove(curvedText);
-          curvedText = null;
-        }
-        currentQuoteData = null;
-
-        // Load new quote connections
-        loadQuoteConnections().then((quoteData) => {
-          if (quoteData) {
-            // Add image wall with semantically connected images (don't reinitialize scene)
-            addImageWall(quoteData.matching_images);
-
-            // Create curved text with the quote
-            const formattedQuote = quoteData.quote.replace(/_/g, " ");
-            createCurvedText(formattedQuote);
-
-            // Update quote info display
-            updateQuoteInfo();
-          }
-
-          // Hide loading page and show visualization
-          document.getElementById("loading-container").style.display = "none";
-          document.getElementById("visualization").style.display = "block";
-          document.getElementById("black-overlay").style.opacity = "0";
-          setTimeout(() => {
-            document.getElementById("black-overlay").style.display = "none";
-          }, 500);
-
-          // Start camera position animation after loading
-          isRotating = true;
-          rotationStart = performance.now();
-          initialAngle = 0;
-        });
-      }
-
-      // Chatbot state
-      let chatbotState = {
-        currentQuestion: 0,
-        answers: {},
-        isTyping: false,
-      };
-
-      // Search bar event listeners
-      document.addEventListener("DOMContentLoaded", function () {
-        const searchBar = document.getElementById("search-bar");
-        let searchTimeout;
-
-        searchBar.addEventListener("input", (event) => {
-          const query = event.target.value.trim();
-
-          // Clear previous timeout
-          if (searchTimeout) {
-            clearTimeout(searchTimeout);
-          }
-
-          // Set new timeout for search (debounce)
-          if (query.length > 0) {
-            searchTimeout = setTimeout(() => {
-              performSearch(query);
-            }, 500); // Wait 500ms after user stops typing
-          }
-        });
-
-        searchBar.addEventListener("keypress", (event) => {
-          if (event.key === "Enter") {
-            const query = event.target.value.trim();
-            if (query.length > 0) {
-              // Clear timeout and perform search immediately
-              if (searchTimeout) {
-                clearTimeout(searchTimeout);
-              }
-              performSearch(query);
-            }
-          }
-        });
-
-        // Add click event listener to upload button
-        const uploadBtn = document.getElementById("upload-hand-btn");
-        if (uploadBtn) {
-          uploadBtn.addEventListener("click", showChatbot);
-        }
-
-        // Close chatbot with Escape key
-        document.addEventListener("keydown", function (e) {
-          if (e.key === "Escape") {
-            closeChatbot();
-          }
-        });
-
-        // Close chatbot when clicking on backdrop
-        const backdrop = document.getElementById("chatbot-backdrop");
-        if (backdrop) {
-          backdrop.addEventListener("click", function (e) {
-            if (e.target === backdrop) {
-              closeChatbot();
-            }
-          });
-        }
-      });
 
       // macOS Dock-like functionality
       function initDockBehavior() {
@@ -2126,8 +1668,7 @@
         searchBar.classList.add("dock-hidden");
         uploadBtn.classList.add("dock-hidden");
 
-        // Don't show pixel arrow indicator initially - wait for loading to complete
-        // The pixel arrow will be shown in startVisualization after loading is done
+        // Pixel arrow indicator will be shown after visualization loads
 
         function showDock() {
           if (!isDockVisible) {
@@ -2198,12 +1739,6 @@
         });
       }
 
-      // Initialize dock behavior when DOM is loaded
-      document.addEventListener("DOMContentLoaded", () => {
-        // Small delay to ensure all elements are properly loaded
-        setTimeout(initDockBehavior, 100);
-      });
-
       // Search functionality
       function performSearch(query) {
         console.log("Searching for:", query);
@@ -2211,130 +1746,6 @@
         // You can implement the actual search logic here
         // For example, navigate to a search results page or filter content
         alert(`Searching for: ${query}`);
-      }
-
-      // Initialize floating eye
-      function initFloatingEye() {
-        console.log("Initializing floating eye...");
-        const eye = document.getElementById("floating-eye");
-        const tooltip = document.getElementById("eye-tooltip");
-
-        console.log("Eye element:", eye);
-        console.log("Tooltip element:", tooltip);
-
-        if (!eye || !tooltip) {
-          console.error("Missing elements!");
-          return;
-        }
-
-        // Set up hover events
-        eye.addEventListener("mouseenter", () => {
-          console.log("Eye hovered!");
-          tooltip.classList.add("show");
-        });
-
-        eye.addEventListener("mouseleave", () => {
-          console.log("Eye unhovered!");
-          tooltip.classList.remove("show");
-        });
-
-        // Update tooltip position
-        eye.addEventListener("mousemove", (e) => {
-          const rect = eye.getBoundingClientRect();
-          const eyeCenterX = rect.left + rect.width / 2;
-          const screenCenterX = window.innerWidth / 2;
-
-          // Determine if eye is on left or right side of screen
-          if (eyeCenterX < screenCenterX) {
-            // Eye is on left side - show tooltip on the right
-            tooltip.style.left = rect.right + 10 + "px";
-            tooltip.style.transform = "translateX(0)"; // Reset transform
-          } else {
-            // Eye is on right side - show tooltip on the left
-            tooltip.style.left = rect.left - 10 + "px";
-            tooltip.style.transform = "translateX(-100%)"; // Move tooltip to the left of the eye
-          }
-
-          tooltip.style.top = rect.top - 10 + "px";
-        });
-
-        // Set initial position
-        eye.style.left = "100px";
-        eye.style.top = "100px";
-
-        // Show the floating eye after initialization
-        eye.style.display = "block";
-
-        console.log("Eye positioned at: 100, 100");
-        console.log("Eye should be visible now!");
-      }
-
-      // Update the startVisualization function to initialize floating eye
-      function startVisualization() {
-        // Ensure loading page is visible
-        document.getElementById("loading-container").style.display = "block";
-        document.getElementById("black-overlay").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "1";
-        document.getElementById("visualization").style.display = "none";
-
-        // Simulate loading progress
-        let progress = 0;
-        const loadingInterval = setInterval(() => {
-          progress += 2;
-          updateLoadingUI(progress);
-
-          if (progress >= 100) {
-            clearInterval(loadingInterval);
-
-            // Load quote connections and initialize
-            loadQuoteConnections().then((quoteData) => {
-              if (quoteData) {
-                // Initialize the scene
-                init();
-
-                // Add image wall with semantically connected images
-                addImageWall(quoteData.matching_images);
-
-                // Create curved text with the quote
-                const formattedQuote = quoteData.quote.replace(/_/g, " ");
-                createCurvedText(formattedQuote);
-
-                // Update quote info display
-                updateQuoteInfo();
-              }
-
-              // Hide loading page and show visualization
-              document.getElementById("loading-container").style.display =
-                "none";
-              document.getElementById("visualization").style.display = "block";
-              document.getElementById("black-overlay").style.opacity = "0";
-              setTimeout(() => {
-                document.getElementById("black-overlay").style.display = "none";
-              }, 500);
-
-              // Start animation
-              animate();
-
-              // Start camera position animation after loading
-              isRotating = true;
-              rotationStart = performance.now();
-              initialAngle = 0;
-
-              // Initialize floating eye after loading
-              console.log("About to initialize floating eye...");
-              initFloatingEye();
-              console.log("Floating eye initialization completed");
-
-              // Show pixel arrow indicator after loading is complete
-              const pixelArrowIndicator = document.getElementById(
-                "pixel-arrow-indicator"
-              );
-              if (pixelArrowIndicator) {
-                pixelArrowIndicator.classList.add("show");
-              }
-            });
-          }
-        }, 50);
       }
 
       // Chatbot functions
@@ -2397,8 +1808,8 @@
         const messageDiv = document.createElement("div");
         messageDiv.className = "message bot";
         messageDiv.innerHTML = `
-                <div class="message-content">${message}</div>
-            `;
+                      <div class="message-content">${message}</div>
+                  `;
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
@@ -2408,10 +1819,33 @@
         const messageDiv = document.createElement("div");
         messageDiv.className = "message user";
         messageDiv.innerHTML = `
-                <div class="message-content">${message}</div>
-            `;
+                      <div class="message-content">${message}</div>
+                  `;
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "message bot";
+        typingDiv.id = "typing-indicator";
+        typingDiv.innerHTML = `
+                      <div class="typing-indicator">
+                          <div class="typing-dot"></div>
+                          <div class="typing-dot"></div>
+                          <div class="typing-dot"></div>
+                      </div>
+                  `;
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        const typingIndicator = document.getElementById("typing-indicator");
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
       }
 
       function enablePersistentInput() {
@@ -2446,43 +1880,636 @@
         }
       }
 
-      function askNextQuestion() {
-        // For now, just close the chatbot after showing the initial messages
-        setTimeout(() => {
-          closeChatbot();
-        }, 3000);
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
       }
+
+      function createImageSprite(imageUrl, position, scores, normalizedScore) {
+        return new Promise((resolve, reject) => {
+          const textureLoader = new THREE.TextureLoader();
+          textureLoader.load(
+            imageUrl,
+            (texture) => {
+              const material = new THREE.SpriteMaterial({ map: texture });
+              const sprite = new THREE.Sprite(material);
+              sprite.position.set(position.x, position.y, position.z);
+
+              // Calculate aspect ratio and maintain original proportions
+              const aspectRatio = texture.image.width / texture.image.height;
+              const baseSize = 5; // Base size for the larger dimension
+              const width = aspectRatio > 1 ? baseSize : baseSize * aspectRatio;
+              const height =
+                aspectRatio > 1 ? baseSize / aspectRatio : baseSize;
+
+              sprite.scale.set(width, height, 1);
+              sprite.userData = {
+                originalScale: { width, height },
+                aspectRatio: aspectRatio,
+                scores: scores,
+              };
+
+              // Calculate sprite dimensions once
+              const spriteWidth = width; // Use the original calculated width of the sprite
+              const spriteHeight = height; // Use the original calculated height of the sprite
+
+              // Create the right square (was glowing line)
+              const lineHeight = height;
+              const lineWidth = width * 0.05; // Make line 5% of image width, will now be square side length
+              const squareSide = lineWidth; // Use lineWidth for the square side length
+              const lineGeometry = new THREE.PlaneGeometry(
+                squareSide,
+                squareSide
+              );
+
+              // Calculate colors based on normalized score (blue to red)
+              const blue = new THREE.Color(0x0000ff); // Blue
+              const red = new THREE.Color(0xff0000); // Red
+              const lineColor = blue.clone().lerp(red, normalizedScore);
+
+              // Create gradient - assign color to vertices
+              const colors = new Float32Array(2 * 3 * 3); // 2 triangles, 3 vertices per triangle, 3 components per color (RGB)
+
+              // Calculate top and bottom colors based on normalized score
+              const bottomColor = blue.clone().lerp(red, normalizedScore); // Blue for low score, Red for high score
+              const topColor = bottomColor
+                .clone()
+                .lerp(new THREE.Color(0xffffff), 0.3); // Blend slightly with white for a brighter top
+
+              // Assign colors to vertices for vertical gradient
+              // The vertices for a PlaneGeometry (width, height) are typically ordered:
+              // 0: bottom-left, 1: top-left, 2: bottom-right, 3: top-right
+              // The triangles are (0, 1, 2) and (2, 1, 3)
+
+              // Triangle 1: (0, 1, 2) -> bottom-left, top-left, bottom-right
+              // Vertex 0 (bottom-left)
+              colors[0] = bottomColor.r;
+              colors[1] = bottomColor.g;
+              colors[2] = bottomColor.b;
+              // Vertex 1 (top-left)
+              colors[3] = topColor.r;
+              colors[4] = topColor.g;
+              colors[5] = topColor.b;
+              // Vertex 2 (bottom-right)
+              colors[6] = bottomColor.r;
+              colors[7] = bottomColor.g;
+              colors[8] = bottomColor.b;
+
+              // Triangle 2: (2, 1, 3) -> bottom-right, top-left, top-right
+              // Vertex 0 (bottom-right)
+              colors[9] = bottomColor.r;
+              colors[10] = bottomColor.g;
+              colors[11] = bottomColor.b;
+              // Vertex 1 (top-left)
+              colors[12] = topColor.r;
+              colors[13] = topColor.g;
+              colors[14] = topColor.b;
+              // Vertex 2 (top-right)
+              colors[15] = topColor.r;
+              colors[16] = topColor.g;
+              colors[17] = topColor.b;
+
+              lineGeometry.setAttribute(
+                "color",
+                new THREE.BufferAttribute(colors, 3)
+              );
+
+              const lineMaterial = new THREE.MeshBasicMaterial({
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.5, // Reduced opacity
+                side: THREE.DoubleSide,
+                depthWrite: false, // Don't write to depth buffer to avoid transparency issues
+                blending: THREE.AdditiveBlending, // Additive blending for glowing effect
+              });
+
+              const lineMesh = new THREE.Mesh(lineGeometry, lineMaterial);
+
+              // Position the square to the right of the image sprite
+              // Position is relative to the parent (the sprite)
+              // Calculate the correct offset based on sprite width and new square width
+              const squareWidth = squareSide; // Use the new side length of the square
+              const offsetXRight = spriteWidth / 2 + squareWidth / 2;
+              lineMesh.position.set(offsetXRight, 0, 0.01); // Use the calculated offset and small z-offset
+
+              // Make the right square a child of the sprite
+              sprite.add(lineMesh);
+
+              // Create the left square
+              const lineMeshLeft = new THREE.Mesh(lineGeometry, lineMaterial);
+
+              // Position the square to the left of the image sprite
+              // Calculate the offset for the left side (negative of the right offset)
+              const offsetXLeft = -offsetXRight; // Negative offset for the left edge
+              lineMeshLeft.position.set(offsetXLeft, 0, 0.01); // Use the calculated offset and small z-offset
+
+              // Make the left square a child of the sprite
+              sprite.add(lineMeshLeft);
+
+              // Create the bottom square
+              const lineMeshBottom = new THREE.Mesh(lineGeometry, lineMaterial);
+
+              // Position the square below the image sprite
+              // Calculate the correct offset based on sprite height and new square height
+              const offsetYBottom = -(spriteHeight / 2) - squareSide / 2;
+              lineMeshBottom.position.set(0, offsetYBottom, 0.01); // Centered horizontally, positioned below
+
+              // Make the bottom square a child of the sprite
+              sprite.add(lineMeshBottom);
+
+              // Create the top square
+              const lineMeshTop = new THREE.Mesh(lineGeometry, lineMaterial);
+
+              // Position the square above the image sprite
+              // Calculate the correct offset based on sprite height and new square height
+              const offsetYTop = spriteHeight / 2 + squareSide / 2;
+              lineMeshTop.position.set(0, offsetYTop, 0.01); // Centered horizontally, positioned above
+
+              // Make the top square a child of the sprite
+              sprite.add(lineMeshTop);
+
+              scene.add(sprite);
+              imageSprites.push(sprite);
+              resolve();
+            },
+            undefined,
+            reject
+          );
+        });
+      }
+
+      function enterFocusMode(sprite) {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        focusedSprite = sprite;
+
+        // Store original positions and scales
+        imageSprites.forEach((s) => {
+          originalSpritePositions.set(s, s.position.clone());
+          originalSpriteScales.set(s, s.scale.clone());
+        });
+
+        // Store original camera position
+        originalCameraPosition = camera.position.clone();
+
+        // Calculate target position (further from center, outside the 3D environment radius)
+        const targetPosition = new THREE.Vector3(0, 0, 120); // Increased z-distance to 120
+
+        // Calculate scale based on aspect ratio to fit screen
+        const aspectRatio = sprite.userData.aspectRatio;
+        const maxWidth = 15; // Maximum width in world units
+        const maxHeight = 15; // Maximum height in world units
+
+        let targetScale;
+        if (aspectRatio > 1) {
+          // Landscape image
+          targetScale = new THREE.Vector3(maxWidth, maxWidth / aspectRatio, 1);
+        } else {
+          // Portrait image
+          targetScale = new THREE.Vector3(
+            maxHeight * aspectRatio,
+            maxHeight,
+            1
+          );
+        }
+
+        // Show focus info overlay
+        const focusInfoOverlay = document.getElementById("focus-info-overlay");
+        focusInfoOverlay.innerHTML = `Artist: @N0N@me
+      Created on: 04-05-19
+      Created in: Subway station
+      Keywords: Melancholic, dramatic, sad, cool, woman, failure`;
+        focusInfoOverlay.style.display = "block";
+
+        // Animate transition
+        const duration = 1000; // 1 second
+        const startTime = Date.now();
+
+        function animateTransition() {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+
+          // Move other sprites away
+          imageSprites.forEach((s) => {
+            if (s !== focusedSprite) {
+              const originalPos = originalSpritePositions.get(s);
+              const targetPos = originalPos.clone().multiplyScalar(2); // Move other sprites further away
+              s.position.lerpVectors(originalPos, targetPos, easeProgress);
+              s.material.opacity = 1 - easeProgress;
+            }
+          });
+
+          // Move focused sprite to center and scale up
+          focusedSprite.position.lerpVectors(
+            originalSpritePositions.get(focusedSprite),
+            targetPosition,
+            easeProgress
+          );
+          focusedSprite.scale.lerpVectors(
+            originalSpriteScales.get(focusedSprite),
+            targetScale,
+            easeProgress
+          );
+
+          // Move camera to follow the focused sprite
+          const cameraTargetPosition = new THREE.Vector3(0, 0, 130); // Camera slightly behind the focused sprite
+          camera.position.lerpVectors(
+            originalCameraPosition,
+            cameraTargetPosition,
+            easeProgress
+          );
+          camera.lookAt(0, 0, 0);
+
+          if (progress < 1) {
+            requestAnimationFrame(animateTransition);
+          } else {
+            isTransitioning = false;
+          }
+        }
+
+        animateTransition();
+      }
+
+      function exitFocusMode() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        // Hide focus info overlay
+        document.getElementById("focus-info-overlay").style.display = "none";
+
+        const duration = 1000; // 1 second
+        const startTime = Date.now();
+
+        function animateTransition() {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          const easeProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+
+          // Restore other sprites
+          imageSprites.forEach((s) => {
+            if (s !== focusedSprite) {
+              const originalPos = originalSpritePositions.get(s);
+              const targetPos = originalPos.clone().multiplyScalar(2);
+              s.position.lerpVectors(targetPos, originalPos, easeProgress);
+              s.material.opacity = easeProgress;
+            }
+          });
+
+          // Restore focused sprite
+          focusedSprite.position.lerpVectors(
+            focusedSprite.position,
+            originalSpritePositions.get(focusedSprite),
+            easeProgress
+          );
+          focusedSprite.scale.lerpVectors(
+            focusedSprite.scale,
+            originalSpriteScales.get(focusedSprite),
+            easeProgress
+          );
+
+          // Restore camera
+          camera.position.lerpVectors(
+            camera.position,
+            originalCameraPosition,
+            easeProgress
+          );
+          camera.lookAt(0, 0, 0);
+
+          if (progress < 1) {
+            requestAnimationFrame(animateTransition);
+          } else {
+            isTransitioning = false;
+            focusedSprite = null;
+            originalSpritePositions.clear();
+            originalSpriteScales.clear();
+            originalCameraPosition = null;
+          }
+        }
+
+        animateTransition();
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Make squares face the camera
+        const cameraQuaternion = camera.quaternion;
+        imageSprites.forEach((sprite) => {
+          // Assuming the first child is the right square and the second is the left
+          // (based on the order they were added in createImageSprite)
+          if (sprite.children.length >= 2) {
+            sprite.children[0].quaternion.copy(cameraQuaternion); // Right square
+            sprite.children[1].quaternion.copy(cameraQuaternion); // Left square
+          }
+        });
+
+        // Animate particles
+        if (particles) {
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = particles.userData.speeds;
+          const opacities = particles.userData.opacities;
+
+          for (let i = 0; i < positions.length; i += 3) {
+            // Move particles in a circular motion
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.01;
+            positions[i + 1] += Math.cos(time) * 0.01;
+            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+            // Check if particle is in front of images (z > 0)
+            const z = positions[i + 2];
+            opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+          particles.material.opacity = 0.3; // Base opacity
+        }
+
+        // Add slow organic jitter to images only when not in focus mode
+        if (!focusedSprite) {
+          const time = Date.now() * 0.001;
+          imageSprites.forEach((sprite) => {
+            if (!sprite.userData.originalPosition) {
+              sprite.userData.originalPosition = {
+                x: sprite.position.x,
+                y: sprite.position.y,
+                z: sprite.position.z,
+              };
+              sprite.userData.speed = 0.5 + Math.random() * 0.5;
+              sprite.userData.offset = Math.random() * Math.PI * 2;
+            }
+
+            const t = time * sprite.userData.speed + sprite.userData.offset;
+            const newX = sprite.userData.originalPosition.x + Math.sin(t) * 0.2;
+            const newY =
+              sprite.userData.originalPosition.y + Math.sin(t * 1.2) * 0.2;
+            const newZ =
+              sprite.userData.originalPosition.z + Math.sin(t * 0.8) * 0.2;
+
+            sprite.position.set(newX, newY, newZ);
+          });
+        }
+
+        // Animate rings - natural slow rotation when not dragging
+        if (rings && !ringsRotation.isDragging) {
+          // Very slow, natural rotation
+          rings.rotation.x += 0.0005; // Reduced from 0.0003
+          rings.rotation.y += 0.0008; // Reduced from 0.0006
+        }
+
+        // Update floating eye
+        updateFloatingEye();
+
+        controls.update();
+        composer.render();
+        ringsRenderer.render(ringsScene, ringsCamera);
+      }
+
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+        }
+      }
+
+      // Function to preload images
+      function preloadImages(data) {
+        const totalImages = Object.keys(data).length;
+        let loadedImages = 0;
+
+        const promises = Object.keys(data).map((filename) => {
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              loadedImages++;
+              const progress = (loadedImages / totalImages) * 50; // First 50% for preloading
+              updateLoadingUI(progress);
+              resolve();
+            };
+            img.onerror = () => reject();
+            img.src = `../../images/${filename}`;
+          });
+        });
+        return Promise.all(promises);
+      }
+
+      // Load the JSON data and create 3D visualization
+      fetch("temperament_scores.json")
+        .then((response) => response.json())
+        .then((data) => {
+          const totalImages = Object.keys(data).length;
+          let createdSprites = 0;
+
+          // Ensure loading page is visible
+          document.getElementById("loading-container").style.display = "block";
+          document.getElementById("black-overlay").style.display = "block";
+          document.getElementById("black-overlay").style.opacity = "1";
+          document.getElementById("visualization").style.display = "none";
+
+          const updateLoadingProgress = () => {
+            createdSprites++;
+            const progress = 50 + (createdSprites / totalImages) * 50; // Second 50% for sprite creation
+            updateLoadingUI(progress);
+          };
+
+          return preloadImages(data)
+            .then(() => {
+              init();
+
+              const dataArray = Object.entries(data).map(
+                ([filename, scores]) => ({
+                  filename,
+                  ...scores,
+                })
+              );
+
+              const maxScore = d3.max(dataArray, (d) => d.temperament_score);
+              const minScore = d3.min(dataArray, (d) => d.temperament_score);
+
+              // Create image sprites in 3D space
+              const createSpritesPromises = dataArray.map((d) => {
+                const normalizedScore =
+                  (d.temperament_score - minScore) / (maxScore - minScore);
+
+                // Spherical coordinates mapping based only on temperament for radius
+                const radius = 80 * (1 - normalizedScore); // Map temperament to radius
+                const theta = Math.random() * Math.PI; // Random inclination (0 to PI)
+                const phi = Math.random() * 2 * Math.PI; // Random azimuthal angle (0 to 2*PI)
+
+                // Convert spherical to Cartesian coordinates
+                const x = radius * Math.sin(theta) * Math.cos(phi);
+                const y = radius * Math.sin(theta) * Math.sin(phi);
+                const z = radius * Math.cos(theta);
+
+                return createImageSprite(
+                  `../../images/${d.filename}`,
+                  { x, y, z },
+                  {
+                    temperament_score: d.temperament_score,
+                    intimacy_score: d.intimacy_score,
+                  },
+                  normalizedScore
+                ).then(() => updateLoadingProgress());
+              });
+
+              return Promise.all(createSpritesPromises);
+            })
+            .then(() => {
+              // Hide loading page and show visualization
+              document.getElementById("loading-container").style.display =
+                "none";
+              document.getElementById("visualization").style.display = "block";
+              document.getElementById("black-overlay").style.opacity = "0";
+              setTimeout(() => {
+                document.getElementById("black-overlay").style.display = "none";
+              }, 500);
+              animate();
+
+              const scoreOverlay = document.getElementById("score-overlay");
+
+              // Add mousemove listener for hover effects
+              renderer.domElement.addEventListener(
+                "mousemove",
+                (event) => {
+                  // Calculate mouse position in normalized device coordinates (-1 to +1)
+                  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                  // Update the raycaster with the camera and mouse position
+                  raycaster.setFromCamera(mouse, camera);
+
+                  // Find intersections with the image sprites
+                  const intersects = raycaster.intersectObjects(imageSprites);
+
+                  if (intersects.length > 0) {
+                    // An image sprite is hovered
+                    const intersectedSprite = intersects[0].object;
+                    const scores = intersectedSprite.userData.scores;
+
+                    // Display the scores
+                    scoreOverlay.textContent = `Temperament: ${scores.temperament_score.toFixed(
+                      2
+                    )}`;
+
+                    // Convert 3D position to 2D screen position
+                    const tempV = new THREE.Vector3().copy(
+                      intersectedSprite.position
+                    );
+                    tempV.project(camera);
+
+                    const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+                    const y = (tempV.y * -0.5 + 0.5) * window.innerHeight;
+
+                    // Position the overlay
+                    scoreOverlay.style.left = `${x}px`;
+                    scoreOverlay.style.top = `${y}px`;
+                    scoreOverlay.style.display = "block";
+                  } else {
+                    // No image sprite is hovered, hide the overlay
+                    scoreOverlay.style.display = "none";
+                  }
+                },
+                false
+              );
+            });
+        })
+        .catch((error) => {
+          console.error("Error loading images:", error);
+          document.getElementById("loading-text").textContent =
+            "Error loading images. Please refresh the page.";
+          document.getElementById("loading-text").style.color = "#ff0000";
+        })
+        .finally(() => {
+          // Initialize floating eye
+          console.log("About to initialize floating eye...");
+          initFloatingEye();
+          console.log("Floating eye initialization completed");
+
+          // Show pixel arrow indicator after visualization is loaded
+          const pixelArrowIndicator = document.getElementById(
+            "pixel-arrow-indicator"
+          );
+          if (pixelArrowIndicator) {
+            pixelArrowIndicator.classList.add("show");
+          }
+
+          // Initialize dock behavior after loading
+          setTimeout(() => {
+            initDockBehavior();
+          }, 100);
+        });
+
+      // Search bar event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        const searchBar = document.getElementById("search-bar");
+        let searchTimeout;
+
+        searchBar.addEventListener("input", (event) => {
+          const query = event.target.value.trim();
+
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          // Set new timeout for search (debounce)
+          if (query.length > 0) {
+            searchTimeout = setTimeout(() => {
+              performSearch(query);
+            }, 500); // Wait 500ms after user stops typing
+          }
+        });
+
+        searchBar.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            const query = event.target.value.trim();
+            if (query.length > 0) {
+              // Clear timeout and perform search immediately
+              if (searchTimeout) {
+                clearTimeout(searchTimeout);
+              }
+              performSearch(query);
+            }
+          }
+        });
+
+        // Add click event listener to upload button
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        if (uploadBtn) {
+          uploadBtn.addEventListener("click", showChatbot);
+        }
+
+        // Close chatbot with Escape key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            closeChatbot();
+          }
+        });
+
+        // Close chatbot when clicking on backdrop
+        const backdrop = document.getElementById("chatbot-backdrop");
+        if (backdrop) {
+          backdrop.addEventListener("click", function (e) {
+            if (e.target === backdrop) {
+              closeChatbot();
+            }
+          });
+        }
+      });
+
+      // Initialize dock behavior when DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        // Small delay to ensure all elements are properly loaded
+        setTimeout(initDockBehavior, 100);
+      });
     </script>
-
-    <!-- Chatbot Backdrop -->
-    <div id="chatbot-backdrop" class="chatbot-backdrop"></div>
-
-    <!-- Chatbot Upload Interface -->
-    <div id="chatbot-container" class="chatbot-container">
-      <button class="close-btn" onclick="closeChatbot()">×</button>
-      <div class="chatbot-header">Junk Upload Bot</div>
-      <div class="chatbot-messages" id="chatbot-messages">
-        <!-- Messages will be added here dynamically -->
-      </div>
-      <div class="chatbot-input-area" id="chatbot-input-area">
-        <div class="persistent-input">
-          <button id="persistent-back-btn" disabled>Back</button>
-          <input
-            type="text"
-            id="persistent-text-input"
-            placeholder="Type your message..."
-            disabled
-          />
-          <div class="persistent-input-actions">
-            <button id="persistent-send-btn" disabled>Send</button>
-            <button id="persistent-skip-btn" disabled>Skip</button>
-            <button id="persistent-finish-btn" disabled>Finish</button>
-          </div>
-        </div>
-        <div id="dynamic-input-container">
-          <!-- Dynamic input elements will be added here -->
-        </div>
-      </div>
-    </div>
   </body>
 </html>
