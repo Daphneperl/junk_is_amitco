@@ -1,517 +1,2928 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>3D Layered Score Circle</title>
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Open question</title>
+    <style>
+      @font-face {
+        font-family: "Pixel";
+        src: url("../../assets/pixel.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "VT323";
+        src: url("../../assets/VT323-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
 
-    #tooltip {
-      position: absolute;
-      background: rgba(0, 0, 0, 0.85);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      pointer-events: none;
-      visibility: hidden;
-      white-space: nowrap;
-      z-index: 10;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    #search-bar {
-      position: fixed;
-      left: 50%;
-      bottom: 3vw;
-      transform: translateX(-50%);
-      width: 420px;
-      max-width: 80vw;
-      min-width: 280px;
-      height: 54px;
-      background: #fff;
-      border-radius: 32px;
-      box-shadow: 0 2px 16px #0003;
-      font-size: 18px;
-      font-family: 'VT323', monospace, sans-serif;
-      color: #888;
-      border: none;
-      outline: none;
-      padding: 0 32px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-  </style>
-</head>
-<body>
-  <div id="tooltip"></div>
-  <!-- Search Bar (fixed) -->
-  <input id="search-bar" type="text" placeholder="I want to see..." />
+      body {
+        margin: 0;
+        background: #111;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+      #black-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+        opacity: 1;
+      }
 
-  <script>
-    // Scene setup
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x111111);
-    document.body.appendChild(renderer.domElement);
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
 
-    // Create noise texture for background
-    const canvas = document.createElement('canvas');
-    canvas.width = 1920;
-    canvas.height = 1080;
-    const ctx = canvas.getContext('2d');
-    
-    // Generate noise
-    const imageData = ctx.createImageData(canvas.width, canvas.height);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const value = Math.random() * 50;
-      data[i] = value;     // R
-      data[i + 1] = value; // G
-      data[i + 2] = value; // B
-      data[i + 3] = 20;    // A
-    }
-    ctx.putImageData(imageData, 0, 0);
-    
-    // Create texture from canvas
-    const noiseTexture = new THREE.CanvasTexture(canvas);
-    noiseTexture.wrapS = THREE.RepeatWrapping;
-    noiseTexture.wrapT = THREE.RepeatWrapping;
-    
-    // Set as background
-    scene.background = noiseTexture;
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
 
-    // Setup post-processing
-    const composer = new THREE.EffectComposer(renderer);
-    const renderPass = new THREE.RenderPass(scene, camera);
-    composer.addPass(renderPass);
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
 
-    // Add vignette effect
-    const vignetteShader = {
-      uniforms: {
-        "tDiffuse": { value: null },
-        "offset": { value: 1.0 },
-        "darkness": { value: 1.0 }
-      },
-      vertexShader: `
+      #tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        pointer-events: none;
+        visibility: hidden;
+        white-space: nowrap;
+        z-index: 10;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      /* Floating Eye Styles */
+      #floating-eye {
+        position: fixed;
+        width: 200px;
+        height: 200px;
+        z-index: 1000;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        pointer-events: auto;
+        display: none;
+        top: 100px;
+        left: 100px;
+        opacity: 0.7;
+      }
+
+      #floating-eye:hover {
+        transform: scale(1.2);
+      }
+
+      #floating-eye img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+      }
+
+      /* Tooltip Styles */
+      #eye-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        font-family: "VT323", monospace;
+        font-size: 26px;
+        width: 350px;
+        height: 200px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        pointer-events: none;
+        text-align: center;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      #eye-tooltip.show {
+        opacity: 0.8;
+        visibility: visible;
+      }
+
+      #rings-container {
+        position: fixed;
+        bottom: -90px;
+        left: -10px;
+        width: 500px;
+        height: 500px;
+        z-index: 2;
+        pointer-events: auto;
+        cursor: grab;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #rings-container:active {
+        cursor: grabbing;
+      }
+
+      #rings-container.dock-visible {
+        bottom: -90px;
+      }
+
+      #rings-container.dock-hidden {
+        bottom: -400px;
+      }
+
+      /* Pixel Arrow Indicator */
+      #pixel-arrow-indicator {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        animation: arrow-bounce 2s ease-in-out infinite;
+      }
+
+      #pixel-arrow-indicator.show {
+        opacity: 0.7;
+      }
+
+      #pixel-arrow-indicator img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
+
+      @keyframes arrow-bounce {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0px);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-8px);
+        }
+      }
+
+      #hover-title {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffffff;
+        font-family: "VT323", monospace;
+        font-size: 32px;
+        font-weight: bold;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 10;
+      }
+
+      #search-bar {
+        position: fixed;
+        left: 50%;
+        bottom: 3vw;
+        transform: translateX(-50%);
+        width: 420px;
+        max-width: 80vw;
+        min-width: 280px;
+        height: 54px;
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 2px 16px #0003;
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        border: none;
+        outline: none;
+        padding: 0 32px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #search-bar.dock-visible {
+        opacity: 1;
+        bottom: 3vw;
+      }
+
+      #search-bar.dock-hidden {
+        opacity: 0;
+        bottom: -200px;
+      }
+
+      /* Upload Button Styles */
+      #upload-hand-btn {
+        position: fixed;
+        right: 2vw;
+        bottom: 2vw;
+        width: 280px;
+        height: 280px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 2100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        flex-direction: unset;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #upload-hand-btn.dock-visible {
+        opacity: 1;
+        bottom: 2vw;
+      }
+
+      #upload-hand-btn.dock-hidden {
+        opacity: 0;
+        bottom: -200px;
+      }
+
+      #upload-hand-btn-text {
+        position: absolute;
+        left: 30%;
+        top: 55%;
+        transform: translate(-50%, -50%);
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        background: none;
+        border: none;
+        text-align: center;
+        pointer-events: none;
+        width: 180px;
+        line-height: 0.9;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.5px;
+      }
+
+      #upload-hand-btn-img {
+        width: 270px;
+        height: 270px;
+        object-fit: contain;
+        display: block;
+        pointer-events: none;
+      }
+
+      /* Chatbot Styles */
+      .chatbot-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 2999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .chatbot-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 95vw;
+        max-width: 800px;
+        height: 80vh;
+        background: #000;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        z-index: 3000;
+        display: none;
+        font-family: "Overpass Mono", monospace;
+        color: #fff;
+      }
+
+      .chatbot-input-area {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #000;
+        border-top: 1px solid #fff;
+        padding: 20px;
+        z-index: 10;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #dynamic-input-container {
+        position: absolute;
+        bottom: 100px;
+        left: 0;
+        right: 0;
+        background: #000;
+        padding: 10px 20px;
+        z-index: 8;
+        min-height: 0;
+      }
+
+      .persistent-input {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input input {
+        flex: 1;
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .persistent-input input:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .persistent-input input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .persistent-input button {
+        padding: 12px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .persistent-input button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .persistent-input button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .chatbot-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        border-bottom: 1px solid #fff;
+        font-family: "VT323", monospace;
+        font-size: 24px;
+        text-align: center;
+        background: #000;
+        z-index: 5;
+      }
+
+      .chatbot-messages {
+        position: absolute;
+        top: 80px;
+        left: 0;
+        right: 0;
+        bottom: 120px;
+        overflow-y: auto;
+        padding: 20px 20px 100px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .message {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .message.bot {
+        align-items: flex-start;
+      }
+
+      .message.user {
+        align-items: flex-end;
+      }
+
+      .message-content {
+        max-width: 80%;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      .message.bot .message-content {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .message.user .message-content {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Add extra space after the last message */
+      .chatbot-messages::after {
+        content: "";
+        height: 40px;
+        flex-shrink: 0;
+      }
+
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        max-width: 80%;
+      }
+
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes typing {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .input-field {
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+      }
+
+      .input-field:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .file-upload-area {
+        border: 2px dashed #fff;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 300px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .upload-icon {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        margin-top: -5px;
+      }
+
+      .file-upload-area:hover .upload-icon {
+        opacity: 1;
+      }
+
+      .file-upload-area:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .file-upload-area.dragover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #fff;
+      }
+
+      .uploaded-image {
+        max-width: 80%;
+        max-height: 120px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .file-upload-text {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        width: 100%;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: flex-end;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 10px;
+      }
+
+      .slider {
+        flex: 1;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
+        min-width: 0;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .tag-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .tag {
+        padding: 6px 12px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tag:hover,
+      .tag.selected {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .summary-screen {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+      }
+
+      .summary-label {
+        font-family: "VT323", monospace;
+        font-size: 16px;
+      }
+
+      .summary-value {
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="black-overlay"></div>
+    <div id="loading-container">
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING... 0%
+      </div>
+    </div>
+    <div id="tooltip"></div>
+
+    <!-- Floating Eye -->
+    <div id="floating-eye">
+      <img
+        src="../../assets/GlitchyEyeGif.gif"
+        alt="Glitchy Eye"
+        style="width: 100%; height: 100%; object-fit: contain"
+      />
+    </div>
+
+    <!-- Tooltip -->
+    <div id="eye-tooltip">
+      Here is the Open Question View. Explore the interconnected network of
+      images and discover hidden connections between different pieces of junk.
+    </div>
+
+    <!-- Pixel Arrow Indicator -->
+    <div id="pixel-arrow-indicator">
+      <img src="../../assets/pixel_arrow.png" alt="Arrow pointing up" />
+    </div>
+
+    <div id="rings-container">
+      <div id="hover-title"></div>
+    </div>
+
+    <!-- Search Bar (fixed) -->
+    <input id="search-bar" type="text" placeholder="I want to see..." />
+
+    <!-- Upload Hand Button (fixed, with image and overlaid text) -->
+    <button id="upload-hand-btn">
+      <img
+        id="upload-hand-btn-img"
+        src="../../UploadButton/BiggerHand.png"
+        alt="Upload hand"
+      />
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
+    </button>
+
+    <!-- Chatbot Backdrop -->
+    <div id="chatbot-backdrop" class="chatbot-backdrop"></div>
+
+    <!-- Chatbot Upload Interface -->
+    <div id="chatbot-container" class="chatbot-container">
+      <button class="close-btn" onclick="closeChatbot()">×</button>
+      <div class="chatbot-header">Junk Upload Bot</div>
+      <div class="chatbot-messages" id="chatbot-messages">
+        <!-- Messages will be added here dynamically -->
+      </div>
+      <div class="chatbot-input-area" id="chatbot-input-area">
+        <div class="persistent-input">
+          <button id="persistent-back-btn" disabled>Back</button>
+          <input
+            type="text"
+            id="persistent-text-input"
+            placeholder="Type your message..."
+            disabled
+          />
+          <div class="persistent-input-actions">
+            <button id="persistent-send-btn" disabled>Send</button>
+            <button id="persistent-skip-btn" disabled>Skip</button>
+            <button id="persistent-finish-btn" disabled>Finish</button>
+          </div>
+        </div>
+        <div id="dynamic-input-container">
+          <!-- Dynamic input elements will be added here -->
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+
+    <script>
+      // UI State variables
+      let eyeX = 100;
+      let eyeY = 100;
+      let eyeTargetX = 100;
+      let eyeTargetY = 100;
+      let eyeSpeed = 0.008;
+      let lastEyeMoveTime = 0;
+      let eyeMoveInterval = 8000;
+      let eyeIsHovered = false;
+      let eyeDriftX = 0;
+      let eyeDriftY = 0;
+      let eyeDriftSpeed = 0.001;
+      let eyeDriftAmplitude = 15;
+
+      // Chatbot state
+      let chatbotState = {
+        currentQuestion: 0,
+        answers: {},
+        isTyping: false,
+      };
+
+      // Separate variables for rings
+      let ringsScene, ringsCamera, ringsRenderer;
+      let rings;
+      let ringsRotation = {
+        isDragging: false,
+        previousX: 0,
+        previousY: 0,
+        rotationSpeedX: 0.0003,
+        rotationSpeedY: 0.0006,
+        manualRotationX: 0,
+        manualRotationY: 0,
+        dragStartTime: 0,
+        dragThreshold: 5, // Minimum distance to be considered dragging
+        clickThreshold: 200, // Minimum time difference to be considered a click vs drag
+      };
+
+      // Store references to eye-label groups for hover detection
+      let eyeLabelGroups = [];
+      let ringsRaycaster, ringsMouse;
+
+      // Questions for chatbot
+      const questions = [
+        {
+          id: "upload",
+          type: "file",
+          message: "",
+          required: true,
+        },
+        {
+          id: "name",
+          type: "text",
+          message: "Wannna give it a name? Or not. Totally your call.",
+          placeholder: "Give it a name...",
+          required: false,
+        },
+        {
+          id: "artist",
+          type: "text",
+          message:
+            "Who made it? Drop an alter ego, emoji, tag name… or stay anonymous.",
+          placeholder: "Your alter ego...",
+          required: false,
+        },
+        {
+          id: "specific_location",
+          type: "text",
+          message: "Be real — bed? Park? Coffee shop? Closet floor?",
+          placeholder: "Bed, park, coffee shop...",
+          required: false,
+        },
+        {
+          id: "date",
+          type: "text",
+          message: "Roughly when? A year, a season, a fuzzy memory...",
+          placeholder: "2020, last winter...",
+          required: false,
+        },
+        {
+          id: "time_window",
+          type: "time_slider",
+          message:
+            "What time of day are we talking? Morning sun or midnight soup?",
+          required: false,
+        },
+        {
+          id: "cooked_level",
+          type: "slider",
+          message: "How cooked is this piece? Raw mess or nearly done?",
+          required: false,
+        },
+        {
+          id: "artwork_type",
+          type: "text",
+          message: "What kind of junk is this? Sketch? Note? Blurry thing?",
+          placeholder: "Sketch, note, blurry thing...",
+          required: false,
+        },
+        {
+          id: "notes",
+          type: "textarea",
+          message: "Leave a note, a rant, or a cryptic message... or not.",
+          placeholder: "Your note here...",
+          required: false,
+        },
+        {
+          id: "tags",
+          type: "tags",
+          message:
+            "Choose some tags — Weird? Wrong? Unfinished? Or type your own.",
+          required: false,
+        },
+      ];
+
+      // Scene setup
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x111111);
+      document.body.appendChild(renderer.domElement);
+
+      // Create noise texture for background
+      const canvas = document.createElement("canvas");
+      canvas.width = 1920;
+      canvas.height = 1080;
+      const ctx = canvas.getContext("2d");
+
+      // Generate noise
+      const imageData = ctx.createImageData(canvas.width, canvas.height);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const value = Math.random() * 50;
+        data[i] = value; // R
+        data[i + 1] = value; // G
+        data[i + 2] = value; // B
+        data[i + 3] = 20; // A
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      // Create texture from canvas
+      const noiseTexture = new THREE.CanvasTexture(canvas);
+      noiseTexture.wrapS = THREE.RepeatWrapping;
+      noiseTexture.wrapT = THREE.RepeatWrapping;
+
+      // Set as background
+      scene.background = noiseTexture;
+
+      // Setup post-processing
+      const composer = new THREE.EffectComposer(renderer);
+      const renderPass = new THREE.RenderPass(scene, camera);
+      composer.addPass(renderPass);
+
+      // Add vignette effect
+      const vignetteShader = {
+        uniforms: {
+          tDiffuse: { value: null },
+          offset: { value: 1.0 },
+          darkness: { value: 1.0 },
+        },
+        vertexShader: `
         varying vec2 vUv;
         void main() {
           vUv = uv;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
-      fragmentShader: `
+        fragmentShader: `
         uniform sampler2D tDiffuse;
         uniform float offset;
         uniform float darkness;
         varying vec2 vUv;
-        
+
         void main() {
           vec2 uv = vUv;
           vec4 color = texture2D(tDiffuse, uv);
-          
+
           // Calculate distance from center
           vec2 center = vec2(0.5, 0.5);
           float dist = distance(uv, center);
-          
+
           // Create vignette effect
           float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
-          
+
           // Apply vignette
           color.rgb *= vignette;
-          
+
           gl_FragColor = color;
         }
-      `
-    };
+      `,
+      };
 
-    const vignettePass = new THREE.ShaderPass(vignetteShader);
-    vignettePass.uniforms.offset.value = 0.5;
-    vignettePass.uniforms.darkness.value = 0.5;
-    composer.addPass(vignettePass);
+      const vignettePass = new THREE.ShaderPass(vignetteShader);
+      vignettePass.uniforms.offset.value = 0.5;
+      vignettePass.uniforms.darkness.value = 0.5;
+      composer.addPass(vignettePass);
 
-    // Create particles
-    const particleCount = 300;
-    const particleGeometry = new THREE.BufferGeometry();
-    const particlePositions = new Float32Array(particleCount * 3);
-    const particleSizes = new Float32Array(particleCount);
-    const particleColors = new Float32Array(particleCount * 3);
-    const particleSpeeds = new Float32Array(particleCount);
+      // Create particles
+      const particleCount = 300;
+      const particleGeometry = new THREE.BufferGeometry();
+      const particlePositions = new Float32Array(particleCount * 3);
+      const particleSizes = new Float32Array(particleCount);
+      const particleColors = new Float32Array(particleCount * 3);
+      const particleSpeeds = new Float32Array(particleCount);
 
-    for (let i = 0; i < particleCount; i++) {
-      // Random positions within a sphere
-      const radius = 80;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      
-      particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
-      particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+      for (let i = 0; i < particleCount; i++) {
+        // Random positions within a sphere
+        const radius = 80;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
 
-      // More vibrant colors
-      const hue = Math.random(); // Random hue
-      const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
-      const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
-      
-      // Convert HSL to RGB
-      const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
-      const x = c * (1 - Math.abs((hue * 6) % 2 - 1));
-      const m = lightness - c/2;
-      
-      let r, g, b;
-      if (hue < 1/6) {
-        r = c; g = x; b = 0;
-      } else if (hue < 2/6) {
-        r = x; g = c; b = 0;
-      } else if (hue < 3/6) {
-        r = 0; g = c; b = x;
-      } else if (hue < 4/6) {
-        r = 0; g = x; b = c;
-      } else if (hue < 5/6) {
-        r = x; g = 0; b = c;
-      } else {
-        r = c; g = 0; b = x;
-      }
-      
-      particleColors[i * 3] = r + m;     // R
-      particleColors[i * 3 + 1] = g + m; // G
-      particleColors[i * 3 + 2] = b + m; // B
+        particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+        particlePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+        particlePositions[i * 3 + 2] = radius * Math.cos(phi);
 
-      // Random speeds between 0.02 and 0.08 (much slower than before)
-      particleSpeeds[i] = Math.random() * 0.06;
-    }
+        // More vibrant colors
+        const hue = Math.random(); // Random hue
+        const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+        const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
 
-    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    particleGeometry.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
-    particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+        // Convert HSL to RGB
+        const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+        const x = c * (1 - Math.abs(((hue * 6) % 2) - 1));
+        const m = lightness - c / 2;
 
-    const particleMaterial = new THREE.PointsMaterial({
-      size: 0.5,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.3,
-      sizeAttenuation: true,
-      depthWrite: false // Allow particles to be transparent when in front
-    });
-
-    const particles = new THREE.Points(particleGeometry, particleMaterial);
-    particles.userData = { 
-      speeds: particleSpeeds,
-      opacities: new Float32Array(particleCount) // Store individual opacities
-    };
-    scene.add(particles);
-
-    // Controls
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.enableRotate = false;
-    controls.enablePan = true;
-    controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
-
-    // Camera position
-    camera.position.set(0, 0, 10);
-    controls.update();
-
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 10, 5);
-    scene.add(directionalLight);
-
-    // Parameters
-    const numLayers = 15;
-    const minRadius = 0;
-    const maxRadius = 20;
-    const baseImageSize = 0.8;
-    const renderedDots = [];
-
-    // Generate dots per layer
-    const dotsPerLayer = [];
-    let totalDots = 0;
-    for (let i = 0; i < numLayers; i++) {
-      const count = 6 + i * 6;
-      dotsPerLayer.push(count);
-      totalDots += count;
-    }
-    totalDots += 1; // center dot
-
-    // Scores from 1 to totalDots
-    const scores = Array.from({ length: totalDots }, (_, i) => i + 1);
-    scores.sort((a, b) => b - a); // high score = center
-
-    let scoreIndex = 0;
-
-    const bellHeight = 6; // Maximum Z height at the center (closer to camera)
-    const bellSigma = maxRadius * 0.18; // Controls width of the bell (adjust for sharpness)
-
-    // Store dot base positions for dynamic Z updates
-    const dotBasePositions = [];
-
-    // Dynamically generated list of all image files in the images folder (no repeats)
-    const allImageFiles = [
-      // List all image files found in the images/ folder
-      'image5.jpg','image6.jpg','image7.jpg','image8.jpg','image9.jpg','image50.jpg','image51.jpg','image52.jpg','image53.jpg','image54.jpg','image55.jpg','image56.jpg','image57.jpg','image58.jpg','image59.jpg','image60.jpg','image61.jpg','image62.jpg','image63.jpg','image64.jpg','image65.jpg','image66.jpg','image67.jpg','image68.jpg','image69.jpg','image70.jpg','image71.jpg','image72.jpg','image73.jpg','image74.jpg','image75.jpg','image76.jpg','image77.jpg','image78.jpg','image79.jpg','image80.jpg','image81.jpg','image82.jpg','image83.jpg','image84.jpg','image85.jpg','image86.jpg','image87.jpg','image88.jpg','image89.jpg','image90.jpg','image91.jpg','image92.jpg','image93.jpg','image94.jpg','image95.jpg','image96.jpg','image97.jpg','image98.jpg','image99.jpg','image100.jpg','image101.jpg','image102.jpg','image103.jpg','image104.jpg','image105.jpg','image106.jpg','image107.jpg','image108.jpg','image109.jpg','image110.jpg','image111.jpg','image112.jpg','image113.jpg','image114.jpg','image115.jpg','image116.jpg','image117.jpg','image118.jpg','image119.jpg','image120.jpg','image121.jpg','image122.jpg','image123.jpg','image124.jpg','image125.jpg','image126.jpg','image127.jpg','image128.jpg','image129.jpg','image130.jpg','image131.jpg','image132.jpg','image133.jpg','image134.jpg','image135.jpg','image136.jpg','image137.jpg','image138.jpg','image139.jpg','image140.jpg','image141.jpg','image142.jpg','image143.jpg','image144.jpg','image145.jpg','image146.jpg','image147.jpg','image148.jpg','image149.jpg','image150.jpg','image151.jpg','image152.jpg','image153.jpg','image154.jpg','image155.jpg','image156.jpg','image157.jpg','image158.jpg','image159.jpg','image160.jpg','image161.jpg','image162.jpg','image163.jpg','image164.jpg','image165.jpg','image166.jpg','image167.jpg','image168.jpg','image169.jpg','image170.jpg','image171.jpg','image172.jpg','image173.jpg','image174.jpg','image175.jpg','image176.jpg','image177.jpg','image178.jpg','image179.jpg','image180.jpg','image181.jpg','image182.jpg','image183.jpg','image184.jpg','image185.jpg','image186.jpg','image187.jpg','image188.jpg','image189.jpg','image190.jpg','image191.jpg','image192.jpg','image193.jpg','image194.jpg','image195.jpg','image196.jpg','image197.jpg','image198.jpg','image199.jpg','image200.jpg','image201.jpg','image202.jpg','image203.jpg','image204.jpg','image205.jpg','image206.jpg','image207.jpg','image208.jpg','image209.jpg','image210.jpg','image211.jpg','image212.jpg','image213.jpg','image214.jpg','image215.jpg','image216.jpg','image217.jpg','image218.jpg','image219.jpg','image220.jpg','image221.jpg','image222.jpg','image223.jpg','image224.jpg','image225.jpg','image226.jpg','image227.jpg','image228.jpg','image229.jpg','image230.jpg','image231.jpg','image232.jpg','image233.jpg','image234.jpg','image235.jpg','image236.jpg','image237.jpg','image238.jpg','image239.jpg','image240.jpg','image241.jpg','image242.jpg','image243.jpg','image244.jpg','image245.jpg','image246.jpg','image247.jpg','image248.jpg','image249.jpg','image250.jpg','image251.jpg','image252.jpg','image253.jpg','image254.jpg','image255.jpg','image256.jpg','image257.jpg','image258.jpg','image259.jpg','image260.jpeg','image261.jpeg','image262.jpeg','image263.jpeg','image264.jpeg','image265.jpeg','image266.jpeg','image267.jpeg','image268.jpeg','image269.jpeg','image270.jpeg','image271.jpeg','image272.jpeg','image273.jpeg','image274.jpeg','image275.jpeg','image276.jpeg','image277.jpeg','image278.jpeg','image279.jpeg','image280.jpeg','image281.jpeg','image282.jpeg','image283.jpeg','image284.jpeg','image285.jpeg','image286.jpeg','image287.jpeg','image288.jpeg','image289.jpeg','image290.jpeg','image292.png','image293.png','image364.png','image365.png','image366.png','image367.png','image368.png','image369.png','image370.png','image371.png','image372.png','image373.png','image374.png','image375.png','image376.png','image377.png','image378.png','image379.png','image380.png','image381.png','image382.png','image383.png','image384.png','image385.png','image386.png','image387.png','image388.png','image389.png','image390.png','image391.png','image392.png','image393.png','image394.png','image395.png','image396.png','image397.png','image398.png','image399.png','image400.png','image401.png','image402.png','image403.png','image404.png','image405.png','image406.png','image407.png','image408.png','image409.png','image410.png','image411.png','image412.png','image413.png','image414.png','image415.png','image416.png','image417.png','image418.png','image419.png','image420.png','image421.png','image422.png','image423.png','image424.png','image425.png','image426.png','image427.png','image428.png','image429.png','image430.png','image431.png','image432.png','image433.png','image434.png','image435.png','image436.png','image437.png','image438.png','image439.png','image440.png','image441.png','image442.png','image443.png','image444.png','image445.png','image446.png','image447.png','image448.png','image449.png','image450.png','image451.png','image452.png','image453.png','image454.png','image455.png','image456.png','image457.png','image458.png','image459.png','image460.png','image461.png','image462.png','image463.png','image464.png','image465.png','image466.png','image467.png','image468.png','image469.png','image470.png','image471.png','image472.png','image473.png','image474.png','image475.png','image476.png','image477.png','image478.png','image479.png','image480.png','image481.png','image482.png','image483.png','image484.png','image485.png','image486.png','image487.png','image488.png','image489.png','image490.png','image491.png','image492.png','image493.png','image494.png','image495.png','image496.png','image497.png','image498.png','image499.gif','image500.gif','image501.gif','image502.gif','image503.gif','image504.gif','image505.gif','image506.gif','image507.gif','image508.gif','image509.gif','image510.webp','image511.webp','image512.webp','image513.webp','image514.webp','image515.webp','image516.webp','image517.webp','image518.webp','image519.webp','image520.webp','image521.webp','image522.webp','image523.webp','image524.webp','image525.webp','image526.webp','image527.webp','image528.png','image529.png','image530.png'
-    ];
-
-    // Use as many unique images as possible, up to the number of dots
-    const imageFiles = allImageFiles.slice(0, totalDots);
-
-    // Function to load image texture
-    function loadImageTexture(imagePath) {
-      return new Promise((resolve, reject) => {
-        const textureLoader = new THREE.TextureLoader();
-        textureLoader.load(
-          imagePath,
-          (texture) => {
-            // Get image dimensions for aspect ratio
-            const image = texture.image;
-            const aspectRatio = image.width / image.height;
-            resolve({ texture, aspectRatio });
-          },
-          undefined,
-          (error) => {
-            console.warn('Failed to load image:', imagePath, error);
-            // Return a fallback colored texture
-            const canvas = document.createElement('canvas');
-            canvas.width = 64;
-            canvas.height = 64;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ff0000';
-            ctx.fillRect(0, 0, 64, 64);
-            const fallbackTexture = new THREE.CanvasTexture(canvas);
-            resolve({ texture: fallbackTexture, aspectRatio: 1 });
-          }
-        );
-      });
-    }
-
-    // Load all image textures
-    const imageTextures = [];
-    let loadedTextures = 0;
-    const totalTextures = imageFiles.length;
-
-    // Create dots in 3D layers
-    async function createDots() {
-      // Load all textures first
-      for (let i = 0; i < imageFiles.length; i++) {
-        // Use correct relative path from openQuestion.html to images folder
-        const imagePath = `../../images/${imageFiles[i]}`;
-        const { texture, aspectRatio } = await loadImageTexture(imagePath);
-        imageTextures.push({ texture, aspectRatio });
-        loadedTextures++;
-      }
-
-      // Now create the dots with loaded textures
-      let usedImageIndex = 0;
-      for (let layer = 0; layer < numLayers; layer++) {
-        const t = layer / (numLayers - 1);
-        const radius = minRadius + t * (maxRadius - minRadius);
-        const count = dotsPerLayer[layer];
-
-        for (let i = 0; i < count; i++) {
-          const angle = (i / count) * 2 * Math.PI;
-          const x = radius * Math.cos(angle);
-          const y = radius * Math.sin(angle);
-
-          const score = scores[scoreIndex++];
-          
-          // Get unique texture for this dot
-          if (usedImageIndex >= imageTextures.length) break;
-          const { texture, aspectRatio } = imageTextures[usedImageIndex++];
-
-          // Initial Z (will be updated dynamically)
-          const z = 0;
-
-          // Create sprite with image texture
-          const material = new THREE.SpriteMaterial({ 
-            map: texture,
-            transparent: true,
-            opacity: 0.9
-          });
-          const sprite = new THREE.Sprite(material);
-          sprite.position.set(x, y, z);
-          
-          // Scale based on aspect ratio to maintain original proportions
-          const scaleX = baseImageSize * aspectRatio;
-          const scaleY = baseImageSize;
-          sprite.scale.set(scaleX, scaleY, 1);
-          
-          scene.add(sprite);
-
-          // Store for interaction and dynamic Z
-          renderedDots.push({ 
-            mesh: sprite, 
-            score: score,
-            originalScale: { x: scaleX, y: scaleY },
-            texture: texture
-          });
-          dotBasePositions.push({ x, y });
+        let r, g, b;
+        if (hue < 1 / 6) {
+          r = c;
+          g = x;
+          b = 0;
+        } else if (hue < 2 / 6) {
+          r = x;
+          g = c;
+          b = 0;
+        } else if (hue < 3 / 6) {
+          r = 0;
+          g = c;
+          b = x;
+        } else if (hue < 4 / 6) {
+          r = 0;
+          g = x;
+          b = c;
+        } else if (hue < 5 / 6) {
+          r = x;
+          g = 0;
+          b = c;
+        } else {
+          r = c;
+          g = 0;
+          b = x;
         }
+
+        particleColors[i * 3] = r + m; // R
+        particleColors[i * 3 + 1] = g + m; // G
+        particleColors[i * 3 + 2] = b + m; // B
+
+        // Random speeds between 0.02 and 0.08 (much slower than before)
+        particleSpeeds[i] = Math.random() * 0.06;
       }
 
-      // Center dot (highest score)
-      if (usedImageIndex < imageTextures.length) {
-        const centerScore = scores[scoreIndex];
-        const { texture: centerTexture, aspectRatio: centerAspectRatio } = imageTextures[usedImageIndex++];
-        
-        const centerMaterial = new THREE.SpriteMaterial({ 
-          map: centerTexture,
-          transparent: true,
-          opacity: 0.9
-        });
-        const centerSprite = new THREE.Sprite(centerMaterial);
-        centerSprite.position.set(0, 0, 0);
-        
-        // Larger scale for center dot
-        const centerScaleX = baseImageSize * 1.5 * centerAspectRatio;
-        const centerScaleY = baseImageSize * 1.5;
-        centerSprite.scale.set(centerScaleX, centerScaleY, 1);
-        
-        scene.add(centerSprite);
-        renderedDots.push({ 
-          mesh: centerSprite, 
-          score: centerScore,
-          originalScale: { x: centerScaleX, y: centerScaleY },
-          texture: centerTexture
-        });
-        dotBasePositions.push({ x: 0, y: 0 });
-      }
-    }
+      particleGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(particlePositions, 3)
+      );
+      particleGeometry.setAttribute(
+        "size",
+        new THREE.BufferAttribute(particleSizes, 1)
+      );
+      particleGeometry.setAttribute(
+        "color",
+        new THREE.BufferAttribute(particleColors, 3)
+      );
 
-    // Raycaster for mouse interaction
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-    const tooltip = document.getElementById("tooltip");
-
-    // Mouse move handler
-    function onMouseMove(event) {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(renderedDots.map(dot => dot.mesh), true);
-
-      // Reset all scales
-      renderedDots.forEach(dot => {
-        dot.mesh.scale.set(dot.originalScale.x, dot.originalScale.y, 1);
+      const particleMaterial = new THREE.PointsMaterial({
+        size: 0.5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.3,
+        sizeAttenuation: true,
+        depthWrite: false, // Allow particles to be transparent when in front
       });
 
-      if (intersects.length > 0) {
-        const hitDot = renderedDots.find(dot => dot.mesh === intersects[0].object);
-        if (hitDot) {
-          // Scale up hovered dot
-          hitDot.mesh.scale.set(
-            hitDot.originalScale.x * 1.2, 
-            hitDot.originalScale.y * 1.2, 
-            1
-          );
-          
-          // Show tooltip
-          tooltip.style.left = `${event.clientX + 10}px`;
-          tooltip.style.top = `${event.clientY + 10}px`;
-          tooltip.textContent = `Score: ${hitDot.score}`;
-          tooltip.style.visibility = 'visible';
-        }
-      } else {
-        tooltip.style.visibility = 'hidden';
-      }
-    }
+      const particles = new THREE.Points(particleGeometry, particleMaterial);
+      particles.userData = {
+        speeds: particleSpeeds,
+        opacities: new Float32Array(particleCount), // Store individual opacities
+      };
+      scene.add(particles);
 
-    // Event listeners
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('resize', onWindowResize);
+      // Controls
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.enableRotate = false;
+      controls.enablePan = true;
+      controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
 
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      composer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    // Animation loop
-    function animate() {
-      requestAnimationFrame(animate);
+      // Camera position
+      camera.position.set(0, 0, 10);
       controls.update();
 
-      // Animate particles
-      if (particles) {
-        const positions = particles.geometry.attributes.position.array;
-        const speeds = particles.userData.speeds;
-        const opacities = particles.userData.opacities;
-        
-        for (let i = 0; i < positions.length; i += 3) {
-          // Move particles in a circular motion
-          const speed = speeds[i / 3];
-          const time = Date.now() * 0.001 * speed;
-          
-          positions[i] += Math.sin(time) * 0.01;
-          positions[i + 1] += Math.cos(time) * 0.01;
-          positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+      // Lighting
+      const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+      scene.add(ambientLight);
 
-          // Check if particle is in front of images (z > 0)
-          const z = positions[i + 2];
-          opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(10, 10, 5);
+      scene.add(directionalLight);
+
+      // Parameters
+      const numLayers = 15;
+      const minRadius = 0.5; // Increased minimum radius to prevent overlap at center
+      const maxRadius = 20;
+      const baseImageSize = 0.8;
+      const renderedDots = [];
+
+      // Generate dots per layer
+      const dotsPerLayer = [];
+      let totalDots = 0;
+      for (let i = 0; i < numLayers; i++) {
+        const count = 6 + i * 6;
+        dotsPerLayer.push(count);
+        totalDots += count;
+      }
+      totalDots += 1; // center dot
+
+      const bellHeight = 6; // Maximum Z height at the center (closer to camera)
+      const bellSigma = maxRadius * 0.18; // Controls width of the bell (adjust for sharpness)
+
+      // Store dot base positions for dynamic Z updates
+      const dotBasePositions = [];
+
+      // Load image scores from JSON file
+      let imageScores = {};
+      let imageFiles = [];
+
+      // Function to load the JSON file and extract image files with scores
+      async function loadImageScores() {
+        try {
+          const response = await fetch("image_scores_openQ.json");
+          imageScores = await response.json();
+
+          // Extract image filenames from the JSON keys
+          imageFiles = Object.keys(imageScores);
+
+          // Sort images by score (highest first) and limit to totalDots
+          imageFiles.sort((a, b) => imageScores[b] - imageScores[a]);
+          imageFiles = imageFiles.slice(0, totalDots);
+
+          // Set totalTextures for loading progress
+          totalTextures = imageFiles.length;
+
+          console.log(`Loaded ${imageFiles.length} images with scores`);
+        } catch (error) {
+          console.error("Failed to load image scores:", error);
+          // Fallback to a small set of images if JSON loading fails
+          imageFiles = [
+            "image5.jpg",
+            "image6.jpg",
+            "image7.jpg",
+            "image8.jpg",
+            "image9.jpg",
+            "image10.jpg",
+            "image11.jpg",
+            "image12.jpg",
+            "image13.jpg",
+            "image14.jpg",
+          ].slice(0, totalDots);
         }
-        
-        particles.geometry.attributes.position.needsUpdate = true;
-        particles.material.opacity = 0.3; // Base opacity
       }
 
-      // Project camera center to world coordinates (z=0 plane)
-      const vector = new THREE.Vector3(0, 0, 0.5); // center of screen, z=0.5 in NDC
-      vector.unproject(camera);
-      // Project onto z=0 plane
-      const camPos = camera.position;
-      const dir = vector.clone().sub(camPos).normalize();
-      const t = -camPos.z / dir.z;
-      const centerWorld = camPos.clone().add(dir.multiplyScalar(t));
+      // Function to load image texture
+      function loadImageTexture(imagePath) {
+        return new Promise((resolve, reject) => {
+          const textureLoader = new THREE.TextureLoader();
+          textureLoader.load(
+            imagePath,
+            (texture) => {
+              // Get image dimensions for aspect ratio
+              const image = texture.image;
+              const aspectRatio = image.width / image.height;
+              resolve({ texture, aspectRatio });
+            },
+            undefined,
+            (error) => {
+              console.warn("Failed to load image:", imagePath, error);
+              // Return a fallback texture with error indication
+              const canvas = document.createElement("canvas");
+              canvas.width = 128;
+              canvas.height = 128;
+              const ctx = canvas.getContext("2d");
 
-      // Update Z for all dots
-      for (let i = 0; i < renderedDots.length; i++) {
-        const base = dotBasePositions[i];
-        const dx = base.x - centerWorld.x;
-        const dy = base.y - centerWorld.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const z = bellHeight * Math.exp(-Math.pow(dist, 2) / (2 * Math.pow(bellSigma, 2)));
-        renderedDots[i].mesh.position.z = z;
+              // Create a more informative fallback
+              ctx.fillStyle = "#ff0000";
+              ctx.fillRect(0, 0, 128, 128);
+              ctx.fillStyle = "#ffffff";
+              ctx.font = "12px Arial";
+              ctx.textAlign = "center";
+              ctx.fillText("Missing", 64, 60);
+              ctx.fillText("Image", 64, 80);
+
+              const fallbackTexture = new THREE.CanvasTexture(canvas);
+              resolve({ texture: fallbackTexture, aspectRatio: 1 });
+            }
+          );
+        });
       }
 
-      composer.render();
-    }
+      // Load all image textures
+      const imageTextures = [];
+      let loadedTextures = 0;
+      let totalTextures = 0; // Will be set after loading image scores
 
-    // Initialize the scene
-    createDots().then(() => {
-      animate();
-    });
-    
-    // Show search bar with fade-in effect
-    setTimeout(() => {
-      const searchBar = document.getElementById('search-bar');
-      if (searchBar) {
-        searchBar.style.opacity = '1';
+      // Loading progress function
+      function updateLoadingProgress(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+        }
       }
-    }, 500);
-  </script>
-</body>
+
+      // Create dots in 3D layers
+      async function createDots() {
+        // Load image scores first
+        await loadImageScores();
+
+        // Load all textures first
+        for (let i = 0; i < imageFiles.length; i++) {
+          // Use correct relative path from openQuestion.html to images folder
+          const imagePath = `../../images/${imageFiles[i]}`;
+          console.log(
+            `Loading image ${i + 1}/${imageFiles.length}: ${imageFiles[i]}`
+          );
+          const { texture, aspectRatio } = await loadImageTexture(imagePath);
+          imageTextures.push({ texture, aspectRatio });
+          loadedTextures++;
+
+          // Update loading progress
+          const progress = (loadedTextures / totalTextures) * 100;
+          updateLoadingProgress(progress);
+        }
+
+        // Now create the dots with loaded textures
+        let usedImageIndex = 0;
+        for (let layer = 0; layer < numLayers; layer++) {
+          const t = layer / (numLayers - 1);
+          const radius = minRadius + t * (maxRadius - minRadius);
+          const count = dotsPerLayer[layer];
+
+          for (let i = 0; i < count; i++) {
+            const angle = (i / count) * 2 * Math.PI;
+
+            // Use consistent spacing for all layers
+            const layerSpacing = 1.2; // Distance between each layer (increased from 0.8)
+            const firstLayerRadius = 0.8; // Starting radius for first layer
+            const currentLayerRadius = firstLayerRadius + layer * layerSpacing;
+
+            x = currentLayerRadius * Math.cos(angle);
+            y = currentLayerRadius * Math.sin(angle);
+
+            const score = imageScores[imageFiles[usedImageIndex]] || 1;
+
+            // Get unique texture for this dot
+            if (usedImageIndex >= imageTextures.length) break;
+            const { texture, aspectRatio } = imageTextures[usedImageIndex++];
+
+            // Initial Z (will be updated dynamically)
+            const z = 0;
+
+            // Create sprite with image texture
+            const material = new THREE.SpriteMaterial({
+              map: texture,
+              transparent: true,
+              opacity: 0.9,
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.position.set(x, y, z);
+
+            // Scale based on aspect ratio to maintain original proportions
+            const scaleX = baseImageSize * aspectRatio;
+            const scaleY = baseImageSize;
+            sprite.scale.set(scaleX, scaleY, 1);
+
+            scene.add(sprite);
+
+            // Store for interaction and dynamic Z
+            renderedDots.push({
+              mesh: sprite,
+              score: score,
+              originalScale: { x: scaleX, y: scaleY },
+              texture: texture,
+            });
+            dotBasePositions.push({ x, y });
+          }
+        }
+
+        // Center dot (highest score)
+        if (usedImageIndex < imageTextures.length) {
+          const centerScore = imageScores[imageFiles[usedImageIndex]] || 1;
+          const { texture: centerTexture, aspectRatio: centerAspectRatio } =
+            imageTextures[usedImageIndex++];
+
+          const centerMaterial = new THREE.SpriteMaterial({
+            map: centerTexture,
+            transparent: true,
+            opacity: 0.9,
+          });
+          const centerSprite = new THREE.Sprite(centerMaterial);
+          // Center dot at the exact center
+          centerSprite.position.set(0, 0, 0);
+
+          // Larger scale for center dot
+          const centerScaleX = baseImageSize * 1.5 * centerAspectRatio;
+          const centerScaleY = baseImageSize * 1.5;
+          centerSprite.scale.set(centerScaleX, centerScaleY, 1);
+
+          scene.add(centerSprite);
+          renderedDots.push({
+            mesh: centerSprite,
+            score: centerScore,
+            originalScale: { x: centerScaleX, y: centerScaleY },
+            texture: centerTexture,
+          });
+          dotBasePositions.push({ x: 0, y: 0 });
+        }
+      }
+
+      // Raycaster for mouse interaction
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      const tooltip = document.getElementById("tooltip");
+
+      // Mouse move handler
+      function onMouseMove(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(
+          renderedDots.map((dot) => dot.mesh),
+          true
+        );
+
+        // Reset all scales
+        renderedDots.forEach((dot) => {
+          dot.mesh.scale.set(dot.originalScale.x, dot.originalScale.y, 1);
+        });
+
+        if (intersects.length > 0) {
+          const hitDot = renderedDots.find(
+            (dot) => dot.mesh === intersects[0].object
+          );
+          if (hitDot) {
+            // Scale up hovered dot
+            hitDot.mesh.scale.set(
+              hitDot.originalScale.x * 1.2,
+              hitDot.originalScale.y * 1.2,
+              1
+            );
+
+            // Show tooltip
+            tooltip.style.left = `${event.clientX + 10}px`;
+            tooltip.style.top = `${event.clientY + 10}px`;
+            tooltip.textContent = `Score: ${hitDot.score}`;
+            tooltip.style.visibility = "visible";
+          }
+        } else {
+          tooltip.style.visibility = "hidden";
+        }
+      }
+
+      // Event listeners
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("resize", onWindowResize);
+
+      // Search bar event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        const searchBar = document.getElementById("search-bar");
+        let searchTimeout;
+
+        searchBar.addEventListener("input", (event) => {
+          const query = event.target.value.trim();
+
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          // Set new timeout for search (debounce)
+          if (query.length > 0) {
+            searchTimeout = setTimeout(() => {
+              performSearch(query);
+            }, 500); // Wait 500ms after user stops typing
+          }
+        });
+
+        searchBar.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            const query = event.target.value.trim();
+            if (query.length > 0) {
+              // Clear timeout and perform search immediately
+              if (searchTimeout) {
+                clearTimeout(searchTimeout);
+              }
+              performSearch(query);
+            }
+          }
+        });
+
+        // Add click event listener to upload button
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        if (uploadBtn) {
+          uploadBtn.addEventListener("click", showChatbot);
+        }
+
+        // Close chatbot with Escape key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            closeChatbot();
+          }
+        });
+
+        // Close chatbot when clicking on backdrop
+        const backdrop = document.getElementById("chatbot-backdrop");
+        if (backdrop) {
+          backdrop.addEventListener("click", function (e) {
+            if (e.target === backdrop) {
+              closeChatbot();
+            }
+          });
+        }
+      });
+
+      // Initialize dock behavior when DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        // Small delay to ensure all elements are properly loaded
+        setTimeout(initDockBehavior, 100);
+      });
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      // UI Functions
+      function initFloatingEye() {
+        console.log("Initializing floating eye...");
+        const eye = document.getElementById("floating-eye");
+        const tooltip = document.getElementById("eye-tooltip");
+
+        console.log("Eye element:", eye);
+        console.log("Tooltip element:", tooltip);
+
+        if (!eye || !tooltip) {
+          console.error("Missing elements!");
+          return;
+        }
+
+        // Set up hover events
+        eye.addEventListener("mouseenter", () => {
+          console.log("Eye hovered!");
+          eyeIsHovered = true;
+          tooltip.classList.add("show");
+        });
+
+        eye.addEventListener("mouseleave", () => {
+          console.log("Eye unhovered!");
+          eyeIsHovered = false;
+          tooltip.classList.remove("show");
+        });
+
+        // Update tooltip position
+        eye.addEventListener("mousemove", (e) => {
+          const rect = eye.getBoundingClientRect();
+          const eyeCenterX = rect.left + rect.width / 2;
+          const screenCenterX = window.innerWidth / 2;
+
+          // Determine if eye is on left or right side of screen
+          if (eyeCenterX < screenCenterX) {
+            // Eye is on left side - show tooltip on the right
+            tooltip.style.left = rect.right + 10 + "px";
+            tooltip.style.transform = "translateX(0)"; // Reset transform
+          } else {
+            // Eye is on right side - show tooltip on the left
+            tooltip.style.left = rect.left - 10 + "px";
+            tooltip.style.transform = "translateX(-100%)"; // Move tooltip to the left of the eye
+          }
+
+          tooltip.style.top = rect.top - 10 + "px";
+        });
+
+        // Set initial position
+        eye.style.left = eyeX + "px";
+        eye.style.top = eyeY + "px";
+
+        // Keep the floating eye hidden initially - will be shown after loading
+        eye.style.display = "none";
+
+        console.log("Eye positioned at:", eyeX, eyeY);
+        console.log("Eye will be shown after loading completes!");
+      }
+
+      function updateFloatingEye() {
+        const eye = document.getElementById("floating-eye");
+        if (!eye || eye.style.display === "none") return;
+
+        // Don't move if hovered
+        if (eyeIsHovered) return;
+
+        const now = Date.now();
+        const time = now * 0.001; // Convert to seconds
+
+        // Change target position periodically with more organic timing
+        if (now - lastEyeMoveTime > eyeMoveInterval) {
+          const margin = 150;
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
+
+          // Create perimeter-based movement - prefer edges and corners
+          const perimeterChoice = Math.random();
+
+          if (perimeterChoice < 0.4) {
+            // Top edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = margin + Math.random() * 50;
+          } else if (perimeterChoice < 0.7) {
+            // Bottom edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = screenHeight - margin - Math.random() * 50;
+          } else if (perimeterChoice < 0.85) {
+            // Left edge
+            eyeTargetX = margin + Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          } else {
+            // Right edge
+            eyeTargetX = screenWidth - margin - Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          }
+
+          lastEyeMoveTime = now;
+        }
+
+        // Add subtle organic drift using sine waves
+        eyeDriftX = Math.sin(time * eyeDriftSpeed) * eyeDriftAmplitude;
+        eyeDriftY =
+          Math.cos(time * eyeDriftSpeed * 0.7) * eyeDriftAmplitude * 0.8;
+
+        // Smooth movement towards target with easing
+        const dx = eyeTargetX - eyeX;
+        const dy = eyeTargetY - eyeY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate distance from center to avoid it
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const distanceFromCenter = Math.sqrt(
+          (eyeX - centerX) ** 2 + (eyeY - centerY) ** 2
+        );
+        const centerAvoidanceRadius =
+          Math.min(window.innerWidth, window.innerHeight) * 0.4;
+
+        // Add center avoidance force
+        let avoidanceX = 0;
+        let avoidanceY = 0;
+        if (distanceFromCenter < centerAvoidanceRadius) {
+          const avoidanceStrength = 0.05;
+          const centerDx = eyeX - centerX;
+          const centerDy = eyeY - centerY;
+          const centerDistance = Math.sqrt(
+            centerDx * centerDx + centerDy * centerDy
+          );
+          if (centerDistance > 0) {
+            // Stronger avoidance when closer to center
+            const avoidanceMultiplier =
+              1 + (1 - distanceFromCenter / centerAvoidanceRadius);
+            avoidanceX =
+              (centerDx / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+            avoidanceY =
+              (centerDy / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+          }
+        }
+
+        // Slower movement when closer to target (easing)
+        const currentSpeed = eyeSpeed * (0.5 + (distance / 200) * 0.5);
+
+        eyeX += dx * currentSpeed + avoidanceX;
+        eyeY += dy * currentSpeed + avoidanceY;
+
+        // Add drift to final position
+        const finalX = eyeX + eyeDriftX;
+        const finalY = eyeY + eyeDriftY;
+
+        // Update position
+        eye.style.left = finalX + "px";
+        eye.style.top = finalY + "px";
+      }
+
+      // macOS Dock-like functionality
+      function initDockBehavior() {
+        const ringsContainer = document.getElementById("rings-container");
+        const searchBar = document.getElementById("search-bar");
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
+
+        let dockTimeout;
+        let isDockVisible = false;
+        const dockDelay = 400; // Delay before hiding dock (ms)
+        const hoverZoneHeight = 120; // Height of hover zone from bottom (px)
+
+        // Initialize dock state - hidden by default
+        ringsContainer.classList.add("dock-hidden");
+        searchBar.classList.add("dock-hidden");
+        uploadBtn.classList.add("dock-hidden");
+
+        // Hide pixel arrow indicator initially - will be shown after loading
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.remove("show");
+        }
+
+        function showDock() {
+          if (!isDockVisible) {
+            isDockVisible = true;
+            ringsContainer.classList.remove("dock-hidden");
+            ringsContainer.classList.add("dock-visible");
+            searchBar.classList.remove("dock-hidden");
+            searchBar.classList.add("dock-visible");
+            uploadBtn.classList.remove("dock-hidden");
+            uploadBtn.classList.add("dock-visible");
+
+            // Hide pixel arrow indicator when dock is visible
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.remove("show");
+            }
+          }
+        }
+
+        function hideDock() {
+          if (isDockVisible) {
+            isDockVisible = false;
+            ringsContainer.classList.remove("dock-visible");
+            ringsContainer.classList.add("dock-hidden");
+            searchBar.classList.remove("dock-visible");
+            searchBar.classList.add("dock-hidden");
+            uploadBtn.classList.remove("dock-visible");
+            uploadBtn.classList.add("dock-hidden");
+
+            // Show pixel arrow indicator when dock is hidden
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.add("show");
+            }
+          }
+        }
+
+        // Mouse move handler for dock behavior
+        document.addEventListener("mousemove", (e) => {
+          const mouseY = e.clientY;
+          const windowHeight = window.innerHeight;
+          const isInHoverZone = mouseY > windowHeight - hoverZoneHeight;
+
+          // Clear existing timeout
+          if (dockTimeout) {
+            clearTimeout(dockTimeout);
+          }
+
+          if (isInHoverZone) {
+            showDock();
+          } else {
+            // Delay hiding the dock
+            dockTimeout = setTimeout(() => {
+              hideDock();
+            }, dockDelay);
+          }
+        });
+
+        // Also handle mouse leave from window
+        document.addEventListener("mouseleave", () => {
+          if (dockTimeout) {
+            clearTimeout(dockTimeout);
+          }
+          hideDock();
+        });
+
+        // Handle window resize
+        window.addEventListener("resize", () => {
+          // Recalculate hover zone if needed
+        });
+      }
+
+      // Search functionality
+      function performSearch(query) {
+        console.log("Searching for:", query);
+        // For now, just log the search query
+        alert(`Searching for: ${query}`);
+      }
+
+      // Chatbot functions
+      function showChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Show backdrop first
+        backdrop.style.display = "block";
+        setTimeout(() => {
+          backdrop.style.opacity = "1";
+        }, 10);
+
+        chatbot.style.display = "flex";
+        chatbotState.currentQuestion = 0;
+        chatbotState.answers = {};
+
+        // Start with opening message
+        addBotMessage(
+          "Hi, friend. Before we dive in — a tiny heads-up: nothing here is mandatory except the junk. Everything else? Totally up to you."
+        );
+
+        // Disable persistent input initially
+        disablePersistentInput();
+
+        // Start the conversation after a delay
+        setTimeout(() => {
+          addBotMessage("Let's begin. Upload your junk:");
+          setTimeout(() => {
+            askNextQuestion();
+          }, 1500);
+        }, 2000);
+      }
+
+      function closeChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Hide chatbot first
+        chatbot.style.display = "none";
+
+        // Fade out backdrop
+        backdrop.style.opacity = "0";
+        setTimeout(() => {
+          backdrop.style.display = "none";
+        }, 300);
+
+        // Clear messages and dynamic input
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        messagesContainer.innerHTML = "";
+        dynamicContainer.innerHTML = "";
+        disablePersistentInput();
+      }
+
+      function addBotMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message bot";
+        messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+            `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function addUserMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message user";
+        messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+            `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "message bot";
+        typingDiv.id = "typing-indicator";
+        typingDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        const typingIndicator = document.getElementById("typing-indicator");
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+      }
+
+      function askNextQuestion() {
+        if (chatbotState.currentQuestion >= questions.length) {
+          showSummary();
+          return;
+        }
+
+        const question = questions[chatbotState.currentQuestion];
+
+        showTypingIndicator();
+
+        setTimeout(() => {
+          hideTypingIndicator();
+          // Only show message if it's not empty (for upload question)
+          if (question.message) {
+            addBotMessage(question.message);
+          }
+          showQuestionInput(question);
+        }, 1500);
+      }
+
+      function enablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = false;
+          sendBtn.disabled = false;
+          backBtn.disabled = false;
+          skipBtn.disabled = false;
+          finishBtn.disabled = false;
+          textInput.focus();
+        }
+      }
+
+      function disablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = true;
+          sendBtn.disabled = true;
+          backBtn.disabled = true;
+          skipBtn.disabled = true;
+          finishBtn.disabled = true;
+          textInput.value = "";
+        }
+      }
+
+      function showQuestionInput(question) {
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const inputDiv = document.createElement("div");
+        inputDiv.id = "question-input";
+
+        let inputHTML = '<div class="input-group">';
+
+        switch (question.type) {
+          case "file":
+            // For file upload, add the upload area to the messages container
+            const uploadDiv = document.createElement("div");
+            uploadDiv.className = "message bot";
+            uploadDiv.innerHTML = `
+                        <div class="file-upload-area" id="file-upload-area">
+                            <img src="../../assets/upload.png" alt="Upload" class="upload-icon" id="upload-icon">
+                            <div id="file-upload-text" class="file-upload-text">Drag & drop your file here or click to browse</div>
+                            <input type="file" id="file-input" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="button-group" style="margin-top: 20px; display: flex; justify-content: center;">
+                            <button class="btn" id="continue-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Continue</button>
+                        </div>
+                    `;
+            messagesContainer.appendChild(uploadDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // No need to add continue button to dynamic container since it's now in the message
+            break;
+          case "text":
+          case "textarea":
+            // For text questions, we'll use the persistent input at the bottom
+            // No need to add input elements to dynamic container
+            break;
+          case "slider":
+            inputHTML += `
+                        <div style="width:100%;display:flex;align-items:center;gap:15px;box-sizing:border-box;">
+                            <span style="white-space:nowrap;flex-shrink:0;">Raw</span>
+                            <input type="range" class="slider" id="slider-input" min="0" max="100" value="50" style="flex:1;min-width:0;width:100%;">
+                            <span style="white-space:nowrap;flex-shrink:0;">Done</span>
+                            <div class="slider-value" id="slider-value" style="white-space:nowrap;flex-shrink:0;">50%</div>
+                        </div>
+                    `;
+            break;
+          case "time_slider":
+            inputHTML += `
+                        <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:20px;box-sizing:border-box;margin-bottom:30px;">
+                            <div style="width:100%;display:flex;align-items:center;box-sizing:border-box;">
+                                <input type="range" class="slider" id="time-slider-input" min="0" max="4" value="0" step="0.1" style="flex:1;min-width:0;width:100%;">
+                            </div>
+                            <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                                <img src="../../assets/Sun.png" class="time-icon" id="icon-sun" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:1;object-fit:contain;">
+                                <img src="../../assets/Coffee.png" class="time-icon" id="icon-coffee" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="../../assets/Pasta.png" class="time-icon" id="icon-pasta" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="../../assets/Wine.png" class="time-icon" id="icon-wine" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="../../assets/Moon2.png" class="time-icon" id="icon-moon" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                            </div>
+                        </div>
+                    `;
+            break;
+          case "tags":
+            inputHTML += `
+                        <div class="tag-selector" id="tag-examples">
+                            <button class="tag" data-tag="weird">Weird</button>
+                            <button class="tag" data-tag="wrong">Wrong</button>
+                            <button class="tag" data-tag="unfinished">Unfinished</button>
+                            <button class="tag" data-tag="raw">Raw</button>
+                            <button class="tag" data-tag="personal">Personal</button>
+                            <button class="tag" data-tag="experimental">Experimental</button>
+                        </div>
+                        <input type="text" class="input-field" id="custom-tag-input" placeholder="Or type your own... (up to 8 tags)">
+                        <div id="user-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+                    `;
+            break;
+        }
+
+        // Handle file upload case separately
+        if (question.type === "file") {
+          inputDiv.innerHTML = inputHTML;
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.appendChild(inputDiv);
+          dynamicContainer.style.display = "block";
+
+          // Disable persistent input for file upload
+          disablePersistentInput();
+
+          // Setup button handlers for file upload
+          const continueBtn = inputDiv.querySelector("#continue-btn");
+          if (continueBtn) {
+            continueBtn.addEventListener("click", submitAnswer);
+          }
+
+          // Also set up the continue button in the message
+          setTimeout(() => {
+            const messageContinueBtn = document.querySelector("#continue-btn");
+            if (messageContinueBtn) {
+              messageContinueBtn.addEventListener("click", submitAnswer);
+            }
+          }, 100);
+
+          // Setup file input handlers
+          setupFileInputHandlers();
+          return;
+        }
+
+        // For other question types, only add button group for specific question types
+        if (
+          question.type === "slider" ||
+          question.type === "time_slider" ||
+          question.type === "tags"
+        ) {
+          inputHTML += '<div class="button-group">';
+          if (chatbotState.currentQuestion > 0) {
+            inputHTML += '<button class="btn" id="back-btn">Back</button>';
+          }
+          inputHTML +=
+            '<button class="btn primary" id="continue-btn">Continue</button>';
+          inputHTML += "</div>";
+        }
+        inputHTML += "</div>";
+
+        inputDiv.innerHTML = inputHTML;
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.appendChild(inputDiv);
+
+        // Handle text input questions by enabling persistent input and removing dynamic input
+        if (question.type === "text" || question.type === "textarea") {
+          // Clear dynamic container for text questions
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.style.display = "none";
+          enablePersistentInput();
+          const textInput = document.getElementById("persistent-text-input");
+          const sendBtn = document.getElementById("persistent-send-btn");
+
+          // Set up send button handler
+          sendBtn.onclick = () => {
+            if (textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
+            }
+          };
+
+          // Set up back button handler
+          const backBtn = document.getElementById("persistent-back-btn");
+          if (backBtn) {
+            backBtn.onclick = goBack;
+          }
+
+          // Set up skip button handler
+          const skipBtn = document.getElementById("persistent-skip-btn");
+          if (skipBtn) {
+            skipBtn.onclick = () => {
+              submitTextAnswer("Skipped");
+            };
+          }
+
+          // Set up finish button handler
+          const finishBtn = document.getElementById("persistent-finish-btn");
+          if (finishBtn) {
+            finishBtn.onclick = closeChatbot;
+          }
+
+          // Set up enter key handler
+          textInput.onkeypress = (e) => {
+            if (e.key === "Enter" && textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
+            }
+          };
+        } else {
+          dynamicContainer.style.display = "block";
+          disablePersistentInput();
+        }
+
+        // Setup input handlers
+        setupInputHandlers(question);
+
+        // Setup button handlers (only for specific question types)
+        if (
+          question.type === "slider" ||
+          question.type === "time_slider" ||
+          question.type === "tags"
+        ) {
+          const backBtn = inputDiv.querySelector("#back-btn");
+          const continueBtn = inputDiv.querySelector("#continue-btn");
+
+          if (backBtn) {
+            backBtn.addEventListener("click", goBack);
+          }
+          if (continueBtn) {
+            continueBtn.addEventListener("click", submitAnswer);
+          }
+        }
+      }
+
+      function setupFileInputHandlers() {
+        const fileArea = document.querySelector("#file-upload-area");
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const continueBtn = document.querySelector("#continue-btn");
+
+        if (fileArea && fileInput && fileText) {
+          fileArea.addEventListener("click", () => fileInput.click());
+          fileArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            fileArea.classList.add("dragover");
+          });
+          fileArea.addEventListener("dragleave", () => {
+            fileArea.classList.remove("dragover");
+          });
+          fileArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            fileArea.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              fileInput.files = files;
+              showImagePreview(files[0], fileArea, fileText);
+              enableContinueButton();
+            }
+          });
+          fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+              showImagePreview(e.target.files[0], fileArea, fileText);
+              enableContinueButton();
+            }
+          });
+        }
+      }
+
+      function enableContinueButton() {
+        const continueBtn = document.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.disabled = false;
+          continueBtn.style.opacity = "1";
+          continueBtn.style.cursor = "pointer";
+          continueBtn.classList.add("primary");
+        }
+      }
+
+      function disableContinueButton() {
+        const continueBtn = document.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.disabled = true;
+          continueBtn.style.opacity = "0.5";
+          continueBtn.style.cursor = "not-allowed";
+          continueBtn.classList.remove("primary");
+        }
+      }
+
+      function setupInputHandlers(question) {
+        const questionInput = document.getElementById("question-input");
+        switch (question.type) {
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            const sliderValue = questionInput.querySelector("#slider-value");
+            slider.addEventListener("input", (e) => {
+              sliderValue.textContent = `${e.target.value}%`;
+            });
+            break;
+          case "time_slider":
+            const timeSlider =
+              questionInput.querySelector("#time-slider-input");
+            const timeIcons = [
+              questionInput.querySelector("#icon-sun"),
+              questionInput.querySelector("#icon-coffee"),
+              questionInput.querySelector("#icon-pasta"),
+              questionInput.querySelector("#icon-wine"),
+              questionInput.querySelector("#icon-moon"),
+            ];
+            const timeLabels = ["Sun", "Coffee", "Pasta", "Wine", "Moon"];
+            timeSlider.addEventListener("input", (e) => {
+              const value = parseFloat(e.target.value);
+              timeIcons.forEach((icon, i) => {
+                // Calculate opacity based on distance from current value
+                const distance = Math.abs(value - i);
+                const opacity = Math.max(0.3, 1 - distance * 0.7);
+                icon.style.opacity = opacity;
+              });
+            });
+            // Set initial state
+            timeIcons.forEach((icon, i) => {
+              icon.style.opacity = i === 0 ? "1" : "0.3";
+            });
+            break;
+          case "tags":
+            const tagExamples = questionInput.querySelector("#tag-examples");
+            const customTagInput =
+              questionInput.querySelector("#custom-tag-input");
+            const userTagsDiv = questionInput.querySelector("#user-tags");
+            let userTags = [];
+            // Add example tag click
+            tagExamples.querySelectorAll(".tag").forEach((tagBtn) => {
+              tagBtn.addEventListener("click", () => {
+                if (
+                  userTags.length < 8 &&
+                  !userTags.includes(tagBtn.textContent)
+                ) {
+                  userTags.push(tagBtn.textContent);
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+              });
+            });
+            // Add custom tag input
+            customTagInput.addEventListener("input", (e) => {
+              if (e.target.value.length > 0) {
+                tagExamples.style.display = "none";
+              } else {
+                tagExamples.style.display = "";
+              }
+            });
+            customTagInput.addEventListener("keydown", (e) => {
+              if (
+                (e.key === "Enter" || e.key === ",") &&
+                customTagInput.value.trim() &&
+                userTags.length < 8
+              ) {
+                const val = customTagInput.value.trim();
+                if (!userTags.includes(val)) {
+                  userTags.push(val);
+                  customTagInput.value = "";
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+                e.preventDefault();
+              }
+            });
+            function renderUserTags() {
+              userTagsDiv.innerHTML = userTags
+                .map(
+                  (tag) =>
+                    `<span class='tag selected'>${tag} <span style='cursor:pointer;color:#ff6b6b;' onclick='this.parentNode.remove();'>×</span></span>`
+                )
+                .join(" ");
+            }
+            break;
+        }
+      }
+
+      function showImagePreview(file, fileArea, fileText) {
+        // Hide upload icon
+        const uploadIcon = document.querySelector("#upload-icon");
+        if (uploadIcon) {
+          uploadIcon.style.display = "none";
+        }
+
+        // Remove existing image preview if any
+        const existingImage = fileArea.querySelector(".uploaded-image");
+        if (existingImage) {
+          existingImage.remove();
+        }
+
+        // Create image preview
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.className = "uploaded-image";
+          img.alt = "Uploaded image";
+
+          // Insert image at the beginning of the file area
+          fileArea.insertBefore(img, fileArea.firstChild);
+
+          // Update text to show filename with remove option
+          fileText.innerHTML = `File selected: ${file.name} <span style=\"color: #ff6b6b; cursor: pointer; margin-left: 10px;\" onclick=\"removeFile(event)\">×</span>`;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function submitTextAnswer(textValue) {
+        const question = questions[chatbotState.currentQuestion];
+        let answer = textValue;
+
+        // Store answer
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer
+        addUserMessage(answer);
+
+        // Clear persistent input
+        const textInput = document.getElementById("persistent-text-input");
+        if (textInput) {
+          textInput.value = "";
+        }
+
+        // Remove dynamic input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function submitAnswer() {
+        const question = questions[chatbotState.currentQuestion];
+        const questionInput = document.getElementById("question-input");
+        let answer = "";
+
+        switch (question.type) {
+          case "file":
+            const fileInput = document.querySelector("#file-input");
+            if (fileInput && fileInput.files.length === 0) {
+              alert("Please select a file");
+              return;
+            }
+            answer = fileInput.files[0].name;
+            break;
+
+          case "text":
+          case "textarea":
+            // Text questions are handled by submitTextAnswer function
+            // This should not be called for text questions
+            return;
+
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            answer = slider ? `${slider.value}%` : "50%";
+            break;
+
+          case "time_slider":
+            const timeSlider =
+              questionInput.querySelector("#time-slider-input");
+            const timeLabels = ["Sun", "Coffee", "Pasta", "Wine", "Moon"];
+            const value = timeSlider ? parseFloat(timeSlider.value) : 0;
+            // Find the closest label or create a blend
+            const closestIndex = Math.round(value);
+            const closestLabel = timeLabels[closestIndex];
+
+            // If it's exactly on an icon, use that label
+            if (Math.abs(value - closestIndex) < 0.1) {
+              answer = closestLabel;
+            } else {
+              // If it's between icons, create a blend
+              const lowerIndex = Math.floor(value);
+              const upperIndex = Math.min(
+                Math.ceil(value),
+                timeLabels.length - 1
+              );
+              const lowerLabel = timeLabels[lowerIndex];
+              const upperLabel = timeLabels[upperIndex];
+              answer = `${lowerLabel}-${upperLabel}`;
+            }
+            break;
+
+          case "tags":
+            const selectedTags =
+              questionInput.querySelectorAll(".tag.selected");
+            const customTag = questionInput.querySelector("#custom-tag-input")
+              ? questionInput.querySelector("#custom-tag-input").value.trim()
+              : "";
+            const tagTexts = Array.from(selectedTags).map((tag) =>
+              tag.textContent.replace(" ×", "")
+            );
+            if (customTag) tagTexts.push(customTag);
+            answer = tagTexts.join(", ");
+            break;
+        }
+
+        // Store answer (even if empty)
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer only if not empty
+        if (answer) {
+          addUserMessage(answer);
+        } else {
+          addUserMessage("Skipped");
+        }
+
+        // Remove input and disable persistent input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function goBack() {
+        // Remove current input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove the last user message
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const lastUserMessage = messagesContainer.querySelector(
+          ".message.user:last-child"
+        );
+        if (lastUserMessage) lastUserMessage.remove();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Go back to previous question
+        chatbotState.currentQuestion--;
+
+        // Ask the previous question again
+        setTimeout(() => {
+          askNextQuestion();
+        }, 500);
+      }
+
+      function showSummary() {
+        addBotMessage("Here's what you gave me. Ready to launch the junk?");
+
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const summaryDiv = document.createElement("div");
+        summaryDiv.className = "message bot";
+        summaryDiv.innerHTML = `
+                <div class="summary-screen">
+                    ${Object.entries(chatbotState.answers)
+                      .map(([key, value]) => {
+                        if (!value) return "";
+                        const question = questions.find((q) => q.id === key);
+                        return `
+                            <div class="summary-item">
+                                <span class="summary-label">${
+                                  question
+                                    ? question.message.split("?")[0] + "?"
+                                    : key
+                                }:</span>
+                                <span class="summary-value">${value}</span>
+                            </div>
+                        `;
+                      })
+                      .join("")}
+                </div>
+            `;
+        messagesContainer.appendChild(summaryDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Add launch button to dynamic container
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const launchDiv = document.createElement("div");
+        launchDiv.innerHTML = `
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="btn primary" id="launch-btn">Launch the junk</button>
+                </div>
+            `;
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "block";
+        dynamicContainer.appendChild(launchDiv);
+        disablePersistentInput();
+
+        // Setup launch button handler
+        const launchBtn = launchDiv.querySelector("#launch-btn");
+        if (launchBtn) {
+          launchBtn.addEventListener("click", launchJunk);
+        }
+      }
+
+      function launchJunk() {
+        // Log the form data (in a real app, you'd send this to a server)
+        console.log("Junk launched:", chatbotState.answers);
+
+        // Show success message
+        addBotMessage(
+          "Junk launched! (This is a demo - no actual upload occurred)"
+        );
+
+        // Close chatbot after a delay
+        setTimeout(() => {
+          closeChatbot();
+        }, 3000);
+      }
+
+      function removeFile(event) {
+        event.stopPropagation();
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const uploadIcon = document.querySelector("#upload-icon");
+        const fileArea = document.querySelector("#file-upload-area");
+
+        if (fileInput && fileText && uploadIcon && fileArea) {
+          fileInput.value = "";
+          fileText.innerHTML = "Drag & drop your file here or click to browse";
+
+          // Remove image preview if exists
+          const uploadedImage = fileArea.querySelector(".uploaded-image");
+          if (uploadedImage) {
+            uploadedImage.remove();
+          }
+
+          // Show upload icon again
+          uploadIcon.style.display = "block";
+
+          // Disable continue button
+          disableContinueButton();
+        }
+      }
+
+      // Rings functions
+      function createEyeSprite(imagePath) {
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(imagePath);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
+        });
+
+        const sprite = new THREE.Sprite(spriteMaterial);
+
+        // Set scale based on image aspect ratio
+        const img = new window.Image();
+        img.src = imagePath;
+        img.onload = function () {
+          const baseHeight = 2; // units
+          const aspect = img.width / img.height;
+          sprite.scale.set(baseHeight * aspect, baseHeight, 1);
+        };
+        // Fallback scale until image loads
+        sprite.scale.set(2, 2, 1);
+        return sprite;
+      }
+
+      function createEyeWithLabel(eyePath, labelText, eyePos, upVector, eyeId) {
+        const group = new THREE.Group();
+        const eye = createEyeSprite(eyePath);
+        eye.position.copy(eyePos);
+        eye.userData.eyeId = eyeId; // Store the eye ID for navigation
+        eye.userData.title = labelText; // Store the title for hover display
+        group.add(eye);
+        // Store for raycasting
+        eyeLabelGroups.push({ eye });
+        return group;
+      }
+
+      function createRings() {
+        // Create an elliptical curve for the oblong ring
+        class CustomEllipseCurve extends THREE.Curve {
+          constructor() {
+            super();
+          }
+          getPoint(t) {
+            const a = 8; // major axis
+            const b = 5; // minor axis
+            const tx = Math.cos(2 * Math.PI * t) * a;
+            const ty = Math.sin(2 * Math.PI * t) * b;
+            return new THREE.Vector3(tx, ty, 0);
+          }
+        }
+
+        const ringsGroup = new THREE.Group(); // <-- ensure this is defined
+        eyeLabelGroups = [];
+        // Create the oblong ring geometry
+        const path = new CustomEllipseCurve();
+        const ringGeometry = new THREE.TubeGeometry(path, 100, 0.05, 16, false);
+
+        // Create materials with different render orders
+        const ringMaterial1 = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide,
+          depthWrite: true,
+          depthTest: true,
+          renderOrder: 1,
+        });
+        const ringMaterial2 = ringMaterial1.clone();
+        ringMaterial2.renderOrder = 2;
+        const ringMaterial3 = ringMaterial1.clone();
+        ringMaterial3.renderOrder = 3;
+
+        // Ring 1 (horizontal, up is +Y)
+        const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
+        const group1a = createEyeWithLabel(
+          "../../Eyes/Temperament_open.png",
+          "Temperament",
+          new THREE.Vector3(9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-temperament"
+        );
+        const group1b = createEyeWithLabel(
+          "../../Eyes/Rhizome_open.png",
+          "Rhizome",
+          new THREE.Vector3(-9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-rhizome"
+        );
+        ring1.add(group1a);
+        ring1.add(group1b);
+        ring1.position.z = 1;
+
+        // Ring 2 (vertical, up is +Z)
+        const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
+        const group2a = createEyeWithLabel(
+          "../../Eyes/Artist_open.png",
+          "Artist",
+          new THREE.Vector3(0, 9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-artist"
+        );
+        const group2b = createEyeWithLabel(
+          "../../Eyes/Completeness_open.png",
+          "Completeness",
+          new THREE.Vector3(0, -9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-completeness"
+        );
+        ring2.rotation.x = Math.PI / 2;
+        ring2.position.z = 0;
+        ring2.add(group2a);
+        ring2.add(group2b);
+
+        // Ring 3 (side, up is +X)
+        const ring3 = new THREE.Mesh(ringGeometry, ringMaterial3);
+        const group3a = createEyeWithLabel(
+          "../../Eyes/SecretGallery_open.png",
+          "idk",
+          new THREE.Vector3(0, 6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-secret"
+        );
+        const group3b = createEyeWithLabel(
+          "../../Eyes/Intimacy_open.png",
+          "Intimacy",
+          new THREE.Vector3(0, -6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-intimacy"
+        );
+        ring3.rotation.y = Math.PI / 2;
+        ring3.position.z = -1;
+        ring3.add(group3a);
+        ring3.add(group3b);
+
+        ringsGroup.add(ring1);
+        ringsGroup.add(ring2);
+        ringsGroup.add(ring3);
+        return ringsGroup;
+      }
+
+      function initRings() {
+        // Create separate scene for rings
+        ringsScene = new THREE.Scene();
+        ringsCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 2000);
+        ringsCamera.position.z = 20;
+
+        // Create separate renderer for rings
+        ringsRenderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          logarithmicDepthBuffer: true,
+          preserveDrawingBuffer: true,
+        });
+        ringsRenderer.setSize(500, 500);
+        ringsRenderer.setClearColor(0x000000, 0);
+        ringsRenderer.sortObjects = false; // Disable automatic sorting
+        document
+          .getElementById("rings-container")
+          .appendChild(ringsRenderer.domElement);
+
+        // Create and add rings
+        rings = createRings();
+        ringsScene.add(rings);
+
+        // Add event listeners for rings rotation
+        ringsRenderer.domElement.addEventListener(
+          "mousedown",
+          onRingsMouseDown
+        );
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseMove
+        );
+        ringsRenderer.domElement.addEventListener("mouseup", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("mouseleave", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("click", onRingsClick);
+        ringsRaycaster = new THREE.Raycaster();
+        ringsMouse = new THREE.Vector2();
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseHover
+        );
+      }
+
+      function onRingsMouseDown(event) {
+        ringsRotation.dragStartTime = Date.now();
+        ringsRotation.previousX = event.clientX;
+        ringsRotation.previousY = event.clientY;
+        ringsRotation.isDragging = false; // Start as false, will be set to true if movement exceeds threshold
+      }
+
+      function onRingsMouseMove(event) {
+        // Only handle dragging if mouse button is pressed
+        if (event.buttons !== 1) {
+          return; // No mouse button pressed, don't handle dragging
+        }
+
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Check if we should start dragging (movement exceeds threshold)
+        if (
+          !ringsRotation.isDragging &&
+          distance > ringsRotation.dragThreshold
+        ) {
+          ringsRotation.isDragging = true;
+        }
+
+        if (ringsRotation.isDragging) {
+          rings.rotation.y += deltaX * 0.01;
+          rings.rotation.x += deltaY * 0.01;
+
+          ringsRotation.previousX = event.clientX;
+          ringsRotation.previousY = event.clientY;
+        }
+      }
+
+      function onRingsMouseUp() {
+        ringsRotation.isDragging = false;
+      }
+
+      function onRingsMouseHover(event) {
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        // Collect all eye meshes
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        const hoverTitle = document.getElementById("hover-title");
+
+        // Hide title by default
+        if (hoverTitle) {
+          hoverTitle.style.opacity = "0";
+        }
+
+        // Show title for hovered eye
+        if (intersects.length > 0) {
+          const hoveredEye = intersects[0].object;
+          if (hoveredEye.userData.title && hoverTitle) {
+            hoverTitle.textContent = hoveredEye.userData.title;
+            hoverTitle.style.opacity = "1";
+          }
+        }
+      }
+
+      function onRingsClick(event) {
+        // Check if this was a drag or a click
+        const timeSinceMouseDown = Date.now() - ringsRotation.dragStartTime;
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Only handle clicks if:
+        // 1. Not dragging (or very minimal movement)
+        // 2. Quick click (less than threshold time)
+        // 3. Small movement (less than threshold distance)
+        if (
+          ringsRotation.isDragging ||
+          timeSinceMouseDown > ringsRotation.clickThreshold ||
+          distance > ringsRotation.dragThreshold
+        ) {
+          return;
+        }
+
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        if (intersects.length > 0) {
+          const clickedEye = intersects[0].object;
+          const eyeId = clickedEye.userData.eyeId;
+
+          // Navigation logic
+          switch (eyeId) {
+            case "eye-temperament":
+              window.location.href = "../temperament/temperament.html";
+              break;
+            case "eye-secret":
+              window.location.href = "../hashtag_gallery/hashtag_gallery.html";
+              break;
+            case "eye-intimacy":
+              window.location.href = "../intimacy/Intimacy.html";
+              break;
+            case "eye-completeness":
+              window.location.href = "../Completeness/Completeness.html";
+              break;
+            case "eye-artist":
+              window.location.href = "../Artists/Artist.html";
+              break;
+            case "eye-rhizome":
+              window.location.href = "../../index.html";
+              break;
+            default:
+              // Silently ignore unknown eye IDs
+              break;
+          }
+        }
+      }
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+
+        // Animate particles
+        if (particles) {
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = particles.userData.speeds;
+          const opacities = particles.userData.opacities;
+
+          for (let i = 0; i < positions.length; i += 3) {
+            // Move particles in a circular motion
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.01;
+            positions[i + 1] += Math.cos(time) * 0.01;
+            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+            // Check if particle is in front of images (z > 0)
+            const z = positions[i + 2];
+            opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+          particles.material.opacity = 0.3; // Base opacity
+        }
+
+        // Project camera center to world coordinates (z=0 plane)
+        const vector = new THREE.Vector3(0, 0, 0.5); // center of screen, z=0.5 in NDC
+        vector.unproject(camera);
+        // Project onto z=0 plane
+        const camPos = camera.position;
+        const dir = vector.clone().sub(camPos).normalize();
+        const t = -camPos.z / dir.z;
+        const centerWorld = camPos.clone().add(dir.multiplyScalar(t));
+
+        // Update Z for all dots
+        for (let i = 0; i < renderedDots.length; i++) {
+          const base = dotBasePositions[i];
+          const dx = base.x - centerWorld.x;
+          const dy = base.y - centerWorld.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const z =
+            bellHeight *
+            Math.exp(-Math.pow(dist, 2) / (2 * Math.pow(bellSigma, 2)));
+          renderedDots[i].mesh.position.z = z;
+        }
+
+        // Update floating eye
+        updateFloatingEye();
+
+        // Animate rings - natural slow rotation when not dragging
+        if (rings && !ringsRotation.isDragging) {
+          // Very slow, natural rotation
+          rings.rotation.x += 0.0005; // Reduced from 0.0003
+          rings.rotation.y += 0.0008; // Reduced from 0.0006
+        }
+
+        // Render rings
+        if (ringsRenderer) {
+          ringsRenderer.render(ringsScene, ringsCamera);
+        }
+
+        composer.render();
+      }
+
+      // Initialize the scene
+      createDots().then(() => {
+        // Hide loading screen and show visualization
+        document.getElementById("loading-container").style.display = "none";
+        document.getElementById("black-overlay").style.opacity = "0";
+        setTimeout(() => {
+          document.getElementById("black-overlay").style.display = "none";
+        }, 500);
+
+        // Initialize floating eye
+        console.log("About to initialize floating eye...");
+        initFloatingEye();
+        console.log("Floating eye initialization completed");
+
+        // Initialize rings
+        initRings();
+
+        // Initialize dock behavior and show UI elements after everything is loaded
+        setTimeout(() => {
+          initDockBehavior();
+
+          // Show pixel arrow indicator after loading is complete
+          const pixelArrowIndicator = document.getElementById(
+            "pixel-arrow-indicator"
+          );
+          if (pixelArrowIndicator) {
+            pixelArrowIndicator.classList.add("show");
+          }
+
+          // Show floating eye after loading is complete
+          const eye = document.getElementById("floating-eye");
+          if (eye) {
+            eye.style.display = "block";
+            console.log("Floating eye is now visible!");
+          }
+        }, 100);
+
+        animate();
+      });
+    </script>
+  </body>
 </html>
