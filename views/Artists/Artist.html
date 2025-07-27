@@ -1,0 +1,4572 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Artist Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&libraries=places&callback=initGoogleMaps&loading=async"
+      async
+      defer
+    ></script>
+    <style>
+      @font-face {
+        font-family: "VT323";
+        src: url("../../assets/VT323-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+      @font-face {
+        font-family: "Pixel";
+        src: url("../../assets/pixel.ttf") format("truetype");
+      }
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+      }
+
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+      #black-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+        opacity: 1;
+      }
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
+
+      /* Floating Eye Styles */
+      #floating-eye {
+        position: fixed;
+        width: 200px;
+        height: 200px;
+        z-index: 1000;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        pointer-events: auto;
+        display: none;
+        top: 100px;
+        left: 100px;
+        opacity: 0.7;
+      }
+
+      #floating-eye:hover {
+        transform: scale(1.2);
+      }
+
+      #floating-eye img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+      }
+
+      /* Tooltip Styles */
+      #eye-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        font-family: "VT323", monospace;
+        font-size: 26px;
+        width: 350px;
+        height: 200px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        pointer-events: none;
+        text-align: center;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      #eye-tooltip.show {
+        opacity: 0.8;
+        visibility: visible;
+      }
+
+      #rings-container {
+        position: fixed;
+        bottom: -90px;
+        left: -10px;
+        width: 500px;
+        height: 500px;
+        z-index: 2;
+        pointer-events: auto;
+        cursor: grab;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #rings-container:active {
+        cursor: grabbing;
+      }
+
+      #rings-container.dock-visible {
+        bottom: -90px;
+      }
+
+      #rings-container.dock-hidden {
+        bottom: -400px;
+      }
+
+      /* Dock hover zone indicator (for debugging - can be removed) */
+      .dock-hover-zone {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40px;
+        background: rgba(255, 0, 0, 0.1);
+        pointer-events: none;
+        z-index: 1;
+        display: none; /* Hidden by default, can be enabled for debugging */
+      }
+
+      /* Pixel Arrow Indicator */
+      #pixel-arrow-indicator {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        animation: arrow-bounce 2s ease-in-out infinite;
+      }
+
+      #pixel-arrow-indicator.show {
+        opacity: 0.7;
+      }
+
+      #pixel-arrow-indicator img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
+
+      @keyframes arrow-bounce {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0px);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-8px);
+        }
+      }
+      #hover-title {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffffff;
+        font-family: "VT323", monospace;
+        font-size: 32px;
+        font-weight: bold;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 10;
+      }
+      #search-bar {
+        position: fixed;
+        left: 50%;
+        bottom: 3vw;
+        transform: translateX(-50%);
+        width: 420px;
+        max-width: 80vw;
+        min-width: 280px;
+        height: 54px;
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 2px 16px #0003;
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        border: none;
+        outline: none;
+        padding: 0 32px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #search-bar.dock-visible {
+        opacity: 1;
+        bottom: 3vw;
+      }
+
+      #search-bar.dock-hidden {
+        opacity: 0;
+        bottom: -200px;
+      }
+
+      /* Upload Button Styles */
+      #upload-hand-btn {
+        position: fixed;
+        right: 2vw;
+        bottom: 2vw;
+        width: 280px;
+        height: 280px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 2100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        flex-direction: unset;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #upload-hand-btn.dock-visible {
+        opacity: 1;
+        bottom: 2vw;
+      }
+
+      #upload-hand-btn.dock-hidden {
+        opacity: 0;
+        bottom: -200px;
+      }
+      #upload-hand-btn-text {
+        position: absolute;
+        left: 30%;
+        top: 55%;
+        transform: translate(-50%, -50%);
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        background: none;
+        border: none;
+        text-align: center;
+        pointer-events: none;
+        width: 180px;
+        line-height: 0.9;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.5px;
+      }
+      #upload-hand-btn-img {
+        width: 270px;
+        height: 270px;
+        object-fit: contain;
+        display: block;
+        pointer-events: none;
+      }
+
+      /* Chatbot Styles */
+      .chatbot-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 2999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .chatbot-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 95vw;
+        max-width: 800px;
+        height: 80vh;
+        background: #000;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        z-index: 3000;
+        display: none;
+        font-family: "Overpass Mono", monospace;
+        color: #fff;
+      }
+
+      .chatbot-input-area {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #000;
+        border-top: 1px solid #fff;
+        padding: 20px;
+        z-index: 10;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #dynamic-input-container {
+        position: absolute;
+        bottom: 100px;
+        left: 0;
+        right: 0;
+        background: #000;
+        padding: 10px 20px;
+        z-index: 8;
+        min-height: 0;
+      }
+
+      .persistent-input {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input input {
+        flex: 1;
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .persistent-input input:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .persistent-input input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .persistent-input button {
+        padding: 12px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .persistent-input button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .persistent-input button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .chatbot-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        border-bottom: 1px solid #fff;
+        font-family: "VT323", monospace;
+        font-size: 24px;
+        text-align: center;
+        background: #000;
+        z-index: 5;
+      }
+
+      .chatbot-messages {
+        position: absolute;
+        top: 80px;
+        left: 0;
+        right: 0;
+        bottom: 120px;
+        overflow-y: auto;
+        padding: 20px 20px 100px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .message {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .message.bot {
+        align-items: flex-start;
+      }
+
+      .message.user {
+        align-items: flex-end;
+      }
+
+      .message-content {
+        max-width: 80%;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      .message.bot .message-content {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .message.user .message-content {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Add extra space after the last message */
+      .chatbot-messages::after {
+        content: "";
+        height: 40px;
+        flex-shrink: 0;
+      }
+
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        max-width: 80%;
+      }
+
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes typing {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .input-field {
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+      }
+
+      .input-field:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .file-upload-area {
+        border: 2px dashed #fff;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 300px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .upload-icon {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        margin-top: -5px;
+      }
+
+      .file-upload-area:hover .upload-icon {
+        opacity: 1;
+      }
+
+      .file-upload-area:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .file-upload-area.dragover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #fff;
+      }
+
+      .uploaded-image {
+        max-width: 80%;
+        max-height: 120px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .file-upload-text {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        width: 100%;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: flex-end;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 10px;
+      }
+
+      .slider {
+        flex: 1;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
+        min-width: 0;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .tag-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .tag {
+        padding: 6px 12px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tag:hover,
+      .tag.selected {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .summary-screen {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+      }
+
+      .summary-label {
+        font-family: "VT323", monospace;
+        font-size: 16px;
+      }
+
+      .summary-value {
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+      }
+
+      /* Map Popup Styles */
+      .map-popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 4000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .map-popup-content {
+        background: #000;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 800px;
+        width: 90vw;
+        max-height: 80vh;
+        font-family: "VT323", monospace;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .map-popup-header {
+        font-size: 24px;
+        margin-bottom: 15px;
+        text-align: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .map-popup-close {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+      }
+
+      .map-container {
+        flex: 1;
+        min-height: 400px;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        position: relative;
+        background: #1a1a1a;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #map {
+        width: 100%;
+        height: 100%;
+        min-height: 400px;
+        flex: 1;
+        position: relative;
+        background: #1a1a1a;
+      }
+
+      .map-overlay {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 4px;
+        z-index: 1000;
+      }
+
+      .map-instructions {
+        color: #fff;
+        font-size: 14px;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .map-pin-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #ff4444;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        z-index: 1001;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+
+      .map-pin-button:hover {
+        background: #ff6666;
+      }
+
+      .map-controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .map-input {
+        flex: 1;
+        min-width: 200px;
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 8px 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .map-input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .map-popup-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .map-popup-btn {
+        padding: 10px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .map-popup-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .map-popup-btn.primary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .map-popup-btn.primary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .coordinates-display {
+        font-family: "Overpass Mono", monospace;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      /* Drawer Modal Styles */
+      .drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 3000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+      }
+
+      .drawer-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .drawer-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        z-index: 3001;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        max-width: 95vw;
+        max-height: 90vh;
+        justify-content: center;
+        position: relative;
+      }
+
+      .drawer-container.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .drawer-artwork {
+        position: relative;
+        width: auto;
+        height: auto;
+        max-width: 45vw;
+        max-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+        z-index: 2;
+        flex-shrink: 0;
+      }
+
+      .drawer-artwork img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 4px;
+        display: block;
+      }
+
+      .drawer-info {
+        position: relative;
+        width: 350px;
+        height: auto;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: 'Overpass Mono', monospace;
+        color: #fff;
+        font-size: 14px;
+        transform: translateX(-100%);
+        transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 1;
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .drawer-container.show .drawer-info {
+        transform: translateX(0);
+      }
+
+      .drawer-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+
+      .drawer-field.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .drawer-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        font-family: 'VT323', monospace;
+        z-index: 3002;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      .drawer-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .drawer-container.show .drawer-close {
+        opacity: 1;
+      }
+
+      .drawer-label {
+        font-weight: bold;
+        font-family: 'Overpass Mono', monospace;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .drawer-value {
+        font-weight: normal;
+        font-family: 'Overpass Mono', monospace;
+        font-style: italic;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .drawer-context {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        padding: 12px;
+        min-height: 80px;
+        font-size: 13px;
+        line-height: 1.5;
+        margin-top: 4px;
+      }
+
+      .drawer-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .drawer-tag {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        padding: 4px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+      }
+
+      .drawer-tag:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Mobile responsive */
+      @media (max-width: 768px) {
+        .drawer-container {
+          flex-direction: column;
+          max-width: 95vw;
+          max-height: 90vh;
+          gap: 15px;
+          padding: 10px;
+        }
+
+        .drawer-artwork {
+          max-width: 100%;
+          max-height: 50vh;
+        }
+
+        .drawer-info {
+          position: relative;
+          width: 100%;
+          height: auto;
+          max-height: 40vh;
+          transform: translateY(-100%);
+          padding: 15px;
+          font-size: 13px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .drawer-container.show .drawer-info {
+          transform: translateY(0);
+        }
+
+        .drawer-field {
+          margin-bottom: 8px;
+        }
+
+        .drawer-label {
+          font-size: 14px;
+        }
+
+        .drawer-value {
+          font-size: 13px;
+          background: #fff;
+          color: #000;
+          padding: 3px 6px;
+          border-radius: 3px;
+        }
+
+        .drawer-context {
+          font-size: 12px;
+          padding: 10px;
+          min-height: 60px;
+        }
+
+        .drawer-tag {
+          font-size: 10px;
+          padding: 3px 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="black-overlay"></div>
+    <div
+      id="loading-container"
+      style="
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      "
+    >
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING... 0%
+      </div>
+    </div>
+    <div id="visualization"></div>
+
+    <!-- Floating Eye -->
+    <div id="floating-eye">
+      <img
+        src="../../assets/GlitchyEyeGif.gif"
+        alt="Glitchy Eye"
+        style="width: 100%; height: 100%; object-fit: contain"
+      />
+    </div>
+
+    <!-- Tooltip -->
+    <div id="eye-tooltip">
+      Here is the Artist View. Navigate through the interconnected network of
+      images and discover hidden connections between different pieces of junk.
+    </div>
+
+    <!-- Pixel Arrow Indicator -->
+    <div id="pixel-arrow-indicator">
+      <img src="../../assets/pixel_arrow.png" alt="Arrow pointing up" />
+    </div>
+
+    <div id="rings-container">
+      <div id="hover-title"></div>
+    </div>
+    <!-- Search Bar (fixed) -->
+    <input id="search-bar" type="text" placeholder="I want to see..." />
+    <!-- Upload Hand Button (fixed, with image and overlaid text) -->
+    <button id="upload-hand-btn">
+      <img
+        id="upload-hand-btn-img"
+        src="../../UploadButton/BiggerHand.png"
+        alt="Upload hand"
+      />
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
+    </button>
+
+    <!-- Chatbot Backdrop -->
+    <div id="chatbot-backdrop" class="chatbot-backdrop"></div>
+
+    <!-- Chatbot Upload Interface -->
+    <div id="chatbot-container" class="chatbot-container">
+      <button class="close-btn" onclick="closeChatbot()">×</button>
+      <div class="chatbot-header">Junk Upload Bot</div>
+      <div class="chatbot-messages" id="chatbot-messages">
+        <!-- Messages will be added here dynamically -->
+      </div>
+      <div class="chatbot-input-area" id="chatbot-input-area">
+        <div class="persistent-input">
+          <button id="persistent-back-btn" disabled>Back</button>
+          <input
+            type="text"
+            id="persistent-text-input"
+            placeholder="Type your message..."
+            disabled
+          />
+          <div class="persistent-input-actions">
+            <button id="persistent-send-btn" disabled>Send</button>
+            <button id="persistent-skip-btn" disabled>Skip</button>
+            <button id="persistent-finish-btn" disabled>Finish</button>
+          </div>
+        </div>
+        <div id="dynamic-input-container">
+          <!-- Dynamic input elements will be added here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Popup -->
+    <div id="map-popup-overlay" class="map-popup-overlay">
+      <div class="map-popup-content">
+        <div class="map-popup-header">
+          <span>Pin your location!</span>
+          <button class="map-popup-close" onclick="closeMapPopup()">×</button>
+        </div>
+        <div class="coordinates-display" id="coordinates-display">
+          Click on the map to pin your location
+        </div>
+        <div class="map-controls">
+          <input
+            type="text"
+            class="map-input"
+            id="map-location-input"
+            placeholder="Enter location name or description..."
+          />
+          <button class="map-popup-btn" onclick="clearPin()">Clear Pin</button>
+        </div>
+        <div class="map-container">
+          <div id="map"></div>
+          <div class="map-overlay">
+            <div class="map-instructions">
+              Click on the map to place a pin, or search for an address above
+            </div>
+          </div>
+          <div class="map-pin-button" id="map-pin-button">📍</div>
+        </div>
+        <div class="map-popup-buttons">
+          <button class="map-popup-btn" onclick="closeMapPopup()">
+            Cancel
+          </button>
+          <button class="map-popup-btn primary" onclick="confirmMapLocation()">
+            Confirm Location
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let scene, camera, renderer, controls;
+      let composer;
+      let particles;
+      let imageGroups = [];
+      let isInitialized = false;
+      let helixGroup;
+      let helixOutline;
+      let isDragging = false;
+      let previousY = 0;
+      let targetY = 0;
+      let currentY = 0;
+      let scrollVelocity = 0;
+      let currentRotation = 0;
+      let targetRotation = 0;
+      const SCROLL_SPEED = 0.2; // Reduced from 0.3 for smoother movement
+      const SCROLL_SMOOTHING = 0.98; // Increased from 0.95 for smoother transitions
+      const VELOCITY_DAMPENING = 0.96; // Increased from 0.92 for smoother deceleration
+      const MAX_SCROLL = 900; // Increased to accommodate longer helix
+      const ROTATION_SPEED = 0.5;
+
+      // Separate variables for rings
+      let ringsScene, ringsCamera, ringsRenderer;
+      let rings;
+      let ringsRotation = {
+        isDragging: false,
+        previousX: 0,
+        previousY: 0,
+        rotationSpeedX: 0.0003,
+        rotationSpeedY: 0.0006,
+        manualRotationX: 0,
+        manualRotationY: 0,
+        dragStartTime: 0,
+        dragThreshold: 5, // Minimum distance to be considered dragging
+        clickThreshold: 200, // Minimum time difference to be considered a click vs drag
+      };
+
+      // Store references to eye-label groups for hover detection
+      let eyeLabelGroups = [];
+      let ringsRaycaster, ringsMouse;
+
+      // Chatbot state
+      let chatbotState = {
+        currentQuestion: 0,
+        answers: {},
+        isTyping: false,
+      };
+
+      // Map state
+      let mapState = {
+        map: null,
+        marker: null,
+        autocomplete: null,
+        selectedLocation: null,
+        googleMapsLoaded: false,
+      };
+
+      // Organic Floating Eye Animation
+      let eyeX = 100;
+      let eyeY = 100;
+      let eyeTargetX = 100;
+      let eyeTargetY = 100;
+      let eyeSpeed = 0.008; // Much slower movement
+      let lastEyeMoveTime = 0;
+      let eyeMoveInterval = 8000; // Longer intervals between movements
+      let eyeIsHovered = false;
+      let eyeDriftX = 0;
+      let eyeDriftY = 0;
+      let eyeDriftSpeed = 0.001; // Very slow drift
+      let eyeDriftAmplitude = 15; // Small drift amplitude
+
+      // Cluster mode variables
+      let isClusterMode = false;
+      let activeCluster = null;
+      let originalClusterPosition = null;
+      let originalClusterRotation = null;
+      let originalCameraPosition = null;
+      let originalHelixY = null;
+      let originalHelixRotation = null;
+      let targetClusterPosition = new THREE.Vector3();
+      const CLUSTER_TRANSITION_DURATION = 1000; // ms
+      let transitionStartTime = 0;
+
+      // Function to position clusters in a helix
+      function createHelixPosition(index, totalClusters) {
+        const turns = 20; // Increased turns to make helix longer
+        const heightStep = 1500 / totalClusters; // Increased height to accommodate more turns
+        const radius = 40; // Larger radius for better visibility of the extended helix
+
+        // Calculate position on helix
+        const angle = (index / totalClusters) * Math.PI * 2 * turns;
+        const x = radius * Math.cos(angle);
+        const y = index * heightStep - 750; // Center vertically (half of 1500)
+        const z = radius * Math.sin(angle);
+
+        return new THREE.Vector3(x, y, z);
+      }
+
+      // Function to create helix outline
+      function createHelixOutline() {
+        const turns = 20;
+        const radius = 40;
+        const totalHeight = 1500;
+        const segments = 1200; // Increased segments for even smoother curve
+
+        // Create main helix line
+        const points = [];
+        for (let i = 0; i <= segments; i++) {
+          const angle = (i / segments) * Math.PI * 2 * turns;
+          const y = (i / segments) * totalHeight - totalHeight / 2;
+          const x = radius * Math.cos(angle);
+          const z = radius * Math.sin(angle);
+          points.push(new THREE.Vector3(x, y, z));
+        }
+
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.9,
+          linewidth: 6,
+        });
+
+        const line = new THREE.Line(geometry, material);
+        line.renderOrder = 0; // Ensure grid renders behind images
+        return line;
+      }
+
+      // Function to create 3D grid for helix
+      function createHelixGrid() {
+        const turns = 20;
+        const radius = 40;
+        const totalHeight = 1500;
+        const gridGroup = new THREE.Group();
+
+        // Create spiral guide lines (secondary helix paths) - more lines with weight hierarchy
+        const spiralGuides = 6; // Increased number of spiral guides
+        for (let guide = 0; guide <= spiralGuides; guide++) {
+          const guideRadius = radius * (0.2 + guide * 0.15); // More guides with closer spacing
+          const points = [];
+          const segments = 800; // Increased segments for smoother guide lines
+
+          for (let i = 0; i <= segments; i++) {
+            const angle = (i / segments) * Math.PI * 2 * turns;
+            const y = (i / segments) * totalHeight - totalHeight / 2;
+            const x = guideRadius * Math.cos(angle);
+            const z = guideRadius * Math.sin(angle);
+            points.push(new THREE.Vector3(x, y, z));
+          }
+
+          // Weight hierarchy: outermost line is heaviest
+          const isOutermost = guide === spiralGuides;
+          const lineWidth = isOutermost ? 5 : 3 + guide * 0.5; // 5 for outermost, decreasing inward
+          const opacity = isOutermost ? 0.8 : 0.4 + guide * 0.05; // Higher opacity for outer lines
+
+          const geometry = new THREE.BufferGeometry().setFromPoints(points);
+          const material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: opacity,
+            linewidth: lineWidth,
+          });
+
+          const line = new THREE.Line(geometry, material);
+          line.renderOrder = 0; // Ensure grid renders behind images
+          gridGroup.add(line);
+        }
+
+        return gridGroup;
+      }
+
+      function createTextSprite(text) {
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        // Set canvas size
+        canvas.width = 256;
+        canvas.height = 64;
+
+        // Set text style
+        context.font = "32px monospace";
+        context.textAlign = "center";
+        context.fillStyle = "white";
+
+        // Draw text
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        // Create texture
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+
+        // Create sprite material
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0.8,
+        });
+
+        // Create sprite
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(12, 3, 1); // Increased scale to match larger font
+
+        return sprite;
+      }
+
+      async function loadAndCreateImageClusters() {
+        try {
+          helixGroup = new THREE.Group();
+          scene.add(helixGroup);
+
+          // Create and add helix outline
+          helixOutline = createHelixOutline();
+          helixGroup.add(helixOutline);
+
+          // Create and add 3D grid
+          const helixGrid = createHelixGrid();
+          helixGroup.add(helixGrid);
+
+          const response = await fetch("../../images/images.json");
+          if (!response.ok) {
+            throw new Error("Failed to load images.json");
+          }
+          const imageList = await response.json();
+
+          const textureLoader = new THREE.TextureLoader();
+          let loadedImages = 0;
+          const totalImages = imageList.length;
+
+          const avgClusterSize = 5;
+          const estimatedClusters = Math.ceil(
+            imageList.length / avgClusterSize
+          );
+          let clusterIndex = 0;
+
+          let remainingImages = [...imageList];
+          while (remainingImages.length > 0) {
+            const clusterSize = Math.min(
+              Math.floor(Math.random() * 5) + 3,
+              remainingImages.length
+            );
+            const clusterGroup = new THREE.Group();
+
+            // Position cluster on helix
+            const helixPos = createHelixPosition(
+              clusterIndex,
+              estimatedClusters
+            );
+            clusterGroup.position.copy(helixPos);
+
+            // Create container for images
+            const clusterContainer = new THREE.Object3D();
+            clusterGroup.add(clusterContainer);
+            clusterContainer.userData.shouldFaceCamera = true;
+
+            // Add images to cluster
+            for (
+              let i = 0;
+              i < clusterSize && remainingImages.length > 0;
+              i++
+            ) {
+              const imageIndex = Math.floor(
+                Math.random() * remainingImages.length
+              );
+              const imagePath = remainingImages[imageIndex];
+              remainingImages.splice(imageIndex, 1);
+
+              await new Promise((resolve, reject) => {
+                textureLoader.load(
+                  `../../images/${imagePath}`,
+                  (texture) => {
+                    const aspectRatio =
+                      texture.image.width / texture.image.height;
+                    const spriteMaterial = new THREE.SpriteMaterial({
+                      map: texture,
+                      transparent: true,
+                      opacity: 1.0,
+                    });
+                    const sprite = new THREE.Sprite(spriteMaterial);
+
+                    // Store image path for click detection
+                    sprite.userData.imagePath = imagePath;
+                    // Ensure images render in front of grid
+                    sprite.renderOrder = 1000;
+                    sprite.material.depthTest = false;
+
+                    const baseSize = 8; // Increased from 5 to 8
+                    sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
+
+                    // Calculate grid dimensions for proper spacing
+                    const gridCols = Math.ceil(Math.sqrt(clusterSize));
+                    const gridRows = Math.ceil(clusterSize / gridCols);
+                    const spacing = Math.max(10, baseSize * 1.3); // Reduced spacing to bring images closer
+
+                    // Calculate total height of the grid
+                    const totalGridHeight = gridRows * spacing;
+
+                    // Add username text under the cluster
+                    const username = "@User" + (clusterIndex + 1);
+                    const textSprite = createTextSprite(username);
+                    // Ensure text also renders in front
+                    textSprite.renderOrder = 1000;
+                    textSprite.material.depthTest = false;
+                    // Position the text sprite below the bottom row of images
+                    textSprite.position.y = -(totalGridHeight / 2 + 1); // 5 units padding below the last row
+                    textSprite.position.z = 0; // Keep on same plane as images
+                    clusterContainer.add(textSprite);
+
+                    // Position in a flat grid layout with increased spacing
+                    const col = i % gridCols;
+                    const row = Math.floor(i / gridCols);
+                    const offsetX = (col - (gridCols - 1) / 2) * spacing;
+                    const offsetY = (row - (gridRows - 1) / 2) * spacing;
+                    sprite.position.set(offsetX, offsetY, 0); // All sprites at z=0 for flat plane
+
+                    clusterContainer.add(sprite);
+                    loadedImages++;
+                    updateLoadingUI((loadedImages / totalImages) * 100);
+                    resolve();
+                  },
+                  undefined,
+                  reject
+                );
+              });
+            }
+
+            helixGroup.add(clusterGroup);
+            imageGroups.push(clusterGroup);
+            clusterIndex++;
+          }
+
+          // Initial camera position
+          camera.position.set(80, 0, 80); // Moved camera further out
+          camera.lookAt(0, 0, 0);
+
+          // Show visualization
+          document.getElementById("loading-container").style.display = "none";
+          document.getElementById("visualization").style.display = "block";
+          document.getElementById("black-overlay").style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("black-overlay").style.display = "none";
+          }, 500);
+
+          isInitialized = true;
+          animate();
+        } catch (error) {
+          console.error("Error in loadAndCreateImageClusters:", error);
+          document.getElementById("loading-text").textContent =
+            "Error loading images. Please refresh the page.";
+        }
+      }
+
+      // Add mouse event listeners
+      function initScrollControls() {
+        const container = renderer.domElement;
+        let lastDragTime = 0;
+        let lastDragY = 0;
+        let isMouseDown = false;
+
+        container.addEventListener("mousedown", (e) => {
+          isDragging = true;
+          isMouseDown = true;
+          previousY = e.clientY;
+          lastDragY = e.clientY;
+          lastDragTime = Date.now();
+          scrollVelocity = 0;
+        });
+
+        container.addEventListener("mousemove", (e) => {
+          if (!isDragging || !isMouseDown) return;
+
+          const now = Date.now();
+          const dt = Math.min(now - lastDragTime, 100); // Increased max dt for smoother velocity
+          if (dt > 0) {
+            scrollVelocity = ((e.clientY - lastDragY) / dt) * 0.3; // Reduced multiplier for smoother velocity
+          }
+
+          const deltaY = (e.clientY - previousY) * SCROLL_SPEED;
+          targetY = Math.max(
+            -MAX_SCROLL,
+            Math.min(MAX_SCROLL, targetY + deltaY)
+          );
+
+          previousY = e.clientY;
+          lastDragY = e.clientY;
+          lastDragTime = now;
+        });
+
+        container.addEventListener("mouseup", () => {
+          isDragging = false;
+          isMouseDown = false;
+          scrollVelocity *= 6; // Reduced from 8 for smoother deceleration
+        });
+
+        container.addEventListener("mouseleave", () => {
+          isDragging = false;
+          isMouseDown = false;
+          scrollVelocity = 0;
+        });
+
+        // Improved touch support
+        container.addEventListener(
+          "touchstart",
+          (e) => {
+            isDragging = true;
+            previousY = e.touches[0].clientY;
+            lastDragY = e.touches[0].clientY;
+            lastDragTime = Date.now();
+            scrollVelocity = 0;
+            e.preventDefault();
+          },
+          { passive: false }
+        );
+
+        container.addEventListener(
+          "touchmove",
+          (e) => {
+            if (!isDragging) return;
+
+            const now = Date.now();
+            const dt = Math.min(now - lastDragTime, 100); // Increased max dt
+            if (dt > 0) {
+              scrollVelocity = ((e.touches[0].clientY - lastDragY) / dt) * 0.3; // Reduced multiplier
+            }
+
+            const deltaY = (e.touches[0].clientY - previousY) * SCROLL_SPEED;
+            targetY = Math.max(
+              -MAX_SCROLL,
+              Math.min(MAX_SCROLL, targetY + deltaY)
+            );
+
+            previousY = e.touches[0].clientY;
+            lastDragY = e.touches[0].clientY;
+            lastDragTime = now;
+            e.preventDefault();
+          },
+          { passive: false }
+        );
+
+        container.addEventListener("touchend", () => {
+          isDragging = false;
+          scrollVelocity *= 6; // Reduced from 8
+        });
+
+        // Improved wheel support
+        let wheelTimeout;
+        container.addEventListener(
+          "wheel",
+          (e) => {
+            const deltaY = e.deltaY * 0.1; // Reduced from 0.15 for smoother wheel scrolling
+            targetY = Math.max(
+              -MAX_SCROLL,
+              Math.min(MAX_SCROLL, targetY + deltaY)
+            );
+
+            scrollVelocity = 0;
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(() => {
+              scrollVelocity = Math.sign(deltaY) * 0.03; // Reduced from 0.05
+            }, 100); // Increased timeout for smoother wheel behavior
+
+            e.preventDefault();
+          },
+          { passive: false }
+        );
+      }
+
+      // Function to handle cluster mode transition
+      function enterClusterMode(cluster) {
+        if (isClusterMode && activeCluster === cluster) {
+          exitClusterMode();
+          return;
+        }
+
+        isClusterMode = true;
+        activeCluster = cluster;
+
+        // Store original positions and states
+        originalCameraPosition = camera.position.clone();
+        originalHelixY = helixGroup.position.y;
+        originalHelixRotation = helixGroup.rotation.y;
+
+        // Store original scale of the cluster container
+        const container = cluster.children[0];
+        if (container) {
+          container.userData.originalScale = container.scale.clone();
+        }
+
+        // Calculate camera target position based on cluster's current position
+        const clusterWorldPos = cluster.getWorldPosition(new THREE.Vector3());
+        const cameraOffset = new THREE.Vector3(0, 0, 60); // Increased offset from 40 to 60
+        targetClusterPosition = clusterWorldPos.clone().add(cameraOffset);
+
+        // Start dimming all other clusters
+        helixGroup.children.forEach((otherCluster) => {
+          if (otherCluster !== cluster) {
+            const container = otherCluster.children[0];
+            if (container) {
+              container.children.forEach((sprite) => {
+                sprite.userData.originalOpacity = sprite.material.opacity;
+                sprite.material.opacity = 0;
+              });
+            }
+          }
+        });
+
+        // Ensure active cluster is fully visible
+        if (container) {
+          container.renderOrder = 999;
+          container.children.forEach((sprite) => {
+            sprite.renderOrder = 999;
+            sprite.material.depthTest = false;
+            sprite.material.opacity = 1;
+          });
+        }
+
+        // Start transition
+        transitionStartTime = Date.now();
+
+        // Disable scrolling during cluster mode
+        isDragging = false;
+        scrollVelocity = 0;
+      }
+
+      function exitClusterMode() {
+        if (!isClusterMode || !activeCluster) return;
+
+        // Reset render order and depth testing for active cluster
+        const container = activeCluster.children[0];
+        if (container) {
+          container.renderOrder = 0;
+          container.children.forEach((sprite) => {
+            sprite.renderOrder = 0;
+            sprite.material.depthTest = true;
+          });
+
+          // Restore original scale
+          if (container.userData.originalScale) {
+            container.scale.copy(container.userData.originalScale);
+            delete container.userData.originalScale;
+          }
+        }
+
+        // Restore opacity for all clusters
+        helixGroup.children.forEach((cluster) => {
+          const container = cluster.children[0];
+          if (container) {
+            container.children.forEach((sprite) => {
+              if (sprite.userData.originalOpacity !== undefined) {
+                sprite.material.opacity = sprite.userData.originalOpacity;
+                delete sprite.userData.originalOpacity;
+              }
+            });
+          }
+        });
+
+        // Start transition back
+        transitionStartTime = Date.now();
+        targetClusterPosition.copy(originalCameraPosition);
+
+        // Reset after animation
+        setTimeout(() => {
+          isClusterMode = false;
+          activeCluster = null;
+          originalClusterPosition = null;
+          originalClusterRotation = null;
+          originalCameraPosition = null;
+        }, CLUSTER_TRANSITION_DURATION);
+      }
+
+      function updateClusterTransition() {
+        if (!isClusterMode || !activeCluster) return;
+
+        const elapsed = Date.now() - transitionStartTime;
+        const progress = Math.min(elapsed / CLUSTER_TRANSITION_DURATION, 1);
+
+        // Smooth easing function
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        // Move camera to cluster
+        if (originalCameraPosition) {
+          camera.position.lerpVectors(
+            originalCameraPosition,
+            targetClusterPosition,
+            eased
+          );
+
+          // Make camera look at the cluster
+          const clusterWorldPos = activeCluster.getWorldPosition(
+            new THREE.Vector3()
+          );
+          camera.lookAt(clusterWorldPos);
+        }
+
+        // Scale up the entire cluster container uniformly
+        const container = activeCluster.children[0];
+        if (container && container.userData.originalScale) {
+          const targetScale = 1.5; // Reduced from 2.5x to 1.5x for smaller appearance
+          const currentScale = 1 + (targetScale - 1) * eased;
+          container.scale.setScalar(currentScale);
+
+          // Ensure all sprites are on the same plane and facing camera
+          container.children.forEach((sprite) => {
+            if (sprite instanceof THREE.Sprite) {
+              sprite.position.z = 0; // Force all sprites to same z-plane
+            }
+          });
+        }
+
+        // If exiting cluster mode, restore helix position and rotation
+        if (
+          !isClusterMode &&
+          originalHelixY !== null &&
+          originalHelixRotation !== null
+        ) {
+          helixGroup.position.y = originalHelixY;
+          helixGroup.rotation.y = originalHelixRotation;
+        }
+
+        if (progress === 1) {
+          transitionStartTime = 0;
+          if (!isClusterMode) {
+            originalHelixY = null;
+            originalHelixRotation = null;
+          }
+        }
+      }
+
+      // Add double click handler to renderer
+      function initClusterInteraction() {
+        const container = renderer.domElement;
+
+        // Add double click handler
+        container.addEventListener("dblclick", (event) => {
+          event.preventDefault();
+
+          // Calculate mouse position in normalized device coordinates (-1 to +1)
+          const mouse = new THREE.Vector2();
+          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+          // Setup raycaster
+          const raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(mouse, camera);
+
+          // Check for intersections with cluster sprites
+          const intersects = [];
+          helixGroup.children.forEach((cluster) => {
+            const container = cluster.children[0];
+            if (container) {
+              container.children.forEach((sprite) => {
+                const intersection = raycaster.intersectObject(sprite);
+                if (intersection.length > 0) {
+                  intersects.push({
+                    cluster,
+                    distance: intersection[0].distance,
+                  });
+                }
+              });
+            }
+          });
+
+          // Sort intersections by distance and select the closest
+          if (intersects.length > 0) {
+            intersects.sort((a, b) => a.distance - b.distance);
+            enterClusterMode(intersects[0].cluster);
+          }
+        });
+
+        // Add escape key handler
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && isClusterMode) {
+            exitClusterMode();
+          }
+        });
+      }
+
+      function init() {
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+
+        // Create noise texture
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+
+        // Generate noise
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const value = Math.random() * 50;
+          data[i] = value; // R
+          data[i + 1] = value; // G
+          data[i + 2] = value; // B
+          data[i + 3] = 20; // A
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        // Create texture from canvas
+        const noiseTexture = new THREE.CanvasTexture(canvas);
+        noiseTexture.wrapS = THREE.RepeatWrapping;
+        noiseTexture.wrapT = THREE.RepeatWrapping;
+
+        // Set as background
+        scene.background = noiseTexture;
+
+        // Create camera with larger far plane and wider FOV
+        camera = new THREE.PerspectiveCamera(
+          45, // Increased FOV from 35 to 45 for better visibility with margins
+          window.innerWidth / window.innerHeight,
+          0.1,
+          2000 // Much larger far plane to see the entire helix
+        );
+        camera.position.set(80, 0, 80); // Moved camera further out
+        camera.lookAt(0, 0, 0);
+
+        // Create renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
+
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Add vignette effect
+        const vignetteShader = {
+          uniforms: {
+            tDiffuse: { value: null },
+            offset: { value: 1.0 },
+            darkness: { value: 1.0 },
+          },
+          vertexShader: `
+                    varying vec2 vUv;
+                    void main() {
+                        vUv = uv;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+          fragmentShader: `
+                    uniform sampler2D tDiffuse;
+                    uniform float offset;
+                    uniform float darkness;
+                    varying vec2 vUv;
+                    
+                    void main() {
+                        vec2 uv = vUv;
+                        vec4 color = texture2D(tDiffuse, uv);
+                        
+                        // Calculate distance from center
+                        vec2 center = vec2(0.5, 0.5);
+                        float dist = distance(uv, center);
+                        
+                        // Create vignette effect
+                        float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                        
+                        // Apply vignette
+                        color.rgb *= vignette;
+                        
+                        gl_FragColor = color;
+                    }
+                `,
+        };
+
+        const vignettePass = new THREE.ShaderPass(vignetteShader);
+        vignettePass.uniforms.offset.value = 0.5;
+        vignettePass.uniforms.darkness.value = 0.5;
+        composer.addPass(vignettePass);
+
+        // Initialize scroll controls instead of orbit controls
+        initScrollControls();
+
+        // Add ambient light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        // Handle window resize
+        window.addEventListener("resize", onWindowResize, false);
+
+        // Load and create image clusters
+        loadAndCreateImageClusters();
+
+        // Initialize cluster interaction after renderer setup
+        initClusterInteraction();
+
+        // Initialize rings
+        initRings();
+
+        // Initialize drawer modal functionality
+        initDrawerModal();
+      }
+
+      function createEyeSprite(imagePath) {
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(imagePath);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
+        });
+
+        const sprite = new THREE.Sprite(spriteMaterial);
+
+        // Set scale based on image aspect ratio
+        const img = new window.Image();
+        img.src = imagePath;
+        img.onload = function () {
+          const baseHeight = 2; // units
+          const aspect = img.width / img.height;
+          sprite.scale.set(baseHeight * aspect, baseHeight, 1);
+        };
+        // Fallback scale until image loads
+        sprite.scale.set(2, 2, 1);
+        return sprite;
+      }
+
+      // Helper to create a horizontal text sprite (label above the eye)
+      function createArcTextSprite(text, fontSize = 100) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1024;
+        canvas.height = 256;
+        const ctx = canvas.getContext("2d");
+        // Ensure full transparency
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = 1.0;
+        ctx.save();
+        ctx.globalCompositeOperation = "copy";
+        ctx.fillStyle = "rgba(0,0,0,0)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        ctx.font = `bold ${fontSize}px VT323, monospace`;
+        ctx.fillStyle = "#fff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // Draw the text as a single horizontal line
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        ctx.fillText(text, centerX, centerY);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
+          depthTest: false,
+          depthWrite: false,
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.scale.set(7, 1.5, 1);
+        sprite.material.renderOrder = 9999;
+        return sprite;
+      }
+
+      function createEyeWithLabel(eyePath, labelText, eyePos, upVector, eyeId) {
+        const group = new THREE.Group();
+        const eye = createEyeSprite(eyePath);
+        eye.position.copy(eyePos);
+        eye.userData.eyeId = eyeId; // Store the eye ID for navigation
+        eye.userData.title = labelText; // Store the title for hover display
+        group.add(eye);
+        // Store for raycasting
+        eyeLabelGroups.push({ eye });
+        return group;
+      }
+
+      function createRings() {
+        // Create an elliptical curve for the oblong ring
+        class CustomEllipseCurve extends THREE.Curve {
+          constructor() {
+            super();
+          }
+          getPoint(t) {
+            const a = 8; // major axis
+            const b = 5; // minor axis
+            const tx = Math.cos(2 * Math.PI * t) * a;
+            const ty = Math.sin(2 * Math.PI * t) * b;
+            return new THREE.Vector3(tx, ty, 0);
+          }
+        }
+
+        const ringsGroup = new THREE.Group(); // <-- ensure this is defined
+        eyeLabelGroups = [];
+        // Create the oblong ring geometry
+        const path = new CustomEllipseCurve();
+        const ringGeometry = new THREE.TubeGeometry(path, 100, 0.05, 16, false);
+
+        // Create materials with different render orders
+        const ringMaterial1 = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide,
+          depthWrite: true,
+          depthTest: true,
+          renderOrder: 1,
+        });
+        const ringMaterial2 = ringMaterial1.clone();
+        ringMaterial2.renderOrder = 2;
+        const ringMaterial3 = ringMaterial1.clone();
+        ringMaterial3.renderOrder = 3;
+
+        // Ring 1 (horizontal, up is +Y)
+        const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
+        const group1a = createEyeWithLabel(
+          "../../Eyes/Temperament_open.png",
+          "Temperament",
+          new THREE.Vector3(9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-temperament"
+        );
+        const group1b = createEyeWithLabel(
+          "../../Eyes/Rhizome_open.png",
+          "Rhizome",
+          new THREE.Vector3(-9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-rhizome"
+        );
+        ring1.add(group1a);
+        ring1.add(group1b);
+        ring1.position.z = 1;
+
+        // Ring 2 (vertical, up is +Z)
+        const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
+        const group2a = createEyeWithLabel(
+          "../../Eyes/Artist_open.png",
+          "Artist",
+          new THREE.Vector3(0, 9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-artist"
+        );
+        const group2b = createEyeWithLabel(
+          "../../Eyes/Completeness_open.png",
+          "Completeness",
+          new THREE.Vector3(0, -9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-completeness"
+        );
+        ring2.rotation.x = Math.PI / 2;
+        ring2.position.z = 0;
+        ring2.add(group2a);
+        ring2.add(group2b);
+
+        // Ring 3 (side, up is +X)
+        const ring3 = new THREE.Mesh(ringGeometry, ringMaterial3);
+        const group3a = createEyeWithLabel(
+          "../../Eyes/SecretGallery_open.png",
+          "idk",
+          new THREE.Vector3(0, 6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-secret"
+        );
+        const group3b = createEyeWithLabel(
+          "../../Eyes/Intimacy_open.png",
+          "Intimacy",
+          new THREE.Vector3(0, -6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-intimacy"
+        );
+        ring3.rotation.y = Math.PI / 2;
+        ring3.position.z = -1;
+        ring3.add(group3a);
+        ring3.add(group3b);
+
+        ringsGroup.add(ring1);
+        ringsGroup.add(ring2);
+        ringsGroup.add(ring3);
+        return ringsGroup;
+      }
+
+      function initRings() {
+        // Create separate scene for rings
+        ringsScene = new THREE.Scene();
+        ringsCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 2000);
+        ringsCamera.position.z = 20;
+
+        // Create separate renderer for rings
+        ringsRenderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          logarithmicDepthBuffer: true,
+          preserveDrawingBuffer: true,
+        });
+        ringsRenderer.setSize(500, 500);
+        ringsRenderer.setClearColor(0x000000, 0);
+        ringsRenderer.sortObjects = false; // Disable automatic sorting
+        document
+          .getElementById("rings-container")
+          .appendChild(ringsRenderer.domElement);
+
+        // Create and add rings
+        rings = createRings();
+        ringsScene.add(rings);
+
+        // Add event listeners for rings rotation
+        ringsRenderer.domElement.addEventListener(
+          "mousedown",
+          onRingsMouseDown
+        );
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseMove
+        );
+        ringsRenderer.domElement.addEventListener("mouseup", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("mouseleave", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("click", onRingsClick);
+        ringsRaycaster = new THREE.Raycaster();
+        ringsMouse = new THREE.Vector2();
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseHover
+        );
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function animate() {
+        if (!isInitialized) return;
+        requestAnimationFrame(animate);
+
+        // Only update helix position and rotation when not in cluster mode
+        if (!isClusterMode) {
+          if (!isDragging) {
+            targetY += scrollVelocity * 8; // Reduced from 12 for smoother movement
+            scrollVelocity *= VELOCITY_DAMPENING;
+
+            if (Math.abs(scrollVelocity) < 0.0005) {
+              // Reduced threshold for smoother stopping
+              scrollVelocity = 0;
+            }
+
+            targetY = Math.max(-MAX_SCROLL, Math.min(MAX_SCROLL, targetY));
+          }
+
+          const delta = targetY - currentY;
+          const smoothing = Math.abs(delta) > 0.5 ? SCROLL_SMOOTHING : 0.9; // Increased base smoothing
+          currentY += delta * (1 - smoothing);
+
+          targetRotation =
+            (currentY / MAX_SCROLL) * Math.PI * 2 * ROTATION_SPEED;
+          const rotationDelta = targetRotation - currentRotation;
+          currentRotation += rotationDelta * (1 - SCROLL_SMOOTHING);
+
+          if (helixGroup) {
+            helixGroup.position.y = -currentY;
+            helixGroup.rotation.y = currentRotation;
+          }
+        }
+
+        // Update cluster transition if active
+        updateClusterTransition();
+
+        // Update camera-facing behavior for all clusters
+        if (helixGroup) {
+          helixGroup.children.forEach((cluster) => {
+            const container = cluster.children[0];
+            if (container && container.userData.shouldFaceCamera) {
+              const clusterPosition = cluster.getWorldPosition(
+                new THREE.Vector3()
+              );
+              const cameraPosition = camera.position.clone();
+              const direction = cameraPosition.sub(clusterPosition);
+
+              const lookMatrix = new THREE.Matrix4();
+              lookMatrix.lookAt(
+                new THREE.Vector3(0, 0, 0),
+                direction,
+                new THREE.Vector3(0, 1, 0)
+              );
+
+              container.quaternion.setFromRotationMatrix(lookMatrix);
+            }
+          });
+        }
+
+        // Animate particles
+        if (particles) {
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = particles.userData.speeds;
+          const opacities = particles.userData.opacities;
+
+          for (let i = 0; i < positions.length; i += 3) {
+            // Move particles in a more vertical pattern
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.01; // Reduced horizontal movement
+            positions[i + 1] += Math.cos(time) * 0.02; // Increased vertical movement
+            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+
+            // Keep particles within bounds
+            if (positions[i + 1] > 150) positions[i + 1] = -150;
+            if (positions[i + 1] < -150) positions[i + 1] = 150;
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+        }
+
+        composer.render();
+        ringsRenderer.render(ringsScene, ringsCamera);
+      }
+
+      function onRingsMouseDown(event) {
+        ringsRotation.dragStartTime = Date.now();
+        ringsRotation.previousX = event.clientX;
+        ringsRotation.previousY = event.clientY;
+        ringsRotation.isDragging = false; // Start as false, will be set to true if movement exceeds threshold
+      }
+
+      function onRingsMouseMove(event) {
+        // Only handle dragging if mouse button is pressed
+        if (event.buttons !== 1) {
+          return; // No mouse button pressed, don't handle dragging
+        }
+
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Check if we should start dragging (movement exceeds threshold)
+        if (
+          !ringsRotation.isDragging &&
+          distance > ringsRotation.dragThreshold
+        ) {
+          ringsRotation.isDragging = true;
+        }
+
+        if (ringsRotation.isDragging) {
+          rings.rotation.y += deltaX * 0.01;
+          rings.rotation.x += deltaY * 0.01;
+
+          ringsRotation.previousX = event.clientX;
+          ringsRotation.previousY = event.clientY;
+        }
+      }
+
+      function onRingsMouseUp() {
+        ringsRotation.isDragging = false;
+      }
+
+      function onRingsMouseHover(event) {
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        // Collect all eye meshes
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        const hoverTitle = document.getElementById("hover-title");
+
+        // Hide title by default
+        if (hoverTitle) {
+          hoverTitle.style.opacity = "0";
+        }
+
+        // Show title for hovered eye
+        if (intersects.length > 0) {
+          const hoveredEye = intersects[0].object;
+          if (hoveredEye.userData.title && hoverTitle) {
+            hoverTitle.textContent = hoveredEye.userData.title;
+            hoverTitle.style.opacity = "1";
+          }
+        }
+      }
+
+      function onRingsClick(event) {
+        // Check if this was a drag or a click
+        const timeSinceMouseDown = Date.now() - ringsRotation.dragStartTime;
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Only handle clicks if:
+        // 1. Not dragging (or very minimal movement)
+        // 2. Quick click (less than threshold time)
+        // 3. Small movement (less than threshold distance)
+        if (
+          ringsRotation.isDragging ||
+          timeSinceMouseDown > ringsRotation.clickThreshold ||
+          distance > ringsRotation.dragThreshold
+        ) {
+          return;
+        }
+
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        if (intersects.length > 0) {
+          const clickedEye = intersects[0].object;
+          const eyeId = clickedEye.userData.eyeId;
+
+          // Navigation logic
+          switch (eyeId) {
+            case "eye-temperament":
+              window.location.href = "../temperament/temperament.html";
+              break;
+            case "eye-secret":
+              window.location.href = "../hashtag_gallery/hashtag_gallery.html";
+              break;
+            case "eye-intimacy":
+              window.location.href = "../intimacy/Intimacy.html";
+              break;
+            case "eye-completeness":
+              window.location.href = "../Completeness/Completeness.html";
+              break;
+            case "eye-artist":
+              // Already on artist page
+              break;
+            case "eye-rhizome":
+              window.location.href = "../../index.html";
+              break;
+            default:
+              // Silently ignore unknown eye IDs
+              break;
+          }
+        }
+      }
+
+      // Initialize the visualization
+      async function startVisualization() {
+        // Hide all UI elements initially
+        const floatingEye = document.getElementById("floating-eye");
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
+        const ringsContainer = document.getElementById("rings-container");
+        const searchBar = document.getElementById("search-bar");
+        const uploadBtn = document.getElementById("upload-hand-btn");
+
+        if (floatingEye) floatingEye.style.display = "none";
+        if (pixelArrowIndicator) pixelArrowIndicator.style.display = "none";
+        if (ringsContainer) ringsContainer.style.display = "none";
+        if (searchBar) searchBar.style.display = "none";
+        if (uploadBtn) uploadBtn.style.display = "none";
+
+        document.getElementById("loading-container").style.display = "block";
+        document.getElementById("black-overlay").style.display = "block";
+        document.getElementById("black-overlay").style.opacity = "1";
+        document.getElementById("visualization").style.display = "none";
+
+        await init();
+
+        // Hide loading page and show visualization
+        document.getElementById("loading-container").style.display = "none";
+        document.getElementById("visualization").style.display = "block";
+        document.getElementById("black-overlay").style.opacity = "0";
+        setTimeout(() => {
+          document.getElementById("black-overlay").style.display = "none";
+        }, 500);
+
+        // Start animation
+        animate();
+
+        // Wait for loading screen to fully disappear, then show UI elements
+        setTimeout(() => {
+          // Show UI elements after loading screen is gone
+          if (floatingEye) floatingEye.style.display = "block";
+          if (pixelArrowIndicator) pixelArrowIndicator.style.display = "block";
+          if (ringsContainer) ringsContainer.style.display = "block";
+          if (searchBar) searchBar.style.display = "flex";
+          if (uploadBtn) uploadBtn.style.display = "flex";
+
+          // Initialize floating eye
+          console.log("About to initialize floating eye...");
+          initFloatingEye();
+          console.log("Floating eye initialization completed");
+
+          // Initialize dock behavior after loading
+          setTimeout(() => {
+            initDockBehavior();
+          }, 100);
+        }, 600); // Wait 600ms to ensure loading screen is fully gone
+      }
+
+      // Organic Floating Eye Animation
+      function initFloatingEye() {
+        console.log("Initializing floating eye...");
+        const eye = document.getElementById("floating-eye");
+        const tooltip = document.getElementById("eye-tooltip");
+
+        console.log("Eye element:", eye);
+        console.log("Tooltip element:", tooltip);
+
+        if (!eye || !tooltip) {
+          console.error("Missing elements!");
+          return;
+        }
+
+        // Set up hover events
+        eye.addEventListener("mouseenter", () => {
+          console.log("Eye hovered!");
+          eyeIsHovered = true;
+          tooltip.classList.add("show");
+        });
+
+        eye.addEventListener("mouseleave", () => {
+          console.log("Eye unhovered!");
+          eyeIsHovered = false;
+          tooltip.classList.remove("show");
+        });
+
+        // Update tooltip position
+        eye.addEventListener("mousemove", (e) => {
+          const rect = eye.getBoundingClientRect();
+          const eyeCenterX = rect.left + rect.width / 2;
+          const screenCenterX = window.innerWidth / 2;
+
+          // Determine if eye is on left or right side of screen
+          if (eyeCenterX < screenCenterX) {
+            // Eye is on left side - show tooltip on the right
+            tooltip.style.left = rect.right + 10 + "px";
+            tooltip.style.transform = "translateX(0)"; // Reset transform
+          } else {
+            // Eye is on right side - show tooltip on the left
+            tooltip.style.left = rect.left - 10 + "px";
+            tooltip.style.transform = "translateX(-100%)"; // Move tooltip to the left of the eye
+          }
+
+          tooltip.style.top = rect.top - 10 + "px";
+        });
+
+        // Set initial position
+        eye.style.left = eyeX + "px";
+        eye.style.top = eyeY + "px";
+
+        console.log("Eye positioned at:", eyeX, eyeY);
+        console.log("Eye should be visible now!");
+      }
+
+      function updateFloatingEye() {
+        const eye = document.getElementById("floating-eye");
+        if (!eye || eye.style.display === "none") return;
+
+        // Don't move if hovered
+        if (eyeIsHovered) return;
+
+        const now = Date.now();
+        const time = now * 0.001; // Convert to seconds
+
+        // Change target position periodically with more organic timing
+        if (now - lastEyeMoveTime > eyeMoveInterval) {
+          const margin = 150;
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
+
+          // Create perimeter-based movement - prefer edges and corners
+          const perimeterChoice = Math.random();
+
+          if (perimeterChoice < 0.4) {
+            // Top edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = margin + Math.random() * 50;
+          } else if (perimeterChoice < 0.7) {
+            // Bottom edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = screenHeight - margin - Math.random() * 50;
+          } else if (perimeterChoice < 0.85) {
+            // Left edge
+            eyeTargetX = margin + Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          } else {
+            // Right edge
+            eyeTargetX = screenWidth - margin - Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          }
+
+          lastEyeMoveTime = now;
+        }
+
+        // Add subtle organic drift using sine waves
+        eyeDriftX = Math.sin(time * eyeDriftSpeed) * eyeDriftAmplitude;
+        eyeDriftY =
+          Math.cos(time * eyeDriftSpeed * 0.7) * eyeDriftAmplitude * 0.8;
+
+        // Smooth movement towards target with easing
+        const dx = eyeTargetX - eyeX;
+        const dy = eyeTargetY - eyeY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate distance from center to avoid it
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const distanceFromCenter = Math.sqrt(
+          (eyeX - centerX) ** 2 + (eyeY - centerY) ** 2
+        );
+        const centerAvoidanceRadius =
+          Math.min(window.innerWidth, window.innerHeight) * 0.4; // Increased from 0.25 to 0.4
+
+        // Add center avoidance force
+        let avoidanceX = 0;
+        let avoidanceY = 0;
+        if (distanceFromCenter < centerAvoidanceRadius) {
+          const avoidanceStrength = 0.05; // Increased from 0.02 to 0.05
+          const centerDx = eyeX - centerX;
+          const centerDy = eyeY - centerY;
+          const centerDistance = Math.sqrt(
+            centerDx * centerDx + centerDy * centerDy
+          );
+          if (centerDistance > 0) {
+            // Stronger avoidance when closer to center
+            const avoidanceMultiplier =
+              1 + (1 - distanceFromCenter / centerAvoidanceRadius);
+            avoidanceX =
+              (centerDx / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+            avoidanceY =
+              (centerDy / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+          }
+        }
+
+        // Slower movement when closer to target (easing)
+        const currentSpeed = eyeSpeed * (0.5 + (distance / 200) * 0.5);
+
+        eyeX += dx * currentSpeed + avoidanceX;
+        eyeY += dy * currentSpeed + avoidanceY;
+
+        // Add drift to final position
+        const finalX = eyeX + eyeDriftX;
+        const finalY = eyeY + eyeDriftY;
+
+        // Update position
+        eye.style.left = finalX + "px";
+        eye.style.top = finalY + "px";
+      }
+
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+        }
+      }
+
+      const questions = [
+        {
+          id: "upload",
+          type: "file",
+          message: "",
+          required: true,
+        },
+        {
+          id: "name",
+          type: "text",
+          message: "Wannna give it a name? Or not. Totally your call.",
+          placeholder: "Give it a name...",
+          required: false,
+        },
+        {
+          id: "artist",
+          type: "text",
+          message:
+            "Who made it? Drop an alter ego, emoji, tag name… or stay anonymous.",
+          placeholder: "Your alter ego...",
+          required: false,
+        },
+        {
+          id: "location",
+          type: "location",
+          message: "Where on Earth were you when this junk was born?",
+          placeholder: "Click to select location on map...",
+          required: false,
+        },
+        {
+          id: "specific_location",
+          type: "text",
+          message: "Be real — bed? Park? Coffee shop? Closet floor?",
+          placeholder: "Bed, park, coffee shop...",
+          required: false,
+        },
+        {
+          id: "date",
+          type: "text",
+          message: "Roughly when? A year, a season, a fuzzy memory...",
+          placeholder: "2020, last winter...",
+          required: false,
+        },
+        {
+          id: "time_window",
+          type: "time_slider",
+          message:
+            "What time of day are we talking? Morning sun or midnight soup?",
+          required: false,
+        },
+        {
+          id: "cooked_level",
+          type: "slider",
+          message: "How cooked is this piece? Raw mess or nearly done?",
+          required: false,
+        },
+        {
+          id: "artwork_type",
+          type: "text",
+          message: "What kind of junk is this? Sketch? Note? Blurry thing?",
+          placeholder: "Sketch, note, blurry thing...",
+          required: false,
+        },
+        {
+          id: "notes",
+          type: "textarea",
+          message: "Leave a note, a rant, or a cryptic message... or not.",
+          placeholder: "Your note here...",
+          required: false,
+        },
+        {
+          id: "tags",
+          type: "tags",
+          message:
+            "Choose some tags — Weird? Wrong? Unfinished? Or type your own.",
+          required: false,
+        },
+      ];
+
+      // macOS Dock-like functionality
+      function initDockBehavior() {
+        const ringsContainer = document.getElementById("rings-container");
+        const searchBar = document.getElementById("search-bar");
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
+
+        let dockTimeout;
+        let isDockVisible = false;
+        const dockDelay = 400; // Delay before hiding dock (ms)
+        const hoverZoneHeight = 120; // Height of hover zone from bottom (px) - increased for easier access
+
+        // Initialize dock state - hidden by default
+        ringsContainer.classList.add("dock-hidden");
+        searchBar.classList.add("dock-hidden");
+        uploadBtn.classList.add("dock-hidden");
+
+        // Show pixel arrow indicator initially since dock is hidden
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.add("show");
+        }
+
+        function showDock() {
+          if (!isDockVisible) {
+            isDockVisible = true;
+            ringsContainer.classList.remove("dock-hidden");
+            ringsContainer.classList.add("dock-visible");
+            searchBar.classList.remove("dock-hidden");
+            searchBar.classList.add("dock-visible");
+            uploadBtn.classList.remove("dock-hidden");
+            uploadBtn.classList.add("dock-visible");
+
+            // Hide pixel arrow indicator when dock is visible
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.remove("show");
+            }
+          }
+        }
+
+        function hideDock() {
+          if (isDockVisible) {
+            isDockVisible = false;
+            ringsContainer.classList.remove("dock-visible");
+            ringsContainer.classList.add("dock-hidden");
+            searchBar.classList.remove("dock-visible");
+            searchBar.classList.add("dock-hidden");
+            uploadBtn.classList.remove("dock-visible");
+            uploadBtn.classList.add("dock-hidden");
+
+            // Show pixel arrow indicator when dock is hidden
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.add("show");
+            }
+          }
+        }
+
+        // Mouse move handler for dock behavior
+        document.addEventListener("mousemove", (e) => {
+          const mouseY = e.clientY;
+          const windowHeight = window.innerHeight;
+          const isInHoverZone = mouseY > windowHeight - hoverZoneHeight;
+
+          // Clear existing timeout
+          if (dockTimeout) {
+            clearTimeout(dockTimeout);
+          }
+
+          if (isInHoverZone) {
+            showDock();
+          } else {
+            // Delay hiding the dock
+            dockTimeout = setTimeout(() => {
+              hideDock();
+            }, dockDelay);
+          }
+        });
+
+        // Also handle mouse leave from window
+        document.addEventListener("mouseleave", () => {
+          if (dockTimeout) {
+            clearTimeout(dockTimeout);
+          }
+          hideDock();
+        });
+
+        // Handle window resize
+        window.addEventListener("resize", () => {
+          // Recalculate hover zone if needed
+        });
+      }
+
+      // Search functionality
+      function performSearch(query) {
+        console.log("Searching for:", query);
+        // For now, just log the search query
+        // You can implement the actual search logic here
+        // For example, navigate to a search results page or filter content
+        alert(`Searching for: ${query}`);
+      }
+
+      // Search bar event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        const searchBar = document.getElementById("search-bar");
+        let searchTimeout;
+
+        searchBar.addEventListener("input", (event) => {
+          const query = event.target.value.trim();
+
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          // Set new timeout for search (debounce)
+          if (query.length > 0) {
+            searchTimeout = setTimeout(() => {
+              performSearch(query);
+            }, 500); // Wait 500ms after user stops typing
+          }
+        });
+
+        searchBar.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            const query = event.target.value.trim();
+            if (query.length > 0) {
+              // Clear timeout and perform search immediately
+              if (searchTimeout) {
+                clearTimeout(searchTimeout);
+              }
+              performSearch(query);
+            }
+          }
+        });
+
+        // Add click event listener to upload button
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        if (uploadBtn) {
+          uploadBtn.addEventListener("click", showChatbot);
+        }
+
+        // Close chatbot with Escape key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            closeChatbot();
+          }
+        });
+
+        // Close chatbot when clicking on backdrop
+        const backdrop = document.getElementById("chatbot-backdrop");
+        if (backdrop) {
+          backdrop.addEventListener("click", function (e) {
+            if (e.target === backdrop) {
+              closeChatbot();
+            }
+          });
+        }
+      });
+
+      // Initialize dock behavior when DOM is loaded
+      document.addEventListener("DOMContentLoaded", () => {
+        // Small delay to ensure all elements are properly loaded
+        setTimeout(initDockBehavior, 100);
+      });
+
+      // Chatbot functions
+      function showChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Show backdrop first
+        backdrop.style.display = "block";
+        setTimeout(() => {
+          backdrop.style.opacity = "1";
+        }, 10);
+
+        chatbot.style.display = "flex";
+        chatbotState.currentQuestion = 0;
+        chatbotState.answers = {};
+
+        // Start with opening message
+        addBotMessage(
+          "Hi, friend. Before we dive in — a tiny heads-up: nothing here is mandatory except the junk. Everything else? Totally up to you."
+        );
+
+        // Disable persistent input initially
+        disablePersistentInput();
+
+        // Start the conversation after a delay
+        setTimeout(() => {
+          addBotMessage("Let's begin. Upload your junk:");
+          setTimeout(() => {
+            askNextQuestion();
+          }, 1500);
+        }, 2000);
+      }
+
+      function closeChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Hide chatbot first
+        chatbot.style.display = "none";
+
+        // Fade out backdrop
+        backdrop.style.opacity = "0";
+        setTimeout(() => {
+          backdrop.style.display = "none";
+        }, 300);
+
+        // Clear messages and dynamic input
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        messagesContainer.innerHTML = "";
+        dynamicContainer.innerHTML = "";
+        disablePersistentInput();
+      }
+
+      function addBotMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message bot";
+        messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+            `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function addUserMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message user";
+        messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+            `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function showTypingIndicator() {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const typingDiv = document.createElement("div");
+        typingDiv.className = "message bot";
+        typingDiv.id = "typing-indicator";
+        typingDiv.innerHTML = `
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function hideTypingIndicator() {
+        const typingIndicator = document.getElementById("typing-indicator");
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+      }
+
+      function askNextQuestion() {
+        if (chatbotState.currentQuestion >= questions.length) {
+          showSummary();
+          return;
+        }
+
+        const question = questions[chatbotState.currentQuestion];
+
+        showTypingIndicator();
+
+        setTimeout(() => {
+          hideTypingIndicator();
+          // Only show message if it's not empty (for upload question)
+          if (question.message) {
+            addBotMessage(question.message);
+          }
+          showQuestionInput(question);
+        }, 1500);
+      }
+
+      function enablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = false;
+          sendBtn.disabled = false;
+          backBtn.disabled = false;
+          skipBtn.disabled = false;
+          finishBtn.disabled = false;
+          textInput.focus();
+        }
+      }
+
+      function disablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = true;
+          sendBtn.disabled = true;
+          backBtn.disabled = true;
+          skipBtn.disabled = true;
+          finishBtn.disabled = true;
+          textInput.value = "";
+        }
+      }
+
+      function setupFileInputHandlers() {
+        const fileArea = document.querySelector("#file-upload-area");
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const continueBtn = document.querySelector("#continue-btn");
+
+        if (fileArea && fileInput && fileText) {
+          fileArea.addEventListener("click", () => fileInput.click());
+          fileArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            fileArea.classList.add("dragover");
+          });
+          fileArea.addEventListener("dragleave", () => {
+            fileArea.classList.remove("dragover");
+          });
+          fileArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            fileArea.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              fileInput.files = files;
+              showImagePreview(files[0], fileArea, fileText);
+              enableContinueButton();
+            }
+          });
+          fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+              showImagePreview(e.target.files[0], fileArea, fileText);
+              enableContinueButton();
+            }
+          });
+        }
+      }
+
+      function enableContinueButton() {
+        const continueBtn = document.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.disabled = false;
+          continueBtn.style.opacity = "1";
+          continueBtn.style.cursor = "pointer";
+          continueBtn.classList.add("primary");
+        }
+      }
+
+      function disableContinueButton() {
+        const continueBtn = document.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.disabled = true;
+          continueBtn.style.opacity = "0.5";
+          continueBtn.style.cursor = "not-allowed";
+          continueBtn.classList.remove("primary");
+        }
+      }
+
+      function setupInputHandlers(question) {
+        const questionInput = document.getElementById("question-input");
+        switch (question.type) {
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            const sliderValue = questionInput.querySelector("#slider-value");
+            slider.addEventListener("input", (e) => {
+              sliderValue.textContent = `${e.target.value}%`;
+            });
+            break;
+          case "time_slider":
+            const timeSlider =
+              questionInput.querySelector("#time-slider-input");
+            const timeIcons = [
+              questionInput.querySelector("#icon-sun"),
+              questionInput.querySelector("#icon-coffee"),
+              questionInput.querySelector("#icon-pasta"),
+              questionInput.querySelector("#icon-wine"),
+              questionInput.querySelector("#icon-moon"),
+            ];
+            const timeLabels = ["Sun", "Coffee", "Pasta", "Wine", "Moon"];
+            timeSlider.addEventListener("input", (e) => {
+              const value = parseFloat(e.target.value);
+              timeIcons.forEach((icon, i) => {
+                // Calculate opacity based on distance from current value
+                const distance = Math.abs(value - i);
+                const opacity = Math.max(0.3, 1 - distance * 0.7);
+                icon.style.opacity = opacity;
+              });
+            });
+            // Set initial state
+            timeIcons.forEach((icon, i) => {
+              icon.style.opacity = i === 0 ? "1" : "0.3";
+            });
+            break;
+          case "tags":
+            const tagExamples = questionInput.querySelector("#tag-examples");
+            const customTagInput =
+              questionInput.querySelector("#custom-tag-input");
+            const userTagsDiv = questionInput.querySelector("#user-tags");
+            let userTags = [];
+            // Add example tag click
+            tagExamples.querySelectorAll(".tag").forEach((tagBtn) => {
+              tagBtn.addEventListener("click", () => {
+                if (
+                  userTags.length < 8 &&
+                  !userTags.includes(tagBtn.textContent)
+                ) {
+                  userTags.push(tagBtn.textContent);
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+              });
+            });
+            // Add custom tag input
+            customTagInput.addEventListener("input", (e) => {
+              if (e.target.value.length > 0) {
+                tagExamples.style.display = "none";
+              } else {
+                tagExamples.style.display = "";
+              }
+            });
+            customTagInput.addEventListener("keydown", (e) => {
+              if (
+                (e.key === "Enter" || e.key === ",") &&
+                customTagInput.value.trim() &&
+                userTags.length < 8
+              ) {
+                const val = customTagInput.value.trim();
+                if (!userTags.includes(val)) {
+                  userTags.push(val);
+                  customTagInput.value = "";
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+                e.preventDefault();
+              }
+            });
+            function renderUserTags() {
+              userTagsDiv.innerHTML = userTags
+                .map(
+                  (tag) =>
+                    `<span class='tag selected'>${tag} <span style='cursor:pointer;color:#ff6b6b;' onclick='this.parentNode.remove();'>×</span></span>`
+                )
+                .join(" ");
+            }
+            break;
+        }
+      }
+
+      function showImagePreview(file, fileArea, fileText) {
+        // Hide upload icon
+        const uploadIcon = document.querySelector("#upload-icon");
+        if (uploadIcon) {
+          uploadIcon.style.display = "none";
+        }
+
+        // Remove existing image preview if any
+        const existingImage = fileArea.querySelector(".uploaded-image");
+        if (existingImage) {
+          existingImage.remove();
+        }
+
+        // Create image preview
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.className = "uploaded-image";
+          img.alt = "Uploaded image";
+
+          // Insert image at the beginning of the file area
+          fileArea.insertBefore(img, fileArea.firstChild);
+
+          // Update text to show filename with remove option
+          fileText.innerHTML = `File selected: ${file.name} <span style=\"color: #ff6b6b; cursor: pointer; margin-left: 10px;\" onclick=\"removeFile(event)\">×</span>`;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function submitTextAnswer(textValue) {
+        const question = questions[chatbotState.currentQuestion];
+        let answer = textValue;
+
+        // Store answer
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer
+        addUserMessage(answer);
+
+        // Clear persistent input
+        const textInput = document.getElementById("persistent-text-input");
+        if (textInput) {
+          textInput.value = "";
+        }
+
+        // Remove dynamic input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function submitAnswer() {
+        const question = questions[chatbotState.currentQuestion];
+        const questionInput = document.getElementById("question-input");
+        let answer = "";
+
+        switch (question.type) {
+          case "file":
+            const fileInput = document.querySelector("#file-input");
+            if (fileInput && fileInput.files.length === 0) {
+              alert("Please select a file");
+              return;
+            }
+            answer = fileInput.files[0].name;
+            break;
+
+          case "text":
+          case "textarea":
+            // Text questions are handled by submitTextAnswer function
+            // This should not be called for text questions
+            return;
+          case "location":
+            // Location questions are handled by submitTextAnswer function
+            // This should not be called for location questions
+            return;
+
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            answer = slider ? `${slider.value}%` : "50%";
+            break;
+
+          case "time_slider":
+            const timeSlider =
+              questionInput.querySelector("#time-slider-input");
+            const timeLabels = ["Sun", "Coffee", "Pasta", "Wine", "Moon"];
+            const value = timeSlider ? parseFloat(timeSlider.value) : 0;
+            // Find the closest label or create a blend
+            const closestIndex = Math.round(value);
+            const closestLabel = timeLabels[closestIndex];
+
+            // If it's exactly on an icon, use that label
+            if (Math.abs(value - closestIndex) < 0.1) {
+              answer = closestLabel;
+            } else {
+              // If it's between icons, create a blend
+              const lowerIndex = Math.floor(value);
+              const upperIndex = Math.min(
+                Math.ceil(value),
+                timeLabels.length - 1
+              );
+              const lowerLabel = timeLabels[lowerIndex];
+              const upperLabel = timeLabels[upperIndex];
+              answer = `${lowerLabel}-${upperLabel}`;
+            }
+            break;
+
+          case "tags":
+            const selectedTags =
+              questionInput.querySelectorAll(".tag.selected");
+            const customTag = questionInput.querySelector("#custom-tag-input")
+              ? questionInput.querySelector("#custom-tag-input").value.trim()
+              : "";
+            const tagTexts = Array.from(selectedTags).map((tag) =>
+              tag.textContent.replace(" ×", "")
+            );
+            if (customTag) tagTexts.push(customTag);
+            answer = tagTexts.join(", ");
+            break;
+        }
+
+        // Store answer (even if empty)
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer only if not empty
+        if (answer) {
+          addUserMessage(answer);
+        } else {
+          addUserMessage("Skipped");
+        }
+
+        // Remove input and disable persistent input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function goBack() {
+        // Remove current input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove the last user message
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const lastUserMessage = messagesContainer.querySelector(
+          ".message.user:last-child"
+        );
+        if (lastUserMessage) lastUserMessage.remove();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Go back to previous question
+        chatbotState.currentQuestion--;
+
+        // Ask the previous question again
+        setTimeout(() => {
+          askNextQuestion();
+        }, 500);
+      }
+
+      function showSummary() {
+        addBotMessage("Here's what you gave me. Ready to launch the junk?");
+
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const summaryDiv = document.createElement("div");
+        summaryDiv.className = "message bot";
+        summaryDiv.innerHTML = `
+                <div class="summary-screen">
+                    ${Object.entries(chatbotState.answers)
+                      .map(([key, value]) => {
+                        if (!value) return "";
+                        const question = questions.find((q) => q.id === key);
+                        return `
+                            <div class="summary-item">
+                                <span class="summary-label">${
+                                  question
+                                    ? question.message.split("?")[0] + "?"
+                                    : key
+                                }:</span>
+                                <span class="summary-value">${value}</span>
+                            </div>
+                        `;
+                      })
+                      .join("")}
+                </div>
+            `;
+        messagesContainer.appendChild(summaryDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Add launch button to dynamic container
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const launchDiv = document.createElement("div");
+        launchDiv.innerHTML = `
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="btn primary" id="launch-btn">Launch the junk</button>
+                </div>
+            `;
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "block";
+        dynamicContainer.appendChild(launchDiv);
+        disablePersistentInput();
+
+        // Setup launch button handler
+        const launchBtn = launchDiv.querySelector("#launch-btn");
+        if (launchBtn) {
+          launchBtn.addEventListener("click", launchJunk);
+        }
+      }
+
+      function launchJunk() {
+        // Log the form data (in a real app, you'd send this to a server)
+        console.log("Junk launched:", chatbotState.answers);
+
+        // Show success message
+        addBotMessage(
+          "Junk launched! (This is a demo - no actual upload occurred)"
+        );
+
+        // Close chatbot after a delay
+        setTimeout(() => {
+          closeChatbot();
+        }, 3000);
+      }
+
+      function removeFile(event) {
+        event.stopPropagation();
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const uploadIcon = document.querySelector("#upload-icon");
+        const fileArea = document.querySelector("#file-upload-area");
+
+        if (fileInput && fileText && uploadIcon && fileArea) {
+          fileInput.value = "";
+          fileText.innerHTML = "Drag & drop your file here or click to browse";
+
+          // Remove image preview if exists
+          const uploadedImage = fileArea.querySelector(".uploaded-image");
+          if (uploadedImage) {
+            uploadedImage.remove();
+          }
+
+          // Show upload icon again
+          uploadIcon.style.display = "block";
+
+          // Disable continue button
+          disableContinueButton();
+        }
+      }
+
+      function openGoogleMaps() {
+        // Add user message to show they clicked the button
+        addUserMessage("📍 Pin location");
+
+        // Show the custom map popup
+        showMapPopup();
+      }
+
+      function showQuestionInput(question) {
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const inputDiv = document.createElement("div");
+        inputDiv.id = "question-input";
+
+        let inputHTML = '<div class="input-group">';
+
+        switch (question.type) {
+          case "file":
+            // For file upload, add the upload area to the messages container
+            const uploadDiv = document.createElement("div");
+            uploadDiv.className = "message bot";
+            uploadDiv.innerHTML = `
+                        <div class="file-upload-area" id="file-upload-area">
+                            <img src="../../assets/upload.png" alt="Upload" class="upload-icon" id="upload-icon">
+                            <div id="file-upload-text" class="file-upload-text">Drag & drop your file here or click to browse</div>
+                            <input type="file" id="file-input" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="button-group" style="margin-top: 20px; display: flex; justify-content: center;">
+                            <button class="btn" id="continue-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Continue</button>
+                        </div>
+                    `;
+            messagesContainer.appendChild(uploadDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // No need to add continue button to dynamic container since it's now in the message
+            break;
+          case "location":
+            // For location questions, we'll handle them differently
+            // No need to add input elements to dynamic container
+            break;
+          case "text":
+          case "textarea":
+            // For text questions, we'll use the persistent input at the bottom
+            // No need to add input elements to dynamic container
+            break;
+          case "slider":
+            inputHTML += `
+                        <div style="width:100%;display:flex;align-items:center;gap:15px;box-sizing:border-box;">
+                            <span style="white-space:nowrap;flex-shrink:0;">Raw</span>
+                            <input type="range" class="slider" id="slider-input" min="0" max="100" value="50" style="flex:1;min-width:0;width:100%;">
+                            <span style="white-space:nowrap;flex-shrink:0;">Done</span>
+                            <div class="slider-value" id="slider-value" style="white-space:nowrap;flex-shrink:0;">50%</div>
+                        </div>
+                    `;
+            break;
+          case "time_slider":
+            inputHTML += `
+                        <div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:20px;box-sizing:border-box;margin-bottom:30px;">
+                            <div style="width:100%;display:flex;align-items:center;box-sizing:border-box;">
+                                <input type="range" class="slider" id="time-slider-input" min="0" max="4" value="0" step="0.1" style="flex:1;min-width:0;width:100%;">
+                            </div>
+                            <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                                <img src="../../assets/Sun.png" class="time-icon" id="icon-sun" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:1;object-fit:contain;">
+                                <img src="../../assets/Coffee.png" class="time-icon" id="icon-coffee" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="../../assets/Pasta.png" class="time-icon" id="icon-pasta" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="../../assets/Wine.png" class="time-icon" id="icon-wine" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                                <img src="../../assets/Moon2.png" class="time-icon" id="icon-moon" style="width:48px;height:48px;filter:brightness(0) invert(1);opacity:0.5;object-fit:contain;">
+                            </div>
+                        </div>
+                    `;
+            break;
+          case "tags":
+            inputHTML += `
+                        <div class="tag-selector" id="tag-examples">
+                            <button class="tag" data-tag="weird">Weird</button>
+                            <button class="tag" data-tag="wrong">Wrong</button>
+                            <button class="tag" data-tag="unfinished">Unfinished</button>
+                            <button class="tag" data-tag="raw">Raw</button>
+                            <button class="tag" data-tag="personal">Personal</button>
+                            <button class="tag" data-tag="experimental">Experimental</button>
+                        </div>
+                        <input type="text" class="input-field" id="custom-tag-input" placeholder="Or type your own... (up to 8 tags)">
+                        <div id="user-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+                    `;
+            break;
+        }
+
+        // Handle file upload case separately
+        if (question.type === "file") {
+          inputDiv.innerHTML = inputHTML;
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.appendChild(inputDiv);
+          dynamicContainer.style.display = "block";
+
+          // Disable persistent input for file upload
+          disablePersistentInput();
+
+          // Setup button handlers for file upload
+          const continueBtn = inputDiv.querySelector("#continue-btn");
+          if (continueBtn) {
+            continueBtn.addEventListener("click", submitAnswer);
+          }
+
+          // Also set up the continue button in the message
+          setTimeout(() => {
+            const messageContinueBtn = document.querySelector("#continue-btn");
+            if (messageContinueBtn) {
+              messageContinueBtn.addEventListener("click", submitAnswer);
+            }
+          }, 100);
+
+          // Setup file input handlers
+          setupFileInputHandlers();
+          return;
+        }
+
+        // For other question types, only add button group for specific question types
+        if (
+          question.type === "slider" ||
+          question.type === "time_slider" ||
+          question.type === "tags"
+        ) {
+          inputHTML += '<div class="button-group">';
+          if (chatbotState.currentQuestion > 0) {
+            inputHTML += '<button class="btn" id="back-btn">Back</button>';
+          }
+          inputHTML +=
+            '<button class="btn primary" id="continue-btn">Continue</button>';
+          inputHTML += "</div>";
+        }
+        inputHTML += "</div>";
+
+        inputDiv.innerHTML = inputHTML;
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.appendChild(inputDiv);
+
+        // Handle text input questions by enabling persistent input and removing dynamic input
+        if (question.type === "text" || question.type === "textarea") {
+          // Clear dynamic container for text questions
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.style.display = "none";
+          enablePersistentInput();
+          const textInput = document.getElementById("persistent-text-input");
+          const sendBtn = document.getElementById("persistent-send-btn");
+
+          // Set up send button handler
+          sendBtn.onclick = () => {
+            if (textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
+            }
+          };
+
+          // Set up back button handler
+          const backBtn = document.getElementById("persistent-back-btn");
+          if (backBtn) {
+            backBtn.onclick = goBack;
+          }
+
+          // Set up skip button handler
+          const skipBtn = document.getElementById("persistent-skip-btn");
+          if (skipBtn) {
+            skipBtn.onclick = () => {
+              submitTextAnswer("Skipped");
+            };
+          }
+
+          // Set up finish button handler
+          const finishBtn = document.getElementById("persistent-finish-btn");
+          if (finishBtn) {
+            finishBtn.onclick = closeChatbot;
+          }
+
+          // Set up enter key handler
+          textInput.onkeypress = (e) => {
+            if (e.key === "Enter" && textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
+            }
+          };
+        } else if (question.type === "location") {
+          // For location questions, add the pin location button as a user message
+          const messagesContainer = document.getElementById("chatbot-messages");
+          const pinMessageDiv = document.createElement("div");
+          pinMessageDiv.className = "message user";
+          pinMessageDiv.innerHTML = `
+                    <div class="message-content" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        padding: 15px 25px;
+                        background: rgba(255, 255, 255, 0.1);
+                        border: 1px solid #fff;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        max-width: 200px;
+                    " id="pin-location-btn" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <span style="font-size: 20px;">📍</span>
+                        Pin location
+                    </div>
+                `;
+          messagesContainer.appendChild(pinMessageDiv);
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+          // Clear dynamic container for location questions
+          dynamicContainer.innerHTML = "";
+          dynamicContainer.style.display = "none";
+          enablePersistentInput();
+
+          // Set up pin location button handler
+          const pinBtn = document.getElementById("pin-location-btn");
+          if (pinBtn) {
+            pinBtn.addEventListener("click", openGoogleMaps);
+          }
+
+          // Set up persistent input handlers
+          const textInput = document.getElementById("persistent-text-input");
+          const sendBtn = document.getElementById("persistent-send-btn");
+
+          sendBtn.onclick = () => {
+            if (textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
+            }
+          };
+
+          // Set up back button handler
+          const backBtn = document.getElementById("persistent-back-btn");
+          if (backBtn) {
+            backBtn.onclick = goBack;
+          }
+
+          // Set up skip button handler
+          const skipBtn = document.getElementById("persistent-skip-btn");
+          if (skipBtn) {
+            skipBtn.onclick = () => {
+              submitTextAnswer("Skipped");
+            };
+          }
+
+          // Set up finish button handler
+          const finishBtn = document.getElementById("persistent-finish-btn");
+          if (finishBtn) {
+            finishBtn.onclick = closeChatbot;
+          }
+
+          textInput.onkeypress = (e) => {
+            if (e.key === "Enter" && textInput.value.trim()) {
+              submitTextAnswer(textInput.value.trim());
+            }
+          };
+        } else {
+          dynamicContainer.style.display = "block";
+          disablePersistentInput();
+        }
+
+        // Setup input handlers
+        setupInputHandlers(question);
+
+        // Setup button handlers (only for specific question types)
+        if (
+          question.type === "slider" ||
+          question.type === "time_slider" ||
+          question.type === "tags"
+        ) {
+          const backBtn = inputDiv.querySelector("#back-btn");
+          const continueBtn = inputDiv.querySelector("#continue-btn");
+
+          if (backBtn) {
+            backBtn.addEventListener("click", goBack);
+          }
+          if (continueBtn) {
+            continueBtn.addEventListener("click", submitAnswer);
+          }
+        }
+      }
+
+      // Map functions
+      function showMapPopup() {
+        const mapPopup = document.getElementById("map-popup-overlay");
+
+        // Show popup first
+        mapPopup.style.display = "flex";
+
+        // Add bot response first
+        setTimeout(() => {
+          addBotMessage(
+            "Click on the map to place a pin, or type a location description!"
+          );
+        }, 500);
+
+        // Wait for popup to be visible, then initialize map
+        setTimeout(() => {
+          console.log("Starting map initialization...");
+          console.log("Google Maps loaded:", mapState.googleMapsLoaded);
+
+          // Debug: Check if map element exists
+          const mapElement = document.getElementById("map");
+          console.log("Map element exists:", !!mapElement);
+          if (mapElement) {
+            console.log(
+              "Map element dimensions:",
+              mapElement.offsetWidth,
+              "x",
+              mapElement.offsetHeight
+            );
+            console.log(
+              "Map element current HTML:",
+              mapElement.innerHTML.substring(0, 100) + "..."
+            );
+          }
+
+          // Check if we can use Google Maps
+          if (typeof google !== "undefined" && google.maps && google.maps.Map) {
+            console.log("Google Maps is working, using it!");
+            initializeMap();
+            initializeAutocomplete();
+          } else {
+            console.log("Using fallback map - Google Maps not working");
+            createFallbackMap();
+            initializeFallbackAutocomplete();
+          }
+        }, 300);
+      }
+
+      function initializeMap() {
+        const mapElement = document.getElementById("map");
+
+        // Clear any existing content
+        mapElement.innerHTML = "";
+
+        // Ensure the map element is properly sized and visible
+        mapElement.style.width = "100%";
+        mapElement.style.height = "100%";
+        mapElement.style.minHeight = "400px";
+        mapElement.style.display = "block";
+        mapElement.style.position = "relative";
+
+        console.log(
+          "Map element dimensions:",
+          mapElement.offsetWidth,
+          "x",
+          mapElement.offsetHeight
+        );
+
+        // Create map centered on a default location
+        mapState.map = new google.maps.Map(mapElement, {
+          center: { lat: 40.7128, lng: -74.006 }, // New York City
+          zoom: 10,
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          disableDefaultUI: false,
+          zoomControl: true,
+          mapTypeControl: true,
+          scaleControl: true,
+          streetViewControl: true,
+          rotateControl: true,
+          fullscreenControl: true,
+          styles: [
+            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+            {
+              elementType: "labels.text.stroke",
+              stylers: [{ color: "#242f3e" }],
+            },
+            {
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#746855" }],
+            },
+            {
+              featureType: "administrative.locality",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "poi",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "poi.park",
+              elementType: "geometry",
+              stylers: [{ color: "#263c3f" }],
+            },
+            {
+              featureType: "poi.park",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#6b9a76" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry",
+              stylers: [{ color: "#38414e" }],
+            },
+            {
+              featureType: "road",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#212a37" }],
+            },
+            {
+              featureType: "road",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#9ca5b3" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry",
+              stylers: [{ color: "#746855" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "geometry.stroke",
+              stylers: [{ color: "#1f2835" }],
+            },
+            {
+              featureType: "road.highway",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#f3d19c" }],
+            },
+            {
+              featureType: "transit",
+              elementType: "geometry",
+              stylers: [{ color: "#2f3948" }],
+            },
+            {
+              featureType: "transit.station",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#d59563" }],
+            },
+            {
+              featureType: "water",
+              elementType: "geometry",
+              stylers: [{ color: "#17263c" }],
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.fill",
+              stylers: [{ color: "#515c6d" }],
+            },
+            {
+              featureType: "water",
+              elementType: "labels.text.stroke",
+              stylers: [{ color: "#17263c" }],
+            },
+          ],
+        });
+
+        // Add click listener to map
+        mapState.map.addListener("click", (event) => {
+          placeMarker(event.latLng);
+        });
+
+        // Trigger a resize event to ensure proper rendering
+        setTimeout(() => {
+          if (mapState.map) {
+            google.maps.event.trigger(mapState.map, "resize");
+            console.log("Map resize triggered");
+          }
+        }, 300);
+      }
+
+      function initializeAutocomplete() {
+        const input = document.getElementById("map-location-input");
+        mapState.autocomplete = new google.maps.places.Autocomplete(input);
+
+        mapState.autocomplete.addListener("place_changed", () => {
+          const place = mapState.autocomplete.getPlace();
+
+          if (place.geometry) {
+            // Center map on selected place
+            mapState.map.setCenter(place.geometry.location);
+            mapState.map.setZoom(15);
+
+            // Place marker at the selected location
+            placeMarker(place.geometry.location);
+
+            // Update coordinates display
+            updateCoordinatesDisplay(place.geometry.location);
+          }
+        });
+      }
+
+      function initializeFallbackAutocomplete() {
+        const input = document.getElementById("map-location-input");
+
+        // Simple location suggestions
+        const commonLocations = [
+          "Home",
+          "Work",
+          "School",
+          "Gym",
+          "Coffee Shop",
+          "Restaurant",
+          "Park",
+          "Mall",
+          "Airport",
+          "Train Station",
+          "Bus Stop",
+          "Hospital",
+          "Library",
+          "Museum",
+          "Theater",
+          "Stadium",
+        ];
+
+        // Create a simple datalist for suggestions
+        const datalist = document.createElement("datalist");
+        datalist.id = "location-suggestions";
+
+        commonLocations.forEach((location) => {
+          const option = document.createElement("option");
+          option.value = location;
+          datalist.appendChild(option);
+        });
+
+        // Add datalist to input
+        input.setAttribute("list", "location-suggestions");
+        document.body.appendChild(datalist);
+
+        // Add placeholder text
+        input.placeholder =
+          "Type location name (e.g., Home, Work, Coffee Shop)";
+      }
+
+      function createFallbackMap() {
+        console.log("Creating fallback map...");
+        const mapElement = document.getElementById("map");
+
+        if (!mapElement) {
+          console.error("Map element not found!");
+          return;
+        }
+
+        console.log("Map element found, setting innerHTML...");
+        mapElement.innerHTML = `
+                <div style="
+                    width: 100%;
+                    height: 100%;
+                    min-height: 400px;
+                    background: 
+                        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+                        linear-gradient(45deg, #1a1a1a 25%, transparent 25%), 
+                        linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #1a1a1a 75%), 
+                        linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+                    background-size: 100px 100px, 150px 150px, 20px 20px, 20px 20px, 20px 20px, 20px 20px;
+                    background-position: 0 0, 0 0, 0 0, 0 10px, 10px -10px, -10px 0px;
+                    position: relative;
+                    cursor: crosshair;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    border-radius: 4px;
+                " id="fallback-map">
+                    <div style="
+                        color: #fff;
+                        text-align: center;
+                        font-family: 'VT323', monospace;
+                        background: rgba(0, 0, 0, 0.9);
+                        padding: 20px;
+                        border-radius: 8px;
+                        border: 1px solid #fff;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                    ">
+                        <div style="font-size: 24px; margin-bottom: 10px;">🗺️</div>
+                        <div style="font-size: 16px; margin-bottom: 5px;">Interactive Map</div>
+                        <div style="font-size: 14px; opacity: 0.8;">Click anywhere to place a pin</div>
+                        <div style="font-size: 12px; margin-top: 10px; opacity: 0.6;">(Local development mode)</div>
+                    </div>
+                </div>
+            `;
+        console.log("Fallback map HTML set");
+
+        // Add click listener for fallback map
+        const fallbackMap = document.getElementById("fallback-map");
+        fallbackMap.addEventListener("click", (event) => {
+          const rect = fallbackMap.getBoundingClientRect();
+          const x = event.clientX - rect.left;
+          const y = event.clientY - rect.top;
+
+          // Create a pin element
+          const pin = document.createElement("div");
+          pin.style.cssText = `
+                    position: absolute;
+                    left: ${x}px;
+                    top: ${y}px;
+                    width: 24px;
+                    height: 24px;
+                    background: #ff4444;
+                    border: 2px solid #fff;
+                    border-radius: 50%;
+                    transform: translate(-50%, -50%);
+                    cursor: pointer;
+                    z-index: 10;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                    animation: pinDrop 0.3s ease-out;
+                `;
+          pin.innerHTML = "📍";
+          pin.style.fontSize = "14px";
+          pin.style.textAlign = "center";
+          pin.style.lineHeight = "20px";
+
+          // Add animation keyframes
+          if (!document.querySelector("#pin-animation")) {
+            const style = document.createElement("style");
+            style.id = "pin-animation";
+            style.textContent = `
+                        @keyframes pinDrop {
+                            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+                            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                        }
+                    `;
+            document.head.appendChild(style);
+          }
+
+          // Remove previous pin
+          const existingPin = fallbackMap.querySelector(".fallback-pin");
+          if (existingPin) {
+            existingPin.remove();
+          }
+
+          pin.className = "fallback-pin";
+          fallbackMap.appendChild(pin);
+
+          // Store coordinates
+          mapState.selectedLocation = {
+            lat: () => ((y / rect.height) * 180 - 90).toFixed(6),
+            lng: () => ((x / rect.width) * 360 - 180).toFixed(6),
+          };
+
+          updateCoordinatesDisplay(mapState.selectedLocation);
+        });
+      }
+
+      function placeMarker(latLng) {
+        // Remove existing marker
+        if (mapState.marker) {
+          mapState.marker.setMap(null);
+        }
+
+        // Create new marker
+        mapState.marker = new google.maps.Marker({
+          position: latLng,
+          map: mapState.map,
+          title: "Selected Location",
+          icon: {
+            url:
+              "data:image/svg+xml;charset=UTF-8," +
+              encodeURIComponent(`
+                        <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="15" cy="15" r="12" fill="#ff4444" stroke="#fff" stroke-width="2"/>
+                            <text x="15" y="20" text-anchor="middle" fill="#fff" font-size="16">📍</text>
+                        </svg>
+                    `),
+            scaledSize: new google.maps.Size(30, 30),
+            anchor: new google.maps.Point(15, 15),
+          },
+        });
+
+        mapState.selectedLocation = latLng;
+        updateCoordinatesDisplay(latLng);
+      }
+
+      function updateCoordinatesDisplay(latLng) {
+        const coordinatesDisplay = document.getElementById(
+          "coordinates-display"
+        );
+        coordinatesDisplay.textContent = `Pinned at: ${latLng
+          .lat()
+          .toFixed(6)}, ${latLng.lng().toFixed(6)}`;
+      }
+
+      function clearPin() {
+        if (mapState.marker) {
+          mapState.marker.setMap(null);
+          mapState.marker = null;
+        }
+
+        // Also clear fallback pin
+        const fallbackPin = document.querySelector(".fallback-pin");
+        if (fallbackPin) {
+          fallbackPin.remove();
+        }
+
+        mapState.selectedLocation = null;
+
+        const coordinatesDisplay = document.getElementById(
+          "coordinates-display"
+        );
+        coordinatesDisplay.textContent =
+          "Click on the map to pin your location";
+      }
+
+      function closeMapPopup() {
+        const mapPopup = document.getElementById("map-popup-overlay");
+        const mapInput = document.getElementById("map-location-input");
+
+        mapPopup.style.display = "none";
+        mapInput.value = "";
+
+        // Clear pin state
+        clearPin();
+
+        // Reset coordinates display
+        const coordinatesDisplay = document.getElementById(
+          "coordinates-display"
+        );
+        coordinatesDisplay.textContent =
+          "Click on the map to pin your location";
+      }
+
+      function confirmMapLocation() {
+        const mapInput = document.getElementById("map-location-input");
+        const locationDescription = mapInput.value.trim();
+
+        if (!mapState.selectedLocation) {
+          alert("Please pin a location on the map first!");
+          return;
+        }
+
+        // Create location string
+        const lat = mapState.selectedLocation.lat().toFixed(6);
+        const lng = mapState.selectedLocation.lng().toFixed(6);
+        const locationString = locationDescription
+          ? `${locationDescription} (${lat}, ${lng})`
+          : `Location: ${lat}, ${lng}`;
+
+        // Submit the location answer
+        submitTextAnswer(locationString);
+
+        closeMapPopup();
+      }
+
+      // Initialize Google Maps when the API loads
+      function initGoogleMaps() {
+        mapState.googleMapsLoaded = true;
+        console.log("Google Maps API loaded successfully");
+      }
+
+      // Make the function globally available
+      window.initGoogleMaps = initGoogleMaps;
+
+      // Add cleanup on page unload to prevent memory leaks
+      window.addEventListener("beforeunload", () => {
+        if (renderer) {
+          renderer.dispose();
+        }
+        if (composer) {
+          composer.dispose();
+        }
+        if (scene) {
+          scene.traverse((object) => {
+            if (object.geometry) {
+              object.geometry.dispose();
+            }
+            if (object.material) {
+              if (Array.isArray(object.material)) {
+                object.material.forEach((material) => material.dispose());
+              } else {
+                object.material.dispose();
+              }
+            }
+          });
+        }
+      });
+
+      // Add error handling for WebGL context loss
+      window.addEventListener("webglcontextlost", (event) => {
+        event.preventDefault();
+        console.warn("WebGL context lost. Reloading page...");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+
+      // Drawer Modal Functions
+      let drawerRaycaster, drawerMouse;
+      
+      function initDrawerModal() {
+        drawerRaycaster = new THREE.Raycaster();
+        drawerMouse = new THREE.Vector2();
+        
+        // Add click event listener to the renderer
+        renderer.domElement.addEventListener('click', onArtworkClick);
+      }
+      
+      function onArtworkClick(event) {
+        // Calculate mouse position in normalized device coordinates
+        const rect = renderer.domElement.getBoundingClientRect();
+        drawerMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        drawerMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Update the picking ray with the camera and mouse position
+        drawerRaycaster.setFromCamera(drawerMouse, camera);
+        
+        // Get all image sprites from the scene
+        const imageSprites = [];
+        scene.traverse((object) => {
+          if (object instanceof THREE.Sprite && object.userData.imagePath) {
+            imageSprites.push(object);
+          }
+        });
+        
+        console.log('Found image sprites:', imageSprites.length);
+        
+        // Calculate objects intersecting the picking ray
+        const intersects = drawerRaycaster.intersectObjects(imageSprites);
+        
+        console.log('Intersects:', intersects.length);
+        
+        if (intersects.length > 0) {
+          const clickedSprite = intersects[0].object;
+          const imagePath = clickedSprite.userData.imagePath;
+          
+          if (imagePath) {
+            // Extract real data from the scene
+            const clusterGroup = clickedSprite.parent;
+            let signedBy = '-';
+            
+            // Find the username text sprite in the cluster
+            if (clusterGroup && clusterGroup.children) {
+              for (const child of clusterGroup.children) {
+                if (child.children && child.children.length > 0) {
+                  // Look for text sprite (username) in the cluster container
+                  for (const grandChild of child.children) {
+                    if (grandChild.material && grandChild.material.map && grandChild.material.map.image) {
+                      // This is likely the text sprite with username
+                      const canvas = grandChild.material.map.image;
+                      const context = canvas.getContext('2d');
+                      // We can't easily extract text from canvas, so we'll use the cluster index
+                      const clusterIndex = imageGroups.indexOf(clusterGroup);
+                      signedBy = `@User${clusterIndex + 1}`;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Create artwork data with available information
+            const artworkData = {
+              image: imagePath.split('/').pop(), // Get filename from path
+              title: imagePath.split('/').pop().replace(/\.[^/.]+$/, ""), // Remove file extension
+              signedBy: signedBy,
+              zone: '-',
+              exactSpot: '-',
+              date: '-',
+              daytime: '-',
+              rawness: '-',
+              format: imagePath.split('.').pop().toUpperCase(), // File extension as format
+              context: '-',
+              tags: []
+            };
+            
+            // Create or update drawer modal for the clicked artwork
+            createDrawerModal(artworkData, clickedSprite);
+          }
+        }
+      }
+
+      function createDrawerModal(artworkData, sprite) {
+        // Remove existing drawer modal if any
+        const existingModal = document.querySelector('.drawer-backdrop');
+        if (existingModal) {
+          existingModal.remove();
+        }
+        
+        // Create backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'drawer-backdrop';
+        
+        // Create drawer container
+        const drawerContainer = document.createElement('div');
+        drawerContainer.className = 'drawer-container';
+        
+        // Create close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'drawer-close';
+        closeButton.innerHTML = '×';
+        closeButton.onclick = closeDrawerModal;
+        
+        // Create artwork section
+        const artworkSection = document.createElement('div');
+        artworkSection.className = 'drawer-artwork';
+        const artworkImg = document.createElement('img');
+        artworkImg.src = `../../images/${artworkData.image}`;
+        artworkImg.alt = artworkData.title || 'Artwork';
+        artworkImg.onerror = function() {
+          artworkSection.innerHTML = '<div style="color: #666; font-size: 16px;">Image not available</div>';
+        };
+        artworkSection.appendChild(artworkImg);
+        
+        // Create info section
+        const infoSection = document.createElement('div');
+        infoSection.className = 'drawer-info';
+        
+        // Create info content
+        infoSection.innerHTML = `
+          <div class="drawer-field">
+            <div class="drawer-label">Title</div>
+            <div class="drawer-value">${artworkData.title || '-'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Signed by</div>
+            <div class="drawer-value">${artworkData.signedBy || '-'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Zone</div>
+            <div class="drawer-value">${artworkData.zone || '-'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Exact spot</div>
+            <div class="drawer-value">${artworkData.exactSpot || '-'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Date stamp</div>
+            <div class="drawer-value">${artworkData.date || '-'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Daytime</div>
+            <div class="drawer-value">${artworkData.daytime || '-'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Rawness</div>
+            <div class="drawer-value">${artworkData.rawness !== undefined ? artworkData.rawness : '-'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Format type</div>
+            <div class="drawer-value">${artworkData.format || '-'}</div>
+          </div>
+          <div class="drawer-field full-width">
+            <div class="drawer-label">Scene/Context</div>
+            <div class="drawer-context">${artworkData.context || '-'}</div>
+          </div>
+          <div class="drawer-field full-width">
+            <div class="drawer-label">Vibes/Tags</div>
+            <div class="drawer-tags">
+              ${artworkData.tags && artworkData.tags.length > 0 
+                ? artworkData.tags.map(tag => `<span class="drawer-tag">${tag}</span>`).join('')
+                : '<span class="drawer-tag">-</span>'
+              }
+            </div>
+          </div>
+        `;
+        
+        // Assemble the modal
+        drawerContainer.appendChild(closeButton);
+        drawerContainer.appendChild(artworkSection);
+        drawerContainer.appendChild(infoSection);
+        backdrop.appendChild(drawerContainer);
+        document.body.appendChild(backdrop);
+        
+        // Add click outside to close
+        backdrop.addEventListener('click', function(e) {
+          if (e.target === backdrop) {
+            closeDrawerModal();
+          }
+        });
+        
+        // Add escape key to close
+        const escapeHandler = function(e) {
+          if (e.key === 'Escape') {
+            closeDrawerModal();
+            document.removeEventListener('keydown', escapeHandler);
+          }
+        };
+        document.addEventListener('keydown', escapeHandler);
+        
+        // Animate in
+        requestAnimationFrame(() => {
+          backdrop.classList.add('show');
+          requestAnimationFrame(() => {
+            drawerContainer.classList.add('show');
+          });
+        });
+        
+        // Store reference to sprite for potential future use
+        backdrop.sprite = sprite;
+      }
+      
+      function closeDrawerModal() {
+        const backdrop = document.querySelector('.drawer-backdrop');
+        if (backdrop) {
+          const container = backdrop.querySelector('.drawer-container');
+          container.classList.remove('show');
+          backdrop.classList.remove('show');
+          
+          // Remove after animation
+          setTimeout(() => {
+            backdrop.remove();
+          }, 400);
+        }
+      }
+      window.addEventListener("load", startVisualization);
+    </script>
+  </body>
+</html>

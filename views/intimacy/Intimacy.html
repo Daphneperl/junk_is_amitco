@@ -1,0 +1,3666 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>3D Intimacy Tunnel Gallery</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Overpass+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+      @font-face {
+        font-family: "Pixel";
+        src: url("../../../assets/pixel.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "VT323";
+        src: url("../../../assets/VT323-Regular.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+      }
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+      #black-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: black;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+        opacity: 1;
+      }
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
+
+      /* Floating Eye Styles */
+      #floating-eye {
+        position: fixed;
+        width: 200px;
+        height: 200px;
+        z-index: 1000;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        pointer-events: auto;
+        display: none;
+        top: 100px;
+        left: 100px;
+        opacity: 0.7;
+      }
+
+      #floating-eye:hover {
+        transform: scale(1.2);
+      }
+
+      #floating-eye img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+      }
+
+      /* Tooltip Styles */
+      #eye-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        font-family: "VT323", monospace;
+        font-size: 26px;
+        width: 350px;
+        height: 200px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        pointer-events: none;
+        text-align: center;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+
+      #eye-tooltip.show {
+        opacity: 0.8;
+        visibility: visible;
+      }
+
+      /* Rings Container Styles */
+      #rings-container {
+        position: fixed;
+        bottom: -90px;
+        left: -10px;
+        width: 500px;
+        height: 500px;
+        z-index: 2;
+        pointer-events: auto;
+        cursor: grab;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #rings-container:active {
+        cursor: grabbing;
+      }
+
+      #rings-container.dock-visible {
+        bottom: -90px;
+      }
+
+      #rings-container.dock-hidden {
+        bottom: -400px;
+      }
+
+      /* Pixel Arrow Indicator */
+      #pixel-arrow-indicator {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        animation: arrow-bounce 2s ease-in-out infinite;
+      }
+
+      #pixel-arrow-indicator.show {
+        opacity: 0.7;
+      }
+
+      #pixel-arrow-indicator img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
+
+      @keyframes arrow-bounce {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0px);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-8px);
+        }
+      }
+
+      #hover-title {
+        position: absolute;
+        top: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ffffff;
+        font-family: "VT323", monospace;
+        font-size: 32px;
+        font-weight: bold;
+        text-align: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 10;
+      }
+
+      /* Search Bar Styles */
+      #search-bar {
+        position: fixed;
+        left: 50%;
+        bottom: 3vw;
+        transform: translateX(-50%);
+        width: 420px;
+        max-width: 80vw;
+        min-width: 280px;
+        height: 54px;
+        background: #fff;
+        border-radius: 32px;
+        box-shadow: 0 2px 16px #0003;
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        border: none;
+        outline: none;
+        padding: 0 32px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #search-bar.dock-visible {
+        opacity: 1;
+        bottom: 3vw;
+      }
+
+      #search-bar.dock-hidden {
+        opacity: 0;
+        bottom: -200px;
+      }
+
+      /* Upload Button Styles */
+      #upload-hand-btn {
+        position: fixed;
+        right: 2vw;
+        bottom: 2vw;
+        width: 280px;
+        height: 280px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 2100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: none;
+        flex-direction: unset;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      #upload-hand-btn.dock-visible {
+        opacity: 1;
+        bottom: 2vw;
+      }
+
+      #upload-hand-btn.dock-hidden {
+        opacity: 0;
+        bottom: -200px;
+      }
+
+      #upload-hand-btn-text {
+        position: absolute;
+        left: 30%;
+        top: 55%;
+        transform: translate(-50%, -50%);
+        font-size: 28px;
+        font-family: "VT323", monospace, sans-serif;
+        color: #888;
+        background: none;
+        border: none;
+        text-align: center;
+        pointer-events: none;
+        width: 180px;
+        line-height: 0.9;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
+        letter-spacing: 0.5px;
+      }
+
+      #upload-hand-btn-img {
+        width: 270px;
+        height: 270px;
+        object-fit: contain;
+        display: block;
+        pointer-events: none;
+      }
+
+      /* Chatbot Styles */
+      .chatbot-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 2999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .chatbot-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 95vw;
+        max-width: 800px;
+        height: 80vh;
+        background: #000;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        z-index: 3000;
+        display: none;
+        font-family: "Overpass Mono", monospace;
+        color: #fff;
+      }
+
+      .chatbot-input-area {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #000;
+        border-top: 1px solid #fff;
+        padding: 20px;
+        z-index: 10;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #dynamic-input-container {
+        position: absolute;
+        bottom: 100px;
+        left: 0;
+        right: 0;
+        background: #000;
+        padding: 10px 20px;
+        z-index: 8;
+        min-height: 0;
+      }
+
+      .persistent-input {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .persistent-input input {
+        flex: 1;
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+      }
+
+      .persistent-input input:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .persistent-input input:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .persistent-input button {
+        padding: 12px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .persistent-input button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .persistent-input button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .chatbot-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        border-bottom: 1px solid #fff;
+        font-family: "VT323", monospace;
+        font-size: 24px;
+        text-align: center;
+        background: #000;
+        z-index: 5;
+      }
+
+      .chatbot-messages {
+        position: absolute;
+        top: 80px;
+        left: 0;
+        right: 0;
+        bottom: 120px;
+        overflow-y: auto;
+        padding: 20px 20px 100px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .message {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .message.bot {
+        align-items: flex-start;
+      }
+
+      .message.user {
+        align-items: flex-end;
+      }
+
+      .message-content {
+        max-width: 80%;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        font-size: 16px;
+        line-height: 1.4;
+      }
+
+      .message.bot .message-content {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .message.user .message-content {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .chatbot-messages::after {
+        content: "";
+        height: 40px;
+        flex-shrink: 0;
+      }
+
+      .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 15px;
+        border: 1px solid #fff;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        max-width: 80%;
+      }
+
+      .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #fff;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+      }
+
+      .typing-dot:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+
+      .typing-dot:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+
+      @keyframes typing {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.8);
+          opacity: 0.5;
+        }
+        40% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .input-field {
+        background: transparent;
+        border: 1px solid #fff;
+        border-radius: 4px;
+        padding: 12px;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
+        min-width: 0;
+      }
+
+      .input-field:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+      }
+
+      .file-upload-area {
+        border: 2px dashed #fff;
+        border-radius: 8px;
+        padding: 20px;
+        min-height: 300px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+
+      .upload-icon {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        margin-top: -5px;
+      }
+
+      .file-upload-area:hover .upload-icon {
+        opacity: 1;
+      }
+
+      .file-upload-area:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .file-upload-area.dragover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: #fff;
+      }
+
+      .uploaded-image {
+        max-width: 80%;
+        max-height: 120px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+
+      .file-upload-text {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        width: 100%;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: flex-end;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "VT323", monospace;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        outline: none;
+      }
+
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .btn.primary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 10px;
+      }
+
+      .slider {
+        flex: 1;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        outline: none;
+        -webkit-appearance: none;
+        min-width: 0;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #fff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+
+      .tag-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .tag {
+        padding: 6px 12px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: "Overpass Mono", monospace;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tag:hover,
+      .tag.selected {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .summary-screen {
+        display: none;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+      }
+
+      .summary-label {
+        font-family: "VT323", monospace;
+        font-size: 16px;
+      }
+
+      .summary-value {
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+      }
+
+      /* Drawer Modal Styles */
+      .drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 3000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+      }
+
+      .drawer-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .drawer-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        z-index: 3001;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        max-width: 95vw;
+        max-height: 90vh;
+        justify-content: center;
+        position: relative;
+      }
+
+      .drawer-container.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .drawer-artwork {
+        position: relative;
+        width: auto;
+        height: auto;
+        max-width: 45vw;
+        max-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+        z-index: 2;
+        flex-shrink: 0;
+      }
+
+      .drawer-artwork img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 4px;
+        display: block;
+      }
+
+      .drawer-info {
+        position: relative;
+        width: 350px;
+        height: auto;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: 'Overpass Mono', monospace;
+        color: #fff;
+        font-size: 14px;
+        transform: translateX(-100%);
+        transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 1;
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .drawer-container.show .drawer-info {
+        transform: translateX(0);
+      }
+
+      .drawer-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+
+      .drawer-field.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .drawer-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        font-family: 'VT323', monospace;
+        z-index: 3002;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      .drawer-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .drawer-container.show .drawer-close {
+        opacity: 1;
+      }
+
+      .drawer-label {
+        font-weight: bold;
+        font-family: 'Overpass Mono', monospace;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .drawer-value {
+        font-weight: normal;
+        font-family: 'Overpass Mono', monospace;
+        font-style: italic;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .drawer-context {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        padding: 12px;
+        min-height: 80px;
+        font-size: 13px;
+        line-height: 1.5;
+        margin-top: 4px;
+      }
+
+      .drawer-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .drawer-tag {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        padding: 4px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+      }
+
+      .drawer-tag:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Mobile responsive */
+      @media (max-width: 768px) {
+        .drawer-container {
+          flex-direction: column;
+          max-width: 95vw;
+          max-height: 90vh;
+          gap: 15px;
+          padding: 10px;
+        }
+
+        .drawer-artwork {
+          max-width: 100%;
+          max-height: 50vh;
+        }
+
+        .drawer-info {
+          position: relative;
+          width: 100%;
+          height: auto;
+          max-height: 40vh;
+          transform: translateY(-100%);
+          padding: 15px;
+          font-size: 13px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .drawer-container.show .drawer-info {
+          transform: translateY(0);
+        }
+
+        .drawer-field {
+          margin-bottom: 8px;
+        }
+
+        .drawer-label {
+          font-size: 14px;
+        }
+
+        .drawer-value {
+          font-size: 13px;
+          font-weight: normal;
+          font-family: 'Overpass Mono', monospace;
+          font-style: italic;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .drawer-context {
+          font-size: 12px;
+          padding: 10px;
+          min-height: 60px;
+        }
+
+        .drawer-tag {
+          font-size: 10px;
+          padding: 3px 8px;
+        }
+      }
+
+      .focus-tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 5px;
+      }
+
+      .focus-tag {
+        padding: 6px 12px;
+        border: 1px solid #fff;
+        background: transparent;
+        color: #fff;
+        font-family: 'Overpass Mono', monospace;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .focus-tag:hover,
+      .focus-tag.selected {
+        background: rgba(255, 255, 255, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="black-overlay"></div>
+    <div id="loading-container">
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING... 0%
+      </div>
+    </div>
+    <div id="visualization"></div>
+
+    <!-- Floating Eye -->
+    <div id="floating-eye">
+      <img
+        src="../../assets/GlitchyEyeGif.gif"
+        alt="Glitchy Eye"
+        style="width: 100%; height: 100%; object-fit: contain"
+      />
+    </div>
+
+    <!-- Tooltip -->
+    <div id="eye-tooltip">
+      Here is the Intimacy View. Zoom in to discover where personal fragments
+      were left – the closer you go, the more intimate places you'll find.
+    </div>
+
+    <!-- Pixel Arrow Indicator -->
+    <div id="pixel-arrow-indicator">
+      <img src="../../assets/pixel_arrow.png" alt="Arrow pointing up" />
+    </div>
+
+    <!-- Rings Container -->
+    <div id="rings-container">
+      <div id="hover-title"></div>
+    </div>
+
+    <!-- Search Bar -->
+    <input id="search-bar" type="text" placeholder="I want to see..." />
+
+    <!-- Upload Hand Button -->
+    <button id="upload-hand-btn">
+      <img
+        id="upload-hand-btn-img"
+        src="../../UploadButton/BiggerHand.png"
+        alt="Upload hand"
+      />
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
+    </button>
+
+    <!-- Chatbot Backdrop -->
+    <div id="chatbot-backdrop" class="chatbot-backdrop"></div>
+
+    <!-- Chatbot Upload Interface -->
+    <div id="chatbot-container" class="chatbot-container">
+      <button class="close-btn" onclick="closeChatbot()">×</button>
+      <div class="chatbot-header">Junk Upload Bot</div>
+      <div class="chatbot-messages" id="chatbot-messages">
+        <!-- Messages will be added here dynamically -->
+      </div>
+      <div class="chatbot-input-area" id="chatbot-input-area">
+        <div class="persistent-input">
+          <button id="persistent-back-btn" disabled>Back</button>
+          <input
+            type="text"
+            id="persistent-text-input"
+            placeholder="Type your message..."
+            disabled
+          />
+          <div class="persistent-input-actions">
+            <button id="persistent-send-btn" disabled>Send</button>
+            <button id="persistent-skip-btn" disabled>Skip</button>
+            <button id="persistent-finish-btn" disabled>Finish</button>
+          </div>
+        </div>
+        <div id="dynamic-input-container">
+          <!-- Dynamic input elements will be added here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 1. Define stations and Z mapping
+      const stations = [
+        { name: "", flower: "" }, // Empty first layer
+        { name: "The Beach", flower: "Sand in your soul and sketchbook" },
+        { name: "The Park", flower: "So poetic" },
+        { name: "Museum", flower: "It's not stealing if you make it your own" },
+        { name: "Cafe", flower: "Coffee stains everywhere" },
+        { name: "Pub", flower: "Who needs friends when there's beer?" },
+        { name: "Class", flower: "Teacher's pet!" },
+        { name: "Studio", flower: "Artist's layer" },
+        { name: "Living room", flower: "Couchpotato or artistic genius?" },
+        { name: "Bedroom", flower: "Where the magic happens" },
+        { name: "Toilet", flower: "Where shit gets real" },
+      ];
+
+      const imageRingRadius = 75;
+      const tunnelMargin = 3;
+      const tunnelRadius = imageRingRadius + tunnelMargin;
+      const minRingRadius = 55;
+      const maxRingRadius = 75;
+      const tunnelLength = 5500; // total Z length (increased for additional layer)
+      const zStart = 0;
+      const zEnd = -tunnelLength;
+      const stationStep = tunnelLength / (stations.length - 1);
+
+      // Define a left-turning curve using CatmullRomCurve3
+      const tunnelCurve = new THREE.CatmullRomCurve3(
+        Array.from({ length: 200 }, (_, i) => {
+          const t = i / 199;
+          const angle = t * Math.PI * 1.8; // 1.8 radians = ~103 degrees (increased turn for longer tunnel)
+          const radius = 1500; // Increased radius for smoother curve with longer distance
+          return new THREE.Vector3(
+            Math.sin(angle) * radius,
+            0,
+            -Math.cos(angle) * radius
+          );
+        })
+      );
+
+      // 1. Add the custom shader for vertical lines at the top of the script section:
+      const verticalLineVertexShader = `
+        attribute float alpha;
+        varying float vAlpha;
+        void main() {
+            vAlpha = alpha;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    `;
+      const verticalLineFragmentShader = `
+        varying float vAlpha;
+        void main() {
+            gl_FragColor = vec4(1.0, 1.0, 1.0, vAlpha);
+        }
+    `;
+
+      // 2. Load images from JSON and assign stations
+      async function loadArtworks() {
+        let imageList = [];
+        try {
+          const response = await fetch("../../images/images.json");
+          imageList = await response.json();
+        } catch (e) {
+          document.getElementById("loading-text").textContent =
+            "Error loading images.json";
+          return [];
+        }
+
+        // Shuffle the image list to randomize selection
+        const shuffledImages = [...imageList].sort(() => Math.random() - 0.5);
+
+        // Calculate how many images per station (ensure equal distribution)
+        const imagesPerStation = Math.floor(
+          shuffledImages.length / stations.length
+        );
+        const totalImagesToUse = imagesPerStation * stations.length;
+
+        // Distribute images evenly across stations
+        const artworks = [];
+        for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
+          for (let i = 0; i < imagesPerStation; i++) {
+            const imageIndex = stationIdx * imagesPerStation + i;
+            if (imageIndex < shuffledImages.length) {
+              artworks.push({
+                id: imageIndex,
+                stationIdx,
+                station: stations[stationIdx],
+                image: shuffledImages[imageIndex],
+              });
+            }
+          }
+        }
+
+        return artworks;
+      }
+
+      // 3. Map station index to Z and ring radius
+      function stationZ(stationIdx) {
+        return zStart - stationIdx * stationStep;
+      }
+      function stationRadius(stationIdx) {
+        // Optional: make more intimate stations smaller
+        return (
+          maxRingRadius -
+          (maxRingRadius - minRingRadius) * (stationIdx / (stations.length - 1))
+        );
+      }
+
+      // 4. Place artworks in tunnel
+      let scene,
+        camera,
+        renderer,
+        tunnelWire,
+        composer,
+        particles,
+        squareParticleGroup;
+      // Add these arrays to store references and t values
+      let visibleMeshes = [];
+      let visibleLabels = [];
+      let ringObjects = [];
+      let artworksByStation = [];
+      let stationZs = [];
+      let artworksData = [];
+
+      // Store Frenet frames globally for reuse
+      let tunnelFrenetFrames = null;
+
+      // Separate variables for rings
+      let ringsScene, ringsCamera, ringsRenderer;
+      let rings;
+      let ringsRotation = {
+        isDragging: false,
+        previousX: 0,
+        previousY: 0,
+        rotationSpeedX: 0.0003,
+        rotationSpeedY: 0.0006,
+        manualRotationX: 0,
+        manualRotationY: 0,
+        dragStartTime: 0,
+        dragThreshold: 5, // Minimum distance to be considered dragging
+        clickThreshold: 200, // Minimum time difference to be considered a click vs drag
+      };
+
+      // Store references to eye-label groups for hover detection
+      let eyeLabelGroups = [];
+      let ringsRaycaster, ringsMouse;
+
+      // Chatbot state
+      let chatbotState = {
+        currentQuestion: 0,
+        answers: {},
+        isTyping: false,
+      };
+
+      // Create wire grid for the tunnel
+      function createTunnelWireGrid() {
+        const wireGroup = new THREE.Group();
+        const numVerticalLines = 48;
+        const numHorizontalRings = 60;
+        const numCurveSamples = 200;
+        const numRingSegments = 48;
+
+        // Precompute Frenet frames along the curve
+        tunnelFrenetFrames = tunnelCurve.computeFrenetFrames(
+          numCurveSamples,
+          false
+        );
+
+        // Vertical lines (meridians)
+        for (let v = 0; v < numVerticalLines; v++) {
+          const angle = (v / numVerticalLines) * Math.PI * 2;
+          const points = [];
+          for (let i = 0; i < numCurveSamples; i++) {
+            const t = i / (numCurveSamples - 1);
+            const center = tunnelCurve.getPoint(t);
+            const normal = tunnelFrenetFrames.normals[i];
+            const binormal = tunnelFrenetFrames.binormals[i];
+            const x = Math.cos(angle) * tunnelRadius;
+            const y = Math.sin(angle) * tunnelRadius;
+            // Local position in the ring's frame
+            const pos = center
+              .clone()
+              .add(normal.clone().multiplyScalar(x))
+              .add(binormal.clone().multiplyScalar(y));
+            points.push(pos);
+          }
+          // Create geometry with per-vertex alpha
+          const positions = new Float32Array(points.length * 3);
+          const alphas = new Float32Array(points.length);
+          for (let i = 0; i < points.length; i++) {
+            positions[i * 3] = points[i].x;
+            positions[i * 3 + 1] = points[i].y;
+            positions[i * 3 + 2] = points[i].z;
+            alphas[i] = 1.0; // default, will be updated each frame
+          }
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(positions, 3)
+          );
+          geometry.setAttribute("alpha", new THREE.BufferAttribute(alphas, 1));
+          const material = new THREE.ShaderMaterial({
+            vertexShader: verticalLineVertexShader,
+            fragmentShader: verticalLineFragmentShader,
+            transparent: true,
+            depthWrite: false,
+            depthTest: true,
+          });
+          const line = new THREE.Line(geometry, material);
+          line.renderOrder = 1;
+          line.userData = {
+            type: "vertical",
+            points: points,
+            geometry: geometry,
+            alphas: alphas,
+          };
+          wireGroup.add(line);
+        }
+
+        // Horizontal rings (latitudes) - unchanged except for userData
+        for (let i = 0; i < numHorizontalRings; i++) {
+          const t = i / (numHorizontalRings - 1);
+          const center = tunnelCurve.getPoint(t);
+          const tangent = tunnelCurve.getTangent(t).clone().normalize();
+          // Find a perpendicular vector for the ring's plane
+          let up = new THREE.Vector3(0, 1, 0);
+          if (Math.abs(tangent.dot(up)) > 0.99) up = new THREE.Vector3(1, 0, 0);
+          const binormal = new THREE.Vector3()
+            .crossVectors(tangent, up)
+            .normalize();
+          const ringPoints = [];
+          for (let j = 0; j <= numRingSegments; j++) {
+            const angle = (j / numRingSegments) * Math.PI * 2;
+            const x = Math.cos(angle) * tunnelRadius;
+            const y = Math.sin(angle) * tunnelRadius;
+            // Local position in the ring's frame
+            const pos = center
+              .clone()
+              .add(up.clone().multiplyScalar(x))
+              .add(binormal.clone().multiplyScalar(y));
+            ringPoints.push(pos);
+          }
+          const geometry = new THREE.BufferGeometry().setFromPoints(ringPoints);
+          const material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 1.0,
+            depthWrite: false,
+            depthTest: true,
+          });
+          const line = new THREE.Line(geometry, material);
+          line.renderOrder = 1;
+          line.userData = { type: "horizontal", points: ringPoints };
+          wireGroup.add(line);
+        }
+
+        tunnelWire = wireGroup;
+        scene.add(tunnelWire);
+      }
+
+      function clearVisible() {
+        visibleMeshes.forEach((mesh) => scene.remove(mesh));
+        visibleMeshes = [];
+        visibleLabels.forEach((label) => label.remove());
+        visibleLabels = [];
+      }
+
+      function createTextSprite(title, subtitle = null) {
+        // Create a temporary canvas to measure text
+        const tempCanvas = document.createElement("canvas");
+        const tempCtx = tempCanvas.getContext("2d");
+
+        // Measure title text
+        tempCtx.font = "bold 300px VT323, monospace";
+        const titleMetrics = tempCtx.measureText(title);
+        const titleWidth = Math.ceil(titleMetrics.width);
+        const titleHeight = 450; // Bigger height for bigger font
+
+        // Measure subtitle text if provided
+        let subtitleWidth = 0;
+        let subtitleHeight = 0;
+        let subtitleLines = [];
+        if (subtitle) {
+          tempCtx.font = '400 80px "Overpass Mono", monospace';
+
+          // Set maximum width for subtitle (narrower box)
+          const maxSubtitleWidth = 1400; // Reduced from previous width
+
+          // Check if subtitle needs to be split into multiple lines
+          const subtitleMetrics = tempCtx.measureText(subtitle);
+          if (subtitleMetrics.width <= maxSubtitleWidth) {
+            // Single line
+            subtitleWidth = Math.ceil(subtitleMetrics.width);
+            subtitleLines = [subtitle];
+            subtitleHeight = 120;
+          } else {
+            // Split into multiple lines
+            const words = subtitle.split(" ");
+            let currentLine = "";
+            subtitleLines = [];
+
+            for (let i = 0; i < words.length; i++) {
+              const testLine =
+                currentLine + (currentLine ? " " : "") + words[i];
+              const testMetrics = tempCtx.measureText(testLine);
+
+              if (testMetrics.width <= maxSubtitleWidth) {
+                currentLine = testLine;
+              } else {
+                if (currentLine) {
+                  subtitleLines.push(currentLine);
+                  currentLine = words[i];
+                } else {
+                  // Single word is too long, force it
+                  subtitleLines.push(words[i]);
+                  currentLine = "";
+                }
+              }
+            }
+
+            if (currentLine) {
+              subtitleLines.push(currentLine);
+            }
+
+            // Calculate width and height for multiple lines
+            subtitleWidth = maxSubtitleWidth;
+            subtitleHeight = 120 * subtitleLines.length;
+          }
+        }
+
+        // Calculate total dimensions with narrower subtitle width
+        const totalWidth = Math.max(titleWidth, subtitleWidth) + 160;
+        const totalHeight = titleHeight + (subtitle ? subtitleHeight : 0) + 200; // Increased padding to prevent cutoff
+
+        // Now create the actual canvas
+        const canvas = document.createElement("canvas");
+        canvas.width = totalWidth;
+        canvas.height = totalHeight;
+        const context = canvas.getContext("2d");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw title
+        context.font = "bold 300px VT323, monospace";
+        context.fillStyle = "rgba(255,255,255,1)";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        const titleY = totalHeight / 2 - 50; // Fixed title position
+        context.fillText(title, canvas.width / 2, titleY);
+
+        // Draw subtitle if provided
+        if (subtitle && subtitleLines.length > 0) {
+          context.font = '400 80px "Overpass Mono", monospace';
+          context.fillStyle = "rgba(255,255,255,1)"; // Full opacity white
+          context.textAlign = "center";
+          context.textBaseline = "middle";
+
+          const lineHeight = 120; // Match the subtitleHeight per line
+          const fixedGap = 200; // Fixed gap between title and subtitle
+          const startY = titleY + fixedGap;
+
+          subtitleLines.forEach((line, index) => {
+            const lineY = startY + index * lineHeight;
+            context.fillText(line, canvas.width / 2, lineY);
+          });
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.premultiplyAlpha = true;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
+          alphaTest: 0.5, // Discard low-alpha pixels
+        });
+        const sprite = new THREE.Sprite(spriteMaterial);
+        // Set scale to match the canvas aspect ratio for natural look, but bigger
+        const scaleX = (0.7 * canvas.width) / 10;
+        const scaleY = (0.7 * canvas.height) / 10;
+        sprite.scale.set(scaleX, scaleY, 1);
+        return sprite;
+      }
+
+      function showTunnelRings() {
+        clearVisible();
+        ringObjects = [];
+        for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
+          const t = stationIdx / (stations.length - 1);
+          const center = tunnelCurve.getPoint(t);
+          let arts = artworksByStation[stationIdx];
+          const maxImagesPerRing = 8;
+          if (arts.length > maxImagesPerRing) {
+            arts = arts
+              .slice(0, maxImagesPerRing)
+              .sort(() => Math.random() - 0.5);
+          } else if (arts.length < maxImagesPerRing) {
+            const originalArts = [...arts];
+            while (arts.length < maxImagesPerRing) {
+              arts.push(
+                ...originalArts.slice(
+                  0,
+                  Math.min(maxImagesPerRing - arts.length, originalArts.length)
+                )
+              );
+            }
+            arts = arts
+              .slice(0, maxImagesPerRing)
+              .sort(() => Math.random() - 0.5);
+          }
+          const N = arts.length;
+          const ringGroup = new THREE.Group();
+          ringGroup.position.copy(center);
+          ringGroup.userData = { stationIdx, t };
+          scene.add(ringGroup);
+          // Title sprite (only create if station name is not empty)
+          if (stations[stationIdx].name.trim() !== "") {
+            const titleSprite = createTextSprite(
+              stations[stationIdx].name,
+              stations[stationIdx].flower
+            );
+            titleSprite.position.set(0, 0, 0);
+            ringGroup.add(titleSprite);
+            // Store for dynamic opacity, now with center
+            ringObjects.push({
+              t,
+              center: center.clone(),
+              titleSprite,
+              imageMeshes: [],
+            });
+          } else {
+            // For empty first layer, just store the ring object without title
+            ringObjects.push({
+              t,
+              center: center.clone(),
+              titleSprite: null,
+              imageMeshes: [],
+            });
+          }
+
+          // Skip creating images for the first (empty) layer
+          if (stationIdx === 0) {
+            continue;
+          }
+
+          for (let i = 0; i < N; i++) {
+            const angle = (i / N) * Math.PI * 2;
+            const art = arts[i];
+            const texture = art._texture;
+            let mesh,
+              imageWidth = 18;
+            if (texture) {
+              const aspect = texture.image.width / texture.image.height;
+              const height = 30;
+              imageWidth = height * aspect;
+              const geometry = new THREE.PlaneGeometry(imageWidth, height);
+              const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+              });
+              mesh = new THREE.Mesh(geometry, material);
+            } else {
+              const geometry = new THREE.BoxGeometry(30, 20, 2);
+              const color = `hsl(${Math.floor(360 * Math.random())},70%,60%)`;
+              const material = new THREE.MeshPhongMaterial({
+                color,
+                transparent: true,
+              });
+              mesh = new THREE.Mesh(geometry, material);
+            }
+            // Ensure images render above the grid but respect depth
+            mesh.renderOrder = 100;
+            mesh.material.depthTest = true;
+            mesh.material.depthWrite = true;
+            const x = Math.cos(angle) * imageRingRadius;
+            const y = Math.sin(angle) * imageRingRadius;
+            mesh.position.set(x, y, 0);
+            mesh.rotation.set(0, 0, 0);
+            // Store original position for jitter calculations and artwork data
+            mesh.userData = {
+              originalX: x,
+              originalY: y,
+              originalZ: 0,
+              jitterSeed: Math.random() * 1000, // Random seed for unique jitter
+              jitterSpeed: 0.5 + Math.random() * 2.0, // Random speed between 0.5-1.5
+              jitterAmplitude: 2 + Math.random() * 3, // Random amplitude between 2-5
+              jitterPhase: Math.random() * Math.PI * 2, // Random starting phase
+              artworkData: art, // Store the artwork data for flip card
+            };
+            ringGroup.add(mesh);
+            visibleMeshes.push(mesh);
+            ringObjects[ringObjects.length - 1].imageMeshes.push(mesh);
+          }
+        }
+      }
+
+      function updateArtworkOrientations() {
+        // Make all images face the camera
+        visibleMeshes.forEach((mesh) => {
+          mesh.lookAt(camera.position);
+        });
+      }
+
+      function preloadTextures(artworks, onDone) {
+        const textureLoader = new THREE.TextureLoader();
+        let loaded = 0;
+        let total = artworks.length;
+        if (total === 0) {
+          onDone();
+          return;
+        }
+        artworks.forEach((art) => {
+          textureLoader.load(
+            `../../images/${art.image}`,
+            (texture) => {
+              art._texture = texture;
+              loaded++;
+              updateLoadingUI((loaded / total) * 100);
+              if (loaded === total) onDone();
+            },
+            undefined,
+            () => {
+              art._texture = null;
+              loaded++;
+              updateLoadingUI((loaded / total) * 100);
+              if (loaded === total) onDone();
+            }
+          );
+        });
+      }
+
+      function placeArtworksTunnel(artworks) {
+        // Group artworks by station
+        artworksByStation = Array.from({ length: stations.length }, () => []);
+        stationZs = [];
+        for (let i = 0; i < stations.length; i++) {
+          stationZs.push(stationZ(i));
+        }
+        artworks.forEach((art) => artworksByStation[art.stationIdx].push(art));
+        showTunnelRings();
+      }
+
+      // 5. Camera, scene, controls
+      async function main() {
+        // Ensure fonts are loaded before proceeding
+        await document.fonts.load("bold 300px VT323");
+        await document.fonts.load('400 120px "Overpass Mono"');
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        scene.fog = new THREE.Fog(0x000000, 100, tunnelLength + 800);
+
+        // Create noise texture background
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+
+        // Generate noise
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const value = Math.random() * 50;
+          data[i] = value; // R
+          data[i + 1] = value; // G
+          data[i + 2] = value; // B
+          data[i + 3] = 20; // A
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        // Create texture from canvas
+        const noiseTexture = new THREE.CanvasTexture(canvas);
+        noiseTexture.wrapS = THREE.RepeatWrapping;
+        noiseTexture.wrapT = THREE.RepeatWrapping;
+
+        // Set as background
+        scene.background = noiseTexture;
+
+        // Create the wire grid FIRST (sets tunnelFrenetFrames)
+        createTunnelWireGrid();
+
+        // Now create background square particles (after tunnelFrenetFrames is set)
+        const squareParticleCount = 3000;
+        squareParticleGroup = new THREE.Group();
+        const numCurveSamples = tunnelFrenetFrames.normals.length;
+        for (let i = 0; i < squareParticleCount; i++) {
+          // Position particles along the tunnel curve
+          const t = Math.random(); // Random position along the curve
+          const curveIdx = Math.floor(t * (numCurveSamples - 1));
+          const center = tunnelCurve.getPoint(t);
+          // Use Frenet frames for local normal/binormal
+          const normal = tunnelFrenetFrames.normals[curveIdx];
+          const binormal = tunnelFrenetFrames.binormals[curveIdx];
+          // Place outside the tunnel
+          const angle = Math.random() * Math.PI * 2;
+          const radius = tunnelRadius + 20 + Math.random() * 50;
+          const offset = normal
+            .clone()
+            .multiplyScalar(Math.cos(angle) * radius)
+            .add(binormal.clone().multiplyScalar(Math.sin(angle) * radius));
+          // Create square geometry
+          const squareSize = 2 + Math.random() * 3; // Random size between 2-5
+          const geometry = new THREE.PlaneGeometry(squareSize, squareSize);
+          // Color gradient from cyan (start) to purple (middle) to red (end) based on t position
+          const cyan = new THREE.Color(0x00ffff); // Cyan
+          const purple = new THREE.Color(0x8000ff); // Purple
+          const red = new THREE.Color(0xff0000); // Red
+          let color;
+          if (t < 0.5) {
+            color = new THREE.Color().lerpColors(cyan, purple, t * 2);
+          } else {
+            color = new THREE.Color().lerpColors(purple, red, (t - 0.5) * 2);
+          }
+          const material = new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.3 + Math.random() * 0.6, // Random opacity between 0.3 and 0.9
+            side: THREE.DoubleSide,
+          });
+          const square = new THREE.Mesh(geometry, material);
+          square.position.copy(center.clone().add(offset));
+          // Store original data for animation
+          square.userData = {
+            t: t,
+            angle: angle,
+            radius: radius,
+            speed: 0.001 + Math.random() * 0.002,
+          };
+          squareParticleGroup.add(square);
+        }
+        scene.add(squareParticleGroup);
+
+        // Create original spherical particles
+        const particleCount = 300;
+        const particleGeometry = new THREE.BufferGeometry();
+        const particlePositions = new Float32Array(particleCount * 3);
+        const particleSizes = new Float32Array(particleCount);
+        const particleColors = new Float32Array(particleCount * 3);
+        const particleSpeeds = new Float32Array(particleCount);
+
+        for (let i = 0; i < particleCount; i++) {
+          // Random positions within a sphere
+          const radius = 80;
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+
+          particlePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+          particlePositions[i * 3 + 1] =
+            radius * Math.sin(phi) * Math.sin(theta);
+          particlePositions[i * 3 + 2] = radius * Math.cos(phi);
+
+          // More vibrant colors
+          const hue = Math.random(); // Random hue
+          const saturation = 0.3 + Math.random() * 0.2; // Lower saturation range (0.3-0.5)
+          const lightness = 0.5 + Math.random() * 0.3; // Medium to high lightness
+
+          // Convert HSL to RGB
+          const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+          const x = c * (1 - Math.abs(((hue * 6) % 2) - 1));
+          const m = lightness - c / 2;
+
+          let r, g, b;
+          if (hue < 1 / 6) {
+            r = c;
+            g = x;
+            b = 0;
+          } else if (hue < 2 / 6) {
+            r = x;
+            g = c;
+            b = 0;
+          } else if (hue < 3 / 6) {
+            r = 0;
+            g = c;
+            b = x;
+          } else if (hue < 4 / 6) {
+            r = 0;
+            g = x;
+            b = c;
+          } else if (hue < 5 / 6) {
+            r = x;
+            g = 0;
+            b = c;
+          } else {
+            r = c;
+            g = 0;
+            b = x;
+          }
+
+          particleColors[i * 3] = r + m; // R
+          particleColors[i * 3 + 1] = g + m; // G
+          particleColors[i * 3 + 2] = b + m; // B
+
+          // Random speeds between 0.02 and 0.08 (much slower than before)
+          particleSpeeds[i] = Math.random() * 0.06;
+        }
+
+        particleGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(particlePositions, 3)
+        );
+        particleGeometry.setAttribute(
+          "size",
+          new THREE.BufferAttribute(particleSizes, 1)
+        );
+        particleGeometry.setAttribute(
+          "color",
+          new THREE.BufferAttribute(particleColors, 3)
+        );
+
+        const particleMaterial = new THREE.PointsMaterial({
+          size: 0.5,
+          vertexColors: true,
+          transparent: true,
+          opacity: 0.3,
+          sizeAttenuation: true,
+          depthWrite: true,
+          depthTest: true,
+        });
+
+        particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.userData = {
+          speeds: particleSpeeds,
+        };
+        scene.add(particles);
+
+        // Create the wire grid
+        // createTunnelWireGrid(); // This line is now redundant as it's called above
+
+        camera = new THREE.PerspectiveCamera(
+          70,
+          window.innerWidth / window.innerHeight,
+          1,
+          10000
+        );
+        camera.position.set(0, 0, 200); // Start outside tunnel, looking at z=0
+        camera.lookAt(0, 0, 0);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
+
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Add vignette effect
+        const vignetteShader = {
+          uniforms: {
+            tDiffuse: { value: null },
+            offset: { value: 1.0 },
+            darkness: { value: 1.0 },
+          },
+          vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+          fragmentShader: `
+                uniform sampler2D tDiffuse;
+                uniform float offset;
+                uniform float darkness;
+                varying vec2 vUv;
+                
+                void main() {
+                    vec2 uv = vUv;
+                    vec4 color = texture2D(tDiffuse, uv);
+                    
+                    // Calculate distance from center
+                    vec2 center = vec2(0.5, 0.5);
+                    float dist = distance(uv, center);
+                    
+                    // Create vignette effect
+                    float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
+                    
+                    // Apply vignette
+                    color.rgb *= vignette;
+                    
+                    gl_FragColor = color;
+                }
+            `,
+        };
+
+        const vignettePass = new THREE.ShaderPass(vignetteShader);
+        vignettePass.uniforms.offset.value = 0.5;
+        vignettePass.uniforms.darkness.value = 0.5;
+        composer.addPass(vignettePass);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Load artworks and textures
+        const artworks = await loadArtworks();
+        artworksData = artworks;
+        preloadTextures(artworks, () => {
+          placeArtworksTunnel(artworks);
+          // Hide loading page and show visualization
+          document.getElementById("loading-container").style.display = "none";
+          document.getElementById("visualization").style.display = "block";
+          document.getElementById("black-overlay").style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("black-overlay").style.display = "none";
+          }, 500);
+
+          // Initialize floating eye
+          console.log("About to initialize floating eye...");
+          initFloatingEye();
+          console.log("Floating eye initialization completed");
+
+          // Initialize rings
+          initRings();
+
+          // Initialize dock behavior
+          setTimeout(() => {
+            initDockBehavior();
+          }, 100);
+
+          // Initialize drawer modal functionality
+          initDrawerModal();
+
+          animate();
+        });
+      }
+
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+        }
+      }
+
+      // Rings functionality
+      function createEyeSprite(imagePath) {
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load(imagePath);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 1.0,
+        });
+
+        const sprite = new THREE.Sprite(spriteMaterial);
+
+        // Set scale based on image aspect ratio
+        const img = new window.Image();
+        img.src = imagePath;
+        img.onload = function () {
+          const baseHeight = 2; // units
+          const aspect = img.width / img.height;
+          sprite.scale.set(baseHeight * aspect, baseHeight, 1);
+        };
+        // Fallback scale until image loads
+        sprite.scale.set(2, 2, 1);
+        return sprite;
+      }
+
+      function createEyeWithLabel(eyePath, labelText, eyePos, upVector, eyeId) {
+        const group = new THREE.Group();
+        const eye = createEyeSprite(eyePath);
+        eye.position.copy(eyePos);
+        eye.userData.eyeId = eyeId; // Store the eye ID for navigation
+        eye.userData.title = labelText; // Store the title for hover display
+        group.add(eye);
+        // Store for raycasting
+        eyeLabelGroups.push({ eye });
+        return group;
+      }
+
+      function createRings() {
+        // Create an elliptical curve for the oblong ring
+        class CustomEllipseCurve extends THREE.Curve {
+          constructor() {
+            super();
+          }
+          getPoint(t) {
+            const a = 8; // major axis
+            const b = 5; // minor axis
+            const tx = Math.cos(2 * Math.PI * t) * a;
+            const ty = Math.sin(2 * Math.PI * t) * b;
+            return new THREE.Vector3(tx, ty, 0);
+          }
+        }
+
+        const ringsGroup = new THREE.Group();
+        eyeLabelGroups = [];
+
+        // Create the oblong ring geometry
+        const path = new CustomEllipseCurve();
+        const ringGeometry = new THREE.TubeGeometry(path, 100, 0.05, 16, false);
+
+        // Create materials with different render orders
+        const ringMaterial1 = new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.2,
+          side: THREE.DoubleSide,
+          depthWrite: true,
+          depthTest: true,
+          renderOrder: 1,
+        });
+        const ringMaterial2 = ringMaterial1.clone();
+        ringMaterial2.renderOrder = 2;
+        const ringMaterial3 = ringMaterial1.clone();
+        ringMaterial3.renderOrder = 3;
+
+        // Ring 1 (horizontal, up is +Y)
+        const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
+        const group1a = createEyeWithLabel(
+          "../../Eyes/Temperament_open.png",
+          "Temperament",
+          new THREE.Vector3(9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-temperament"
+        );
+        const group1b = createEyeWithLabel(
+          "../../Eyes/Rhizome_open.png",
+          "Rhizome",
+          new THREE.Vector3(-9, 0, 0),
+          new THREE.Vector3(0, 1, 0),
+          "eye-rhizome"
+        );
+        ring1.add(group1a);
+        ring1.add(group1b);
+        ring1.position.z = 1;
+
+        // Ring 2 (vertical, up is +Z)
+        const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
+        const group2a = createEyeWithLabel(
+          "../../Eyes/Artist_open.png",
+          "Artist",
+          new THREE.Vector3(0, 9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-artist"
+        );
+        const group2b = createEyeWithLabel(
+          "../../Eyes/Completeness_open.png",
+          "Completeness",
+          new THREE.Vector3(0, -9, 0),
+          new THREE.Vector3(0, 0, 1),
+          "eye-completeness"
+        );
+        ring2.rotation.x = Math.PI / 2;
+        ring2.position.z = 0;
+        ring2.add(group2a);
+        ring2.add(group2b);
+
+        // Ring 3 (side, up is +X)
+        const ring3 = new THREE.Mesh(ringGeometry, ringMaterial3);
+        const group3a = createEyeWithLabel(
+          "../../Eyes/SecretGallery_open.png",
+          "idk",
+          new THREE.Vector3(0, 6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-secret"
+        );
+        const group3b = createEyeWithLabel(
+          "../../Eyes/Intimacy_open.png",
+          "Intimacy",
+          new THREE.Vector3(0, -6, 0),
+          new THREE.Vector3(1, 0, 0),
+          "eye-intimacy"
+        );
+        ring3.rotation.y = Math.PI / 2;
+        ring3.position.z = -1;
+        ring3.add(group3a);
+        ring3.add(group3b);
+
+        ringsGroup.add(ring1);
+        ringsGroup.add(ring2);
+        ringsGroup.add(ring3);
+        return ringsGroup;
+      }
+
+      function initRings() {
+        // Create separate scene for rings
+        ringsScene = new THREE.Scene();
+        ringsCamera = new THREE.PerspectiveCamera(75, 1, 0.01, 2000);
+        ringsCamera.position.z = 20;
+
+        // Create separate renderer for rings
+        ringsRenderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          logarithmicDepthBuffer: true,
+          preserveDrawingBuffer: true,
+        });
+        ringsRenderer.setSize(500, 500);
+        ringsRenderer.setClearColor(0x000000, 0);
+        ringsRenderer.sortObjects = false; // Disable automatic sorting
+        document
+          .getElementById("rings-container")
+          .appendChild(ringsRenderer.domElement);
+
+        // Create and add rings
+        rings = createRings();
+        ringsScene.add(rings);
+
+        // Add event listeners for rings rotation
+        ringsRenderer.domElement.addEventListener(
+          "mousedown",
+          onRingsMouseDown
+        );
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseMove
+        );
+        ringsRenderer.domElement.addEventListener("mouseup", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("mouseleave", onRingsMouseUp);
+        ringsRenderer.domElement.addEventListener("click", onRingsClick);
+        ringsRaycaster = new THREE.Raycaster();
+        ringsMouse = new THREE.Vector2();
+        ringsRenderer.domElement.addEventListener(
+          "mousemove",
+          onRingsMouseHover
+        );
+      }
+
+      function onRingsMouseDown(event) {
+        ringsRotation.dragStartTime = Date.now();
+        ringsRotation.previousX = event.clientX;
+        ringsRotation.previousY = event.clientY;
+        ringsRotation.isDragging = false; // Start as false, will be set to true if movement exceeds threshold
+      }
+
+      function onRingsMouseMove(event) {
+        // Only handle dragging if mouse button is pressed
+        if (event.buttons !== 1) {
+          return; // No mouse button pressed, don't handle dragging
+        }
+
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Check if we should start dragging (movement exceeds threshold)
+        if (
+          !ringsRotation.isDragging &&
+          distance > ringsRotation.dragThreshold
+        ) {
+          ringsRotation.isDragging = true;
+        }
+
+        if (ringsRotation.isDragging) {
+          rings.rotation.y += deltaX * 0.01;
+          rings.rotation.x += deltaY * 0.01;
+
+          ringsRotation.previousX = event.clientX;
+          ringsRotation.previousY = event.clientY;
+        }
+      }
+
+      function onRingsMouseUp() {
+        ringsRotation.isDragging = false;
+      }
+
+      function onRingsMouseHover(event) {
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        // Collect all eye meshes
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        const hoverTitle = document.getElementById("hover-title");
+
+        // Hide title by default
+        if (hoverTitle) {
+          hoverTitle.style.opacity = "0";
+        }
+
+        // Show title for hovered eye
+        if (intersects.length > 0) {
+          const hoveredEye = intersects[0].object;
+          if (hoveredEye.userData.title && hoverTitle) {
+            hoverTitle.textContent = hoveredEye.userData.title;
+            hoverTitle.style.opacity = "1";
+          }
+        }
+      }
+
+      function onRingsClick(event) {
+        // Check if this was a drag or a click
+        const timeSinceMouseDown = Date.now() - ringsRotation.dragStartTime;
+        const deltaX = event.clientX - ringsRotation.previousX;
+        const deltaY = event.clientY - ringsRotation.previousY;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Only handle clicks if:
+        // 1. Not dragging (or very minimal movement)
+        // 2. Quick click (less than threshold time)
+        // 3. Small movement (less than threshold distance)
+        if (
+          ringsRotation.isDragging ||
+          timeSinceMouseDown > ringsRotation.clickThreshold ||
+          distance > ringsRotation.dragThreshold
+        ) {
+          return;
+        }
+
+        // Calculate mouse position in normalized device coordinates
+        const rect = ringsRenderer.domElement.getBoundingClientRect();
+        ringsMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        ringsMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Raycast
+        ringsRaycaster.setFromCamera(ringsMouse, ringsCamera);
+        const eyes = eyeLabelGroups.map((g) => g.eye);
+        const intersects = ringsRaycaster.intersectObjects(eyes, false);
+
+        if (intersects.length > 0) {
+          const clickedEye = intersects[0].object;
+          const eyeId = clickedEye.userData.eyeId;
+
+          // Navigation logic
+          switch (eyeId) {
+            case "eye-temperament":
+              window.location.href = "../temperament/temperament.html";
+              break;
+            case "eye-secret":
+              window.location.href = "../hashtag_gallery/hashtag_gallery.html";
+              break;
+            case "eye-intimacy":
+              // Already on intimacy page
+              break;
+            case "eye-completeness":
+              window.location.href = "../Completeness/Completeness.html";
+              break;
+            case "eye-artist":
+              window.location.href = "../Artists/Artist.html";
+              break;
+            case "eye-rhizome":
+              window.location.href = "../../index.html";
+              break;
+            default:
+              // Silently ignore unknown eye IDs
+              break;
+          }
+        }
+      }
+
+      function updateTunnelWireOpacity() {
+        if (!tunnelWire) return;
+
+        const minOpacity = 0.01;
+        const maxOpacity = 1.0;
+        const fadeStart = 200;
+        const fadeEnd = 1200;
+
+        tunnelWire.children.forEach((line) => {
+          if (line.userData && line.userData.type === "vertical") {
+            // Per-vertex alpha for vertical lines
+            const geometry = line.userData.geometry;
+            const alphas = line.userData.alphas;
+            const positions = geometry.attributes.position;
+            for (let i = 0; i < positions.count; i++) {
+              const x = positions.getX(i);
+              const y = positions.getY(i);
+              const z = positions.getZ(i);
+              const pos = new THREE.Vector3(x, y, z);
+              const dist = camera.position.distanceTo(pos);
+              let opacity = maxOpacity;
+              if (dist > fadeStart) {
+                opacity =
+                  maxOpacity -
+                  (maxOpacity - minOpacity) *
+                    ((dist - fadeStart) / (fadeEnd - fadeStart));
+              }
+              opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+              alphas[i] = opacity; // direct value for shader
+            }
+            geometry.attributes.alpha.needsUpdate = true;
+          } else if (
+            line.userData &&
+            line.userData.type === "horizontal" &&
+            line.material
+          ) {
+            // Horizontal rings: single opacity for whole ring
+            let totalDistance = 0;
+            const points = line.userData.points;
+            for (let i = 0; i < points.length; i++) {
+              totalDistance += camera.position.distanceTo(points[i]);
+            }
+            const avgDistance = totalDistance / points.length;
+            let opacity = maxOpacity;
+            if (avgDistance > fadeStart) {
+              opacity =
+                maxOpacity -
+                (maxOpacity - minOpacity) *
+                  ((avgDistance - fadeStart) / (fadeEnd - fadeStart));
+            }
+            opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+            line.material.opacity = opacity;
+          }
+        });
+      }
+
+      // 7. Animate: smooth camera movement with mouse scroll
+      // Camera movement along the curve
+      let cameraT = 0; // 0=start, 1=end
+      const minCameraT = 0;
+      const maxCameraT = 1;
+      const scrollSpeedT = 0.0001; // Adjust for faster/slower scroll
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Animate square particles
+        if (squareParticleGroup && tunnelFrenetFrames) {
+          const numCurveSamples = tunnelFrenetFrames.normals.length;
+          squareParticleGroup.children.forEach((square, idx) => {
+            if (square.userData && square.userData.speed) {
+              const t = square.userData.t;
+              const curveIdx = Math.floor(t * (numCurveSamples - 1));
+              const center = tunnelCurve.getPoint(t);
+              const normal = tunnelFrenetFrames.normals[curveIdx];
+              const binormal = tunnelFrenetFrames.binormals[curveIdx];
+              // Animate angle
+              const time = Date.now() * 0.001 * square.userData.speed;
+              const newAngle = square.userData.angle + time;
+              const offset = normal
+                .clone()
+                .multiplyScalar(Math.cos(newAngle) * square.userData.radius)
+                .add(
+                  binormal
+                    .clone()
+                    .multiplyScalar(Math.sin(newAngle) * square.userData.radius)
+                );
+              // Add jitter: small, smooth, unique per particle
+              const jitterTime = Date.now() * 0.002;
+              const jitterAmount = 7.0; // max jitter in units (increased for larger effect)
+              const jitterX = Math.sin(jitterTime + idx) * jitterAmount;
+              const jitterY = Math.cos(jitterTime + idx * 1.7) * jitterAmount;
+              // Jitter in the normal/binormal plane
+              const jitterOffset = normal
+                .clone()
+                .multiplyScalar(jitterX)
+                .add(binormal.clone().multiplyScalar(jitterY));
+              square.position.copy(
+                center.clone().add(offset).add(jitterOffset)
+              );
+              // Always face the camera
+              square.lookAt(camera.position);
+            }
+          });
+        }
+
+        // Animate particles
+        if (particles) {
+          const positions = particles.geometry.attributes.position.array;
+          const speeds = particles.userData.speeds;
+
+          for (let i = 0; i < positions.length; i += 3) {
+            // Move particles in a circular motion
+            const speed = speeds[i / 3];
+            const time = Date.now() * 0.001 * speed;
+
+            positions[i] += Math.sin(time) * 0.01;
+            positions[i + 1] += Math.cos(time) * 0.01;
+            positions[i + 2] += Math.sin(time * 0.5) * 0.01;
+          }
+
+          particles.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // Animate image jitter - slow and organic
+        const time = Date.now() * 0.001; // Faster overall time factor
+        visibleMeshes.forEach((mesh) => {
+          if (mesh.userData && mesh.userData.jitterSpeed) {
+            const speed = mesh.userData.jitterSpeed;
+            const amplitude = mesh.userData.jitterAmplitude;
+            const phase = mesh.userData.jitterPhase;
+            const seed = mesh.userData.jitterSeed;
+
+            // Create organic jitter using multiple sine waves with different frequencies
+            const jitterX =
+              Math.sin(time * speed + phase) * amplitude * 0.3 +
+              Math.sin(time * speed * 0.7 + seed) * amplitude * 0.2 +
+              Math.sin(time * speed * 0.3 + phase * 2) * amplitude * 0.1;
+
+            const jitterY =
+              Math.cos(time * speed * 0.8 + phase) * amplitude * 0.3 +
+              Math.cos(time * speed * 0.5 + seed) * amplitude * 0.2 +
+              Math.cos(time * speed * 0.2 + phase * 3) * amplitude * 0.1;
+
+            const jitterZ =
+              Math.sin(time * speed * 0.6 + seed) * amplitude * 0.1 +
+              Math.cos(time * speed * 0.4 + phase) * amplitude * 0.05;
+
+            // Apply jitter to original position
+            mesh.position.set(
+              mesh.userData.originalX + jitterX,
+              mesh.userData.originalY + jitterY,
+              mesh.userData.originalZ + jitterZ
+            );
+
+            // Add subtle rotation jitter
+            const rotationJitter = Math.sin(time * speed * 0.3 + seed) * 0.02;
+            mesh.rotation.z = rotationJitter;
+          }
+        });
+
+        // Camera follows the curve
+        const camPos = tunnelCurve.getPoint(cameraT);
+        // Opacity gradient update using 3D distance
+        const minOpacity = 0.01;
+        const maxOpacity = 1.0;
+        const fadeStart = 200;
+        const fadeEnd = 1200;
+        ringObjects.forEach(({ center, titleSprite, imageMeshes }) => {
+          const dist = camPos.distanceTo(center);
+          let opacity = maxOpacity;
+          if (dist > fadeStart) {
+            opacity =
+              maxOpacity -
+              (maxOpacity - minOpacity) *
+                ((dist - fadeStart) / (fadeEnd - fadeStart));
+          }
+          opacity = Math.max(minOpacity, Math.min(maxOpacity, opacity));
+          if (titleSprite && titleSprite.material) {
+            titleSprite.material.opacity = opacity;
+          }
+          imageMeshes.forEach((mesh) => {
+            if (mesh.material) mesh.material.opacity = opacity;
+          });
+        });
+
+        camera.position.copy(camPos);
+        camera.up.set(0, 1, 0);
+        const camTangent = tunnelCurve.getTangent(cameraT);
+        camera.lookAt(camPos.clone().add(camTangent));
+
+        // Update tunnel wire opacity based on distance from camera
+        updateTunnelWireOpacity();
+        // --- DYNAMICALLY ORIENT RINGS TO FACE CAMERA ---
+        scene.traverse((obj) => {
+          if (obj.type === "Group" && obj.userData.stationIdx !== undefined) {
+            obj.up.set(0, 1, 0);
+            obj.lookAt(camera.position);
+          }
+        });
+
+        // Update floating eye
+        updateFloatingEye();
+
+        // Animate rings - natural slow rotation when not dragging
+        if (rings && !ringsRotation.isDragging) {
+          // Very slow, natural rotation
+          rings.rotation.x += 0.0005;
+          rings.rotation.y += 0.0008;
+        }
+
+        composer.render();
+        ringsRenderer.render(ringsScene, ringsCamera);
+
+        // Update station labels
+        visibleLabels.forEach(({ label, z, labelY }) => {
+          // Place label at (0, labelY, z) - moved up
+          const pos = new THREE.Vector3(0, labelY + imageRingRadius * 0.2, z);
+          const vector = pos.clone().project(camera);
+          const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+          // Calculate distance-based font size
+          const distance = Math.abs(currentZ - z);
+          const baseFontSize = 24;
+          const maxDistance = tunnelLength;
+          const fontSize = Math.max(
+            12,
+            baseFontSize * (1 - distance / maxDistance)
+          );
+
+          label.style.left = `${x}px`;
+          label.style.top = `${y}px`;
+          label.style.transform = "translateX(-50%)"; // Center horizontally
+          label.style.textAlign = "center";
+          label.style.fontSize = `${fontSize}px`;
+          label.style.display =
+            vector.z > 1 || vector.z < -1 ? "none" : "block";
+        });
+      }
+
+      // 8. Mouse wheel navigation: update cameraT
+      document.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          cameraT -= e.deltaY * scrollSpeedT;
+          cameraT = Math.max(minCameraT, Math.min(maxCameraT, cameraT));
+        },
+        { passive: false }
+      );
+
+      // Organic Floating Eye Animation
+      let eyeX = 100;
+      let eyeY = 100;
+      let eyeTargetX = 100;
+      let eyeTargetY = 100;
+      let eyeSpeed = 0.008; // Much slower movement
+      let lastEyeMoveTime = 0;
+      let eyeMoveInterval = 8000; // Longer intervals between movements
+      let eyeIsHovered = false;
+      let eyeDriftX = 0;
+      let eyeDriftY = 0;
+      let eyeDriftSpeed = 0.001; // Very slow drift
+      let eyeDriftAmplitude = 15; // Small drift amplitude
+
+      function initFloatingEye() {
+        console.log("Initializing floating eye...");
+        const eye = document.getElementById("floating-eye");
+        const tooltip = document.getElementById("eye-tooltip");
+
+        console.log("Eye element:", eye);
+        console.log("Tooltip element:", tooltip);
+
+        if (!eye || !tooltip) {
+          console.error("Missing elements!");
+          return;
+        }
+
+        // Set up hover events
+        eye.addEventListener("mouseenter", () => {
+          console.log("Eye hovered!");
+          eyeIsHovered = true;
+          tooltip.classList.add("show");
+        });
+
+        eye.addEventListener("mouseleave", () => {
+          console.log("Eye unhovered!");
+          eyeIsHovered = false;
+          tooltip.classList.remove("show");
+        });
+
+        // Update tooltip position
+        eye.addEventListener("mousemove", (e) => {
+          const rect = eye.getBoundingClientRect();
+          const eyeCenterX = rect.left + rect.width / 2;
+          const screenCenterX = window.innerWidth / 2;
+
+          // Determine if eye is on left or right side of screen
+          if (eyeCenterX < screenCenterX) {
+            // Eye is on left side - show tooltip on the right
+            tooltip.style.left = rect.right + 10 + "px";
+            tooltip.style.transform = "translateX(0)"; // Reset transform
+          } else {
+            // Eye is on right side - show tooltip on the left
+            tooltip.style.left = rect.left - 10 + "px";
+            tooltip.style.transform = "translateX(-100%)"; // Move tooltip to the left of the eye
+          }
+
+          tooltip.style.top = rect.top - 10 + "px";
+        });
+
+        // Set initial position
+        eye.style.left = eyeX + "px";
+        eye.style.top = eyeY + "px";
+
+        // Show the floating eye after initialization
+        eye.style.display = "block";
+
+        console.log("Eye positioned at:", eyeX, eyeY);
+        console.log("Eye should be visible now!");
+      }
+
+      function updateFloatingEye() {
+        const eye = document.getElementById("floating-eye");
+        if (!eye || eye.style.display === "none") return;
+
+        // Don't move if hovered
+        if (eyeIsHovered) return;
+
+        const now = Date.now();
+        const time = now * 0.001; // Convert to seconds
+
+        // Change target position periodically with more organic timing
+        if (now - lastEyeMoveTime > eyeMoveInterval) {
+          const margin = 150;
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
+
+          // Create perimeter-based movement - prefer edges and corners
+          const perimeterChoice = Math.random();
+
+          if (perimeterChoice < 0.4) {
+            // Top edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = margin + Math.random() * 50;
+          } else if (perimeterChoice < 0.7) {
+            // Bottom edge
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = screenHeight - margin - Math.random() * 50;
+          } else if (perimeterChoice < 0.85) {
+            // Left edge
+            eyeTargetX = margin + Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          } else {
+            // Right edge
+            eyeTargetX = screenWidth - margin - Math.random() * 50;
+            eyeTargetY = margin + Math.random() * (screenHeight - 2 * margin);
+          }
+
+          lastEyeMoveTime = now;
+        }
+
+        // Add subtle organic drift using sine waves
+        eyeDriftX = Math.sin(time * eyeDriftSpeed) * eyeDriftAmplitude;
+        eyeDriftY =
+          Math.cos(time * eyeDriftSpeed * 0.7) * eyeDriftAmplitude * 0.8;
+
+        // Smooth movement towards target with easing
+        const dx = eyeTargetX - eyeX;
+        const dy = eyeTargetY - eyeY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate distance from center to avoid it
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const distanceFromCenter = Math.sqrt(
+          (eyeX - centerX) ** 2 + (eyeY - centerY) ** 2
+        );
+        const centerAvoidanceRadius =
+          Math.min(window.innerWidth, window.innerHeight) * 0.4; // Increased from 0.25 to 0.4
+
+        // Add center avoidance force
+        let avoidanceX = 0;
+        let avoidanceY = 0;
+        if (distanceFromCenter < centerAvoidanceRadius) {
+          const avoidanceStrength = 0.05; // Increased from 0.02 to 0.05
+          const centerDx = eyeX - centerX;
+          const centerDy = eyeY - centerY;
+          const centerDistance = Math.sqrt(
+            centerDx * centerDx + centerDy * centerDy
+          );
+          if (centerDistance > 0) {
+            // Stronger avoidance when closer to center
+            const avoidanceMultiplier =
+              1 + (1 - distanceFromCenter / centerAvoidanceRadius);
+            avoidanceX =
+              (centerDx / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+            avoidanceY =
+              (centerDy / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+          }
+        }
+
+        // Slower movement when closer to target (easing)
+        const currentSpeed = eyeSpeed * (0.5 + (distance / 200) * 0.5);
+
+        eyeX += dx * currentSpeed + avoidanceX;
+        eyeY += dy * currentSpeed + avoidanceY;
+
+        // Add drift to final position
+        const finalX = eyeX + eyeDriftX;
+        const finalY = eyeY + eyeDriftY;
+
+        // Update position
+        eye.style.left = finalX + "px";
+        eye.style.top = finalY + "px";
+      }
+
+      // macOS Dock-like functionality
+      function initDockBehavior() {
+        const ringsContainer = document.getElementById("rings-container");
+        const searchBar = document.getElementById("search-bar");
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
+
+        let dockTimeout;
+        let isDockVisible = false;
+        const dockDelay = 400; // Delay before hiding dock (ms)
+        const hoverZoneHeight = 120; // Height of hover zone from bottom (px)
+
+        // Initialize dock state - hidden by default
+        ringsContainer.classList.add("dock-hidden");
+        searchBar.classList.add("dock-hidden");
+        uploadBtn.classList.add("dock-hidden");
+
+        // Show pixel arrow indicator initially since dock is hidden
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.add("show");
+        }
+
+        function showDock() {
+          if (!isDockVisible) {
+            isDockVisible = true;
+            ringsContainer.classList.remove("dock-hidden");
+            ringsContainer.classList.add("dock-visible");
+            searchBar.classList.remove("dock-hidden");
+            searchBar.classList.add("dock-visible");
+            uploadBtn.classList.remove("dock-hidden");
+            uploadBtn.classList.add("dock-visible");
+
+            // Hide pixel arrow indicator when dock is visible
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.remove("show");
+            }
+          }
+        }
+
+        function hideDock() {
+          if (isDockVisible) {
+            isDockVisible = false;
+            ringsContainer.classList.remove("dock-visible");
+            ringsContainer.classList.add("dock-hidden");
+            searchBar.classList.remove("dock-visible");
+            searchBar.classList.add("dock-hidden");
+            uploadBtn.classList.remove("dock-visible");
+            uploadBtn.classList.add("dock-hidden");
+
+            // Show pixel arrow indicator when dock is hidden
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.add("show");
+            }
+          }
+        }
+
+        // Mouse move handler for dock behavior
+        document.addEventListener("mousemove", (e) => {
+          const mouseY = e.clientY;
+          const windowHeight = window.innerHeight;
+          const isInHoverZone = mouseY > windowHeight - hoverZoneHeight;
+
+          // Clear existing timeout
+          if (dockTimeout) {
+            clearTimeout(dockTimeout);
+          }
+
+          if (isInHoverZone) {
+            showDock();
+          } else {
+            // Delay hiding the dock
+            dockTimeout = setTimeout(() => {
+              hideDock();
+            }, dockDelay);
+          }
+        });
+
+        // Also handle mouse leave from window
+        document.addEventListener("mouseleave", () => {
+          if (dockTimeout) {
+            clearTimeout(dockTimeout);
+          }
+          hideDock();
+        });
+      }
+
+      // Chatbot questions
+      const questions = [
+        {
+          id: "upload",
+          type: "file",
+          message: "",
+          required: true,
+        },
+        {
+          id: "name",
+          type: "text",
+          message: "Wannna give it a name? Or not. Totally your call.",
+          placeholder: "Give it a name...",
+          required: false,
+        },
+        {
+          id: "artist",
+          type: "text",
+          message:
+            "Who made it? Drop an alter ego, emoji, tag name… or stay anonymous.",
+          placeholder: "Your alter ego...",
+          required: false,
+        },
+        {
+          id: "location",
+          type: "text",
+          message: "Where on Earth were you when this junk was born?",
+          placeholder: "Bed, park, coffee shop...",
+          required: false,
+        },
+        {
+          id: "date",
+          type: "text",
+          message: "Roughly when? A year, a season, a fuzzy memory...",
+          placeholder: "2020, last winter...",
+          required: false,
+        },
+        {
+          id: "cooked_level",
+          type: "slider",
+          message: "How cooked is this piece? Raw mess or nearly done?",
+          required: false,
+        },
+        {
+          id: "artwork_type",
+          type: "text",
+          message: "What kind of junk is this? Sketch? Note? Blurry thing?",
+          placeholder: "Sketch, note, blurry thing...",
+          required: false,
+        },
+        {
+          id: "notes",
+          type: "textarea",
+          message: "Leave a note, a rant, or a cryptic message... or not.",
+          placeholder: "Your note here...",
+          required: false,
+        },
+        {
+          id: "tags",
+          type: "tags",
+          message:
+            "Choose some tags — Weird? Wrong? Unfinished? Or type your own.",
+          required: false,
+        },
+      ];
+
+      // Chatbot functions
+      function showChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Show backdrop first
+        backdrop.style.display = "block";
+        setTimeout(() => {
+          backdrop.style.opacity = "1";
+        }, 10);
+
+        chatbot.style.display = "flex";
+        chatbotState.currentQuestion = 0;
+        chatbotState.answers = {};
+
+        // Start with opening message
+        addBotMessage(
+          "Hi, friend. Before we dive in — a tiny heads-up: nothing here is mandatory except the junk. Everything else? Totally up to you."
+        );
+
+        // Disable persistent input initially
+        disablePersistentInput();
+
+        // Start the conversation after a delay
+        setTimeout(() => {
+          addBotMessage("Let's begin. Upload your junk:");
+          setTimeout(() => {
+            askNextQuestion();
+          }, 1500);
+        }, 2000);
+      }
+
+      function closeChatbot() {
+        const chatbot = document.getElementById("chatbot-container");
+        const backdrop = document.getElementById("chatbot-backdrop");
+
+        // Hide chatbot first
+        chatbot.style.display = "none";
+
+        // Fade out backdrop
+        backdrop.style.opacity = "0";
+        setTimeout(() => {
+          backdrop.style.display = "none";
+        }, 300);
+
+        // Clear messages and dynamic input
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        messagesContainer.innerHTML = "";
+        dynamicContainer.innerHTML = "";
+        disablePersistentInput();
+      }
+
+      function addBotMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message bot";
+        messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+            `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function addUserMessage(message) {
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message user";
+        messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+            `;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }
+
+      function enablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = false;
+          sendBtn.disabled = false;
+          backBtn.disabled = false;
+          skipBtn.disabled = false;
+          finishBtn.disabled = false;
+          textInput.focus();
+        }
+      }
+
+      function disablePersistentInput() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+        if (textInput && sendBtn && backBtn && skipBtn && finishBtn) {
+          textInput.disabled = true;
+          sendBtn.disabled = true;
+          backBtn.disabled = true;
+          skipBtn.disabled = true;
+          finishBtn.disabled = true;
+          textInput.value = "";
+        }
+      }
+
+      function askNextQuestion() {
+        if (chatbotState.currentQuestion >= questions.length) {
+          showSummary();
+          return;
+        }
+
+        const question = questions[chatbotState.currentQuestion];
+
+        // Only show message if it's not empty (for upload question)
+        if (question.message) {
+          addBotMessage(question.message);
+        }
+
+        showQuestionInput(question);
+      }
+
+      function showQuestionInput(question) {
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const inputDiv = document.createElement("div");
+        inputDiv.id = "question-input";
+
+        let inputHTML = '<div class="input-group">';
+
+        switch (question.type) {
+          case "file":
+            // For file upload, add the upload area to the messages container
+            const uploadDiv = document.createElement("div");
+            uploadDiv.className = "message bot";
+            uploadDiv.innerHTML = `
+                        <div class="file-upload-area" id="file-upload-area">
+                            <img src="../../assets/upload.png" alt="Upload" class="upload-icon" id="upload-icon">
+                            <div id="file-upload-text" class="file-upload-text">Drag & drop your file here or click to browse</div>
+                            <input type="file" id="file-input" accept="image/*" style="display: none;">
+                        </div>
+                        <div class="button-group" style="margin-top: 20px; display: flex; justify-content: center;">
+                            <button class="btn" id="continue-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Continue</button>
+                        </div>
+                    `;
+            messagesContainer.appendChild(uploadDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Setup file input handlers
+            setupFileInputHandlers();
+            break;
+          case "text":
+          case "textarea":
+            // For text questions, we'll use the persistent input at the bottom
+            dynamicContainer.innerHTML = "";
+            dynamicContainer.style.display = "none";
+            enablePersistentInput();
+            setupTextInputHandlers();
+            break;
+          case "slider":
+            inputHTML += `
+                        <div style="width:100%;display:flex;align-items:center;gap:15px;box-sizing:border-box;">
+                            <span style="white-space:nowrap;flex-shrink:0;">Raw</span>
+                            <input type="range" class="slider" id="slider-input" min="0" max="100" value="50" style="flex:1;min-width:0;width:100%;">
+                            <span style="white-space:nowrap;flex-shrink:0;">Done</span>
+                            <div class="slider-value" id="slider-value" style="white-space:nowrap;flex-shrink:0;">50%</div>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn primary" id="continue-btn">Continue</button>
+                        </div>
+                    `;
+            break;
+          case "tags":
+            inputHTML += `
+                        <div class="tag-selector" id="tag-examples">
+                            <button class="tag" data-tag="weird">Weird</button>
+                            <button class="tag" data-tag="wrong">Wrong</button>
+                            <button class="tag" data-tag="unfinished">Unfinished</button>
+                            <button class="tag" data-tag="raw">Raw</button>
+                            <button class="tag" data-tag="personal">Personal</button>
+                            <button class="tag" data-tag="experimental">Experimental</button>
+                        </div>
+                        <input type="text" class="input-field" id="custom-tag-input" placeholder="Or type your own... (up to 8 tags)">
+                        <div id="user-tags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+                        <div class="button-group">
+                            <button class="btn primary" id="continue-btn">Continue</button>
+                        </div>
+                    `;
+            break;
+        }
+
+        inputHTML += "</div>";
+        inputDiv.innerHTML = inputHTML;
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.appendChild(inputDiv);
+        dynamicContainer.style.display = "block";
+
+        // Setup input handlers
+        setupInputHandlers(question);
+      }
+
+      function setupFileInputHandlers() {
+        const fileArea = document.querySelector("#file-upload-area");
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const continueBtn = document.querySelector("#continue-btn");
+
+        if (fileArea && fileInput && fileText) {
+          fileArea.addEventListener("click", () => fileInput.click());
+          fileArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            fileArea.classList.add("dragover");
+          });
+          fileArea.addEventListener("dragleave", () => {
+            fileArea.classList.remove("dragover");
+          });
+          fileArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            fileArea.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              fileInput.files = files;
+              showImagePreview(files[0], fileArea, fileText);
+              enableContinueButton();
+            }
+          });
+          fileInput.addEventListener("change", (e) => {
+            if (e.target.files.length > 0) {
+              showImagePreview(e.target.files[0], fileArea, fileText);
+              enableContinueButton();
+            }
+          });
+        }
+
+        // Setup continue button
+        const continueBtn2 = document.querySelector("#continue-btn");
+        if (continueBtn2) {
+          continueBtn2.addEventListener("click", submitAnswer);
+        }
+      }
+
+      function setupTextInputHandlers() {
+        const textInput = document.getElementById("persistent-text-input");
+        const sendBtn = document.getElementById("persistent-send-btn");
+        const backBtn = document.getElementById("persistent-back-btn");
+        const skipBtn = document.getElementById("persistent-skip-btn");
+        const finishBtn = document.getElementById("persistent-finish-btn");
+
+        // Set up send button handler
+        sendBtn.onclick = () => {
+          if (textInput.value.trim()) {
+            submitTextAnswer(textInput.value.trim());
+          }
+        };
+
+        // Set up back button handler
+        backBtn.onclick = goBack;
+
+        // Set up skip button handler
+        skipBtn.onclick = () => {
+          submitTextAnswer("Skipped");
+        };
+
+        // Set up finish button handler
+        finishBtn.onclick = closeChatbot;
+
+        // Set up enter key handler
+        textInput.onkeypress = (e) => {
+          if (e.key === "Enter" && textInput.value.trim()) {
+            submitTextAnswer(textInput.value.trim());
+          }
+        };
+      }
+
+      function setupInputHandlers(question) {
+        const questionInput = document.getElementById("question-input");
+        switch (question.type) {
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            const sliderValue = questionInput.querySelector("#slider-value");
+            slider.addEventListener("input", (e) => {
+              sliderValue.textContent = `${e.target.value}%`;
+            });
+            break;
+          case "tags":
+            const tagExamples = questionInput.querySelector("#tag-examples");
+            const customTagInput =
+              questionInput.querySelector("#custom-tag-input");
+            const userTagsDiv = questionInput.querySelector("#user-tags");
+            let userTags = [];
+
+            // Add example tag click
+            tagExamples.querySelectorAll(".tag").forEach((tagBtn) => {
+              tagBtn.addEventListener("click", () => {
+                if (
+                  userTags.length < 8 &&
+                  !userTags.includes(tagBtn.textContent)
+                ) {
+                  userTags.push(tagBtn.textContent);
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+              });
+            });
+
+            // Add custom tag input
+            customTagInput.addEventListener("keydown", (e) => {
+              if (
+                (e.key === "Enter" || e.key === ",") &&
+                customTagInput.value.trim() &&
+                userTags.length < 8
+              ) {
+                const val = customTagInput.value.trim();
+                if (!userTags.includes(val)) {
+                  userTags.push(val);
+                  customTagInput.value = "";
+                  renderUserTags();
+                  if (userTags.length === 8) {
+                    setTimeout(() => submitAnswer(), 500);
+                  }
+                }
+                e.preventDefault();
+              }
+            });
+
+            function renderUserTags() {
+              userTagsDiv.innerHTML = userTags
+                .map(
+                  (tag) =>
+                    `<span class='tag selected'>${tag} <span style='cursor:pointer;color:#ff6b6b;' onclick='this.parentNode.remove();'>×</span></span>`
+                )
+                .join(" ");
+            }
+            break;
+        }
+
+        // Setup continue button
+        const continueBtn = questionInput.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.addEventListener("click", submitAnswer);
+        }
+      }
+
+      function showImagePreview(file, fileArea, fileText) {
+        // Hide upload icon
+        const uploadIcon = document.querySelector("#upload-icon");
+        if (uploadIcon) {
+          uploadIcon.style.display = "none";
+        }
+
+        // Remove existing image preview if any
+        const existingImage = fileArea.querySelector(".uploaded-image");
+        if (existingImage) {
+          existingImage.remove();
+        }
+
+        // Create image preview
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          img.className = "uploaded-image";
+          img.alt = "Uploaded image";
+
+          // Insert image at the beginning of the file area
+          fileArea.insertBefore(img, fileArea.firstChild);
+
+          // Update text to show filename with remove option
+          fileText.innerHTML = `File selected: ${file.name} <span style="color: #ff6b6b; cursor: pointer; margin-left: 10px;" onclick="removeFile(event)">×</span>`;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function enableContinueButton() {
+        const continueBtn = document.querySelector("#continue-btn");
+        if (continueBtn) {
+          continueBtn.disabled = false;
+          continueBtn.style.opacity = "1";
+          continueBtn.style.cursor = "pointer";
+          continueBtn.classList.add("primary");
+        }
+      }
+
+      function submitTextAnswer(textValue) {
+        const question = questions[chatbotState.currentQuestion];
+        let answer = textValue;
+
+        // Store answer
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer
+        addUserMessage(answer);
+
+        // Clear persistent input
+        const textInput = document.getElementById("persistent-text-input");
+        if (textInput) {
+          textInput.value = "";
+        }
+
+        // Remove dynamic input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function submitAnswer() {
+        const question = questions[chatbotState.currentQuestion];
+        const questionInput = document.getElementById("question-input");
+        let answer = "";
+
+        switch (question.type) {
+          case "file":
+            const fileInput = document.querySelector("#file-input");
+            if (fileInput && fileInput.files.length === 0) {
+              alert("Please select a file");
+              return;
+            }
+            answer = fileInput.files[0].name;
+            break;
+          case "slider":
+            const slider = questionInput.querySelector("#slider-input");
+            answer = slider ? `${slider.value}%` : "50%";
+            break;
+          case "tags":
+            const selectedTags =
+              questionInput.querySelectorAll(".tag.selected");
+            const customTag = questionInput.querySelector("#custom-tag-input")
+              ? questionInput.querySelector("#custom-tag-input").value.trim()
+              : "";
+            const tagTexts = Array.from(selectedTags).map((tag) =>
+              tag.textContent.replace(" ×", "")
+            );
+            if (customTag) tagTexts.push(customTag);
+            answer = tagTexts.join(", ");
+            break;
+        }
+
+        // Store answer (even if empty)
+        chatbotState.answers[question.id] = answer;
+
+        // Show user's answer only if not empty
+        if (answer) {
+          addUserMessage(answer);
+        } else {
+          addUserMessage("Skipped");
+        }
+
+        // Remove input and disable persistent input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Move to next question
+        chatbotState.currentQuestion++;
+        setTimeout(() => {
+          askNextQuestion();
+        }, 1000);
+      }
+
+      function goBack() {
+        // Remove current input
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "none";
+        disablePersistentInput();
+
+        // Remove the last user message
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const lastUserMessage = messagesContainer.querySelector(
+          ".message.user:last-child"
+        );
+        if (lastUserMessage) lastUserMessage.remove();
+
+        // Remove upload area from messages if it exists
+        const uploadMessage = document.querySelector(
+          ".message .file-upload-area"
+        );
+        if (uploadMessage) {
+          uploadMessage.closest(".message").remove();
+        }
+
+        // Go back to previous question
+        chatbotState.currentQuestion--;
+
+        // Ask the previous question again
+        setTimeout(() => {
+          askNextQuestion();
+        }, 500);
+      }
+
+      function showSummary() {
+        addBotMessage("Here's what you gave me. Ready to launch the junk?");
+
+        const messagesContainer = document.getElementById("chatbot-messages");
+        const summaryDiv = document.createElement("div");
+        summaryDiv.className = "message bot";
+        summaryDiv.innerHTML = `
+                <div class="summary-screen">
+                    ${Object.entries(chatbotState.answers)
+                      .map(([key, value]) => {
+                        if (!value) return "";
+                        const question = questions.find((q) => q.id === key);
+                        return `
+                            <div class="summary-item">
+                                <span class="summary-label">${
+                                  question
+                                    ? question.message.split("?")[0] + "?"
+                                    : key
+                                }:</span>
+                                <span class="summary-value">${value}</span>
+                            </div>
+                        `;
+                      })
+                      .join("")}
+                </div>
+            `;
+        messagesContainer.appendChild(summaryDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Add launch button to dynamic container
+        const dynamicContainer = document.getElementById(
+          "dynamic-input-container"
+        );
+        const launchDiv = document.createElement("div");
+        launchDiv.innerHTML = `
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="btn primary" id="launch-btn">Launch the junk</button>
+                </div>
+            `;
+        dynamicContainer.innerHTML = "";
+        dynamicContainer.style.display = "block";
+        dynamicContainer.appendChild(launchDiv);
+        disablePersistentInput();
+
+        // Setup launch button handler
+        const launchBtn = launchDiv.querySelector("#launch-btn");
+        if (launchBtn) {
+          launchBtn.addEventListener("click", launchJunk);
+        }
+      }
+
+      function launchJunk() {
+        // Log the form data (in a real app, you'd send this to a server)
+        console.log("Junk launched:", chatbotState.answers);
+
+        // Show success message
+        addBotMessage(
+          "Junk launched! (This is a demo - no actual upload occurred)"
+        );
+
+        // Close chatbot after a delay
+        setTimeout(() => {
+          closeChatbot();
+        }, 3000);
+      }
+
+      function removeFile(event) {
+        event.stopPropagation();
+        const fileInput = document.querySelector("#file-input");
+        const fileText = document.querySelector("#file-upload-text");
+        const uploadIcon = document.querySelector("#upload-icon");
+        const fileArea = document.querySelector("#file-upload-area");
+
+        if (fileInput && fileText && uploadIcon && fileArea) {
+          fileInput.value = "";
+          fileText.innerHTML = "Drag & drop your file here or click to browse";
+
+          // Remove image preview if exists
+          const uploadedImage = fileArea.querySelector(".uploaded-image");
+          if (uploadedImage) {
+            uploadedImage.remove();
+          }
+
+          // Show upload icon again
+          uploadIcon.style.display = "block";
+
+          // Disable continue button
+          const continueBtn = document.querySelector("#continue-btn");
+          if (continueBtn) {
+            continueBtn.disabled = true;
+            continueBtn.style.opacity = "0.5";
+            continueBtn.style.cursor = "not-allowed";
+            continueBtn.classList.remove("primary");
+          }
+        }
+      }
+
+      // Search functionality
+      function performSearch(query) {
+        console.log("Searching for:", query);
+        // For now, just log the search query
+        alert(`Searching for: ${query}`);
+      }
+
+      // Search bar event listeners
+      document.addEventListener("DOMContentLoaded", function () {
+        const searchBar = document.getElementById("search-bar");
+        let searchTimeout;
+
+        searchBar.addEventListener("input", (event) => {
+          const query = event.target.value.trim();
+
+          // Clear previous timeout
+          if (searchTimeout) {
+            clearTimeout(searchTimeout);
+          }
+
+          // Set new timeout for search (debounce)
+          if (query.length > 0) {
+            searchTimeout = setTimeout(() => {
+              performSearch(query);
+            }, 500); // Wait 500ms after user stops typing
+          }
+        });
+
+        searchBar.addEventListener("keypress", (event) => {
+          if (event.key === "Enter") {
+            const query = event.target.value.trim();
+            if (query.length > 0) {
+              // Clear timeout and perform search immediately
+              if (searchTimeout) {
+                clearTimeout(searchTimeout);
+              }
+              performSearch(query);
+            }
+          }
+        });
+
+        // Add click event listener to upload button
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        if (uploadBtn) {
+          uploadBtn.addEventListener("click", showChatbot);
+        }
+
+        // Close chatbot with Escape key
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            closeChatbot();
+          }
+        });
+
+        // Close chatbot when clicking on backdrop
+        const backdrop = document.getElementById("chatbot-backdrop");
+        if (backdrop) {
+          backdrop.addEventListener("click", function (e) {
+            if (e.target === backdrop) {
+              closeChatbot();
+            }
+          });
+        }
+      });
+
+      // Drawer Modal Functions
+      let raycaster, mouse;
+      
+      function initDrawerModal() {
+          raycaster = new THREE.Raycaster();
+          mouse = new THREE.Vector2();
+          
+          // Add click event listener to the renderer
+          renderer.domElement.addEventListener('click', onArtworkClick);
+      }
+      
+      function onArtworkClick(event) {
+          // Calculate mouse position in normalized device coordinates
+          const rect = renderer.domElement.getBoundingClientRect();
+          mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+          
+          // Update the picking ray with the camera and mouse position
+          raycaster.setFromCamera(mouse, camera);
+          
+          // Calculate objects intersecting the picking ray
+          const intersects = raycaster.intersectObjects(visibleMeshes);
+          
+          if (intersects.length > 0) {
+              const clickedMesh = intersects[0].object;
+              const artworkData = clickedMesh.userData.artworkData;
+              
+              if (artworkData) {
+                  // Create or update drawer modal for the clicked artwork
+                  createDrawerModal(artworkData, clickedMesh);
+              }
+          }
+      }
+
+      function createDrawerModal(artworkData, mesh) {
+          // Remove existing drawer modal if any
+          const existingModal = document.querySelector('.drawer-backdrop');
+          if (existingModal) {
+              existingModal.remove();
+          }
+          
+          // Create backdrop
+          const backdrop = document.createElement('div');
+          backdrop.className = 'drawer-backdrop';
+          
+          // Create drawer container
+          const drawerContainer = document.createElement('div');
+          drawerContainer.className = 'drawer-container';
+          
+          // Create close button
+          const closeButton = document.createElement('button');
+          closeButton.className = 'drawer-close';
+          closeButton.innerHTML = '×';
+          closeButton.onclick = closeDrawerModal;
+          
+          // Create artwork section
+          const artworkSection = document.createElement('div');
+          artworkSection.className = 'drawer-artwork';
+          const artworkImg = document.createElement('img');
+          artworkImg.src = `../../images/${artworkData.image}`;
+          artworkImg.alt = artworkData.title || 'Artwork';
+          artworkImg.onerror = function() {
+              artworkSection.innerHTML = '<div style="color: #666; font-size: 16px;">Image not available</div>';
+          };
+          artworkSection.appendChild(artworkImg);
+          
+          // Create info section
+          const infoSection = document.createElement('div');
+          infoSection.className = 'drawer-info';
+          
+          // Create info content
+          infoSection.innerHTML = `
+              <div class="drawer-field">
+                  <div class="drawer-label">Title</div>
+                  <div class="drawer-value">${artworkData.title || 'Not specified'}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Signed by</div>
+                  <div class="drawer-value">${artworkData.signedBy || 'Not specified'}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Zone</div>
+                  <div class="drawer-value">${artworkData.zone || 'Not specified'}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Exact spot</div>
+                  <div class="drawer-value">${artworkData.exactSpot || 'Not specified'}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Date stamp</div>
+                  <div class="drawer-value">${artworkData.date || 'Not specified'}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Daytime</div>
+                  <div class="drawer-value">${artworkData.daytime || 'Not specified'}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Rawness</div>
+                  <div class="drawer-value">${artworkData.rawness !== undefined ? artworkData.rawness : 'Not specified'}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Format type</div>
+                  <div class="drawer-value">${artworkData.format || 'Not specified'}</div>
+              </div>
+              <div class="drawer-field full-width">
+                  <div class="drawer-label">Scene/Context</div>
+                  <div class="drawer-context">${artworkData.context || 'No context provided'}</div>
+              </div>
+              <div class="drawer-field full-width">
+                  <div class="drawer-label">Vibes/Tags</div>
+                  <div class="drawer-tags">
+                      ${artworkData.tags && artworkData.tags.length > 0 
+                          ? artworkData.tags.map(tag => `<span class="drawer-tag">${tag}</span>`).join('')
+                          : '<span class="drawer-tag">No tags</span>'
+                      }
+                  </div>
+              </div>
+          `;
+          
+          // Assemble the modal
+          drawerContainer.appendChild(closeButton);
+          drawerContainer.appendChild(artworkSection);
+          drawerContainer.appendChild(infoSection);
+          backdrop.appendChild(drawerContainer);
+          document.body.appendChild(backdrop);
+          
+          // Add click outside to close
+          backdrop.addEventListener('click', function(e) {
+              if (e.target === backdrop) {
+                  closeDrawerModal();
+              }
+          });
+          
+          // Add escape key to close
+          const escapeHandler = function(e) {
+              if (e.key === 'Escape') {
+                  closeDrawerModal();
+                  document.removeEventListener('keydown', escapeHandler);
+              }
+          };
+          document.addEventListener('keydown', escapeHandler);
+          
+          // Animate in
+          requestAnimationFrame(() => {
+              backdrop.classList.add('show');
+              requestAnimationFrame(() => {
+                  drawerContainer.classList.add('show');
+              });
+          });
+          
+          // Store reference to mesh for potential future use
+          backdrop.mesh = mesh;
+      }
+      
+      function closeDrawerModal() {
+          const backdrop = document.querySelector('.drawer-backdrop');
+          if (backdrop) {
+              const container = backdrop.querySelector('.drawer-container');
+              container.classList.remove('show');
+              backdrop.classList.remove('show');
+              
+              // Remove after animation
+              setTimeout(() => {
+                  backdrop.remove();
+              }, 400);
+          }
+      }
+      // Start the visualization when the page loads
+      window.addEventListener("load", main);
+    </script>
+  </body>
+</html>
