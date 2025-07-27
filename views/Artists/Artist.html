@@ -2287,20 +2287,7 @@
         if (searchBar) searchBar.style.display = "none";
         if (uploadBtn) uploadBtn.style.display = "none";
 
-        document.getElementById("loading-container").style.display = "block";
-        document.getElementById("black-overlay").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "1";
-        document.getElementById("visualization").style.display = "none";
-
         await init();
-
-        // Hide loading page and show visualization
-        document.getElementById("loading-container").style.display = "none";
-        document.getElementById("visualization").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "0";
-        setTimeout(() => {
-          document.getElementById("black-overlay").style.display = "none";
-        }, 500);
 
         // Start animation
         animate();
