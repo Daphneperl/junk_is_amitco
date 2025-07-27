@@ -106,16 +106,37 @@
       let artisticData = [];
       let raycaster, mouse;
       let tooltip = null;
+      let globalRotationGroup; // Container for all content that will rotate
+      let cameraAnimation = {
+        isActive: false,
+        startTime: 0,
+        duration: 6000, // Reduced from 10 seconds to 6 seconds for smoother feel
+        startPosition: new THREE.Vector3(),
+        startAngle: 0, // Starting angle around the environment
+        targetDistance: 800, // Distance from center (reduced from 1000)
+        targetAngle: -Math.PI * 1.6, // End at 135 degrees counter-clockwise (leftward) - showing the spiral prominently
+        targetHeight: 200, // Slightly elevated view for better perspective
+      };
+
+      // Continuous rotation after animation
+      let continuousRotation = {
+        isActive: false,
+        startTime: 0,
+        speed: -0.00004, // Even slower rotation speed (radians per millisecond) - negative for clockwise
+        currentAngle: 0,
+        distance: 800,
+        height: 200,
+      };
 
       // View positions in 3D space
       const viewPositions = {
         rhizome: { x: 0, y: 0, z: 0 },
-        artist: { x: 800, y: 200, z: 400 },
-        "open-question": { x: -600, y: 300, z: 500 },
-        "hashtag-gallery": { x: 400, y: -400, z: 600 },
-        completeness: { x: -400, y: -600, z: 300 },
-        intimacy: { x: 600, y: 500, z: -400 },
-        temperament: { x: -800, y: 100, z: -200 },
+        artist: { x: -400, y: 50, z: 300 },
+        "open-question": { x: 150, y: -150, z: 250 },
+        "hashtag-gallery": { x: -230, y: -250, z: 200 },
+        completeness: { x: 250, y: 200, z: -150 },
+        intimacy: { x: -500, y: 80, z: -150 },
+        temperament: { x: 350, y: 100, z: 180 },
       };
 
       // View display names
@@ -220,7 +241,7 @@
         }
       }
 
-      // Load images with progress tracking
+      // Load images with progress tracking and parallel loading
       async function loadImages() {
         try {
           const response = await fetch("../../images/images.json");
@@ -228,37 +249,57 @@
           totalImages = imageList.length;
 
           const textureLoader = new THREE.TextureLoader();
-          const textures = [];
+          const textures = new Array(imageList.length);
+          const loadPromises = [];
 
+          // Create all load promises in parallel
           for (let i = 0; i < imageList.length; i++) {
             const imageName = imageList[i];
-            try {
-              const texture = await new Promise((resolve, reject) => {
-                textureLoader.load(
-                  `../../images/${imageName}`,
-                  resolve,
-                  undefined,
-                  reject
-                );
-              });
-              textures.push({ texture, filename: imageName, index: i });
-            } catch (error) {
-              console.warn(`Failed to load ${imageName}:`, error);
-              textures.push({ texture: null, filename: imageName, index: i });
-            }
+            const loadPromise = new Promise((resolve) => {
+              textureLoader.load(
+                `../../images/${imageName}`,
+                (texture) => {
+                  // Optimize texture for performance
+                  texture.generateMipmaps = false;
+                  texture.minFilter = THREE.LinearFilter;
+                  texture.magFilter = THREE.LinearFilter;
+                  texture.format = THREE.RGBFormat;
+                  texture.flipY = true; // Fix upside-down images
 
-            loadedImages++;
-            updateLoadingUI((loadedImages / totalImages) * 100);
+                  textures[i] = { texture, filename: imageName, index: i };
+                  loadedImages++;
+                  updateLoadingUI((loadedImages / totalImages) * 100);
+                  resolve();
+                },
+                undefined,
+                (error) => {
+                  console.warn(`Failed to load ${imageName}:`, error);
+                  textures[i] = {
+                    texture: null,
+                    filename: imageName,
+                    index: i,
+                  };
+                  loadedImages++;
+                  updateLoadingUI((loadedImages / totalImages) * 100);
+                  resolve();
+                }
+              );
+            });
+            loadPromises.push(loadPromise);
           }
 
-          return textures;
+          // Wait for all images to load
+          await Promise.all(loadPromises);
+
+          // Filter out null textures and return
+          return textures.filter((t) => t !== null);
         } catch (error) {
           console.error("Error loading images:", error);
           return [];
         }
       }
 
-      // Create Rhizome view (exact replica of original)
+      // Create Rhizome view - random sphere with white connections
       function createRhizomeView(textures) {
         const group = new THREE.Group();
         group.position.set(
@@ -267,190 +308,167 @@
           viewPositions.rhizome.z
         );
 
-        // Define semantic categories exactly as in original
-        const semanticCategories = {
-          text_documents: [
-            "manuscript",
-            "document",
-            "text",
-            "writing",
-            "letter",
-            "signature",
-            "list",
-            "catalogue",
-            "menu",
-            "notes",
-            "scripts",
-            "correspondence",
-            "point",
-            "word",
-            "boundary",
-            "names",
-            "roster",
-          ],
-          people_faces: [
-            "face",
-            "head",
-            "person",
-            "people",
-            "portrait",
-            "figure",
-            "human",
-          ],
-          nature_landscape: [
-            "landscape",
-            "nature",
-            "tree",
-            "plant",
-            "flower",
-            "sky",
-            "mountain",
-            "water",
-            "ocean",
-            "forest",
-            "animals",
-            "zebra",
-            "center",
-          ],
-          architecture_buildings: [
-            "building",
-            "architecture",
-            "house",
-            "structure",
-            "wall",
-            "door",
-            "window",
-            "room",
-          ],
-          objects_things: [
-            "object",
-            "thing",
-            "item",
-            "tool",
-            "instrument",
-            "device",
-            "machine",
-          ],
-          abstract_patterns: [
-            "pattern",
-            "abstract",
-            "design",
-            "shape",
-            "form",
-            "texture",
-            "color",
-          ],
-          animals_creatures: [
-            "animal",
-            "creature",
-            "bird",
-            "fish",
-            "insect",
-            "mammal",
-          ],
-          food_dining: [
-            "food",
-            "meal",
-            "dish",
-            "plate",
-            "cup",
-            "drink",
-            "wine",
-            "coffee",
-            "pasta",
-          ],
-        };
+        // Create sprites and store their positions for connections
+        const sprites = [];
+        const spritePositions = [];
+        const sphereRadius = 70;
 
-        // Group images by category
-        const categoryGroups = {};
+        // Position images randomly in a sphere
         textures.forEach((textureData, index) => {
-          const imageData = artisticData.find(
-            (item) => item.filename === textureData.filename
-          );
-          if (imageData) {
-            const keywordTexts = imageData.keywords.map((k) =>
-              k.keyword.toLowerCase()
-            );
-            let bestCategory = "other";
-            let maxScore = 0;
+          if (textureData.texture) {
+            const aspectRatio =
+              textureData.texture.image.width /
+              textureData.texture.image.height;
+            const width = 6; // Smaller size for better density
+            const height = width / aspectRatio;
 
-            for (const [category, keywords] of Object.entries(
-              semanticCategories
-            )) {
-              let score = 0;
-              for (const keyword of keywords) {
-                if (keywordTexts.includes(keyword)) {
-                  score += 1;
-                }
-              }
-              if (score > maxScore) {
-                maxScore = score;
-                bestCategory = category;
-              }
-            }
-
-            if (!categoryGroups[bestCategory]) {
-              categoryGroups[bestCategory] = [];
-            }
-            categoryGroups[bestCategory].push({
-              textureData,
-              imageData,
-              index,
+            const material = new THREE.SpriteMaterial({
+              map: textureData.texture,
+              transparent: true,
+              opacity: 0.9,
             });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(width, height, 1);
+
+            // Random position within blobby shape (less spherical, more organic)
+            const baseRadius = sphereRadius * Math.pow(Math.random(), 0.6); // More bias toward center
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+
+            // Add noise to create blobby, irregular shape
+            const noiseX = (Math.random() - 0.5) * 0.4;
+            const noiseY = (Math.random() - 0.5) * 0.4;
+            const noiseZ = (Math.random() - 0.5) * 0.4;
+
+            // Create irregular radius variations
+            const radiusVariation =
+              1 + Math.sin(theta * 3) * 0.3 + Math.cos(phi * 2) * 0.2;
+            const radius = baseRadius * radiusVariation;
+
+            const x =
+              radius * Math.sin(phi) * Math.cos(theta) + noiseX * sphereRadius;
+            const y =
+              radius * Math.sin(phi) * Math.sin(theta) + noiseY * sphereRadius;
+            const z = radius * Math.cos(phi) + noiseZ * sphereRadius;
+
+            sprite.position.set(x, y, z);
+            sprites.push(sprite);
+            spritePositions.push({ x, y, z, index });
+
+            group.add(sprite);
           }
         });
 
-        // Position categories exactly as in original
-        const clusterPositions = {
-          text_documents: { x: -400, y: 0, z: 0 },
-          people_faces: { x: 400, y: 0, z: 0 },
-          nature_landscape: { x: 0, y: 400, z: 0 },
-          architecture_buildings: { x: 0, y: -400, z: 0 },
-          objects_things: { x: 0, y: 0, z: 400 },
-          abstract_patterns: { x: 0, y: 0, z: -400 },
-          animals_creatures: { x: -400, y: 400, z: 0 },
-          food_dining: { x: 400, y: -400, z: 0 },
-          other: { x: 0, y: 0, z: 0 },
-        };
+        // Create white connecting lines between nearby sprites
+        // Ensure each image has at least 2 connections
+        const connections = [];
+        const connectionCounts = new Array(spritePositions.length).fill(0);
+        const maxConnections = 800; // Increased limit for guaranteed connectivity
+        let totalConnections = 0;
 
-        Object.entries(categoryGroups).forEach(([category, images]) => {
-          const categoryGroup = new THREE.Group();
-          const pos = clusterPositions[category] || { x: 0, y: 0, z: 0 };
-          categoryGroup.position.set(pos.x, pos.y, pos.z);
+        // First pass: ensure each sprite has at least 2 connections
+        for (let i = 0; i < spritePositions.length; i++) {
+          const pos1 = spritePositions[i];
 
-          // Position images in spiral within cluster (exact replica)
-          images.forEach((imageData, imageIndex) => {
-            if (imageData.textureData.texture) {
-              const aspectRatio =
-                imageData.textureData.texture.image.width /
-                imageData.textureData.texture.image.height;
-              const width = 20; // Much larger base width as in original
-              const height = width / aspectRatio;
-
-              const material = new THREE.SpriteMaterial({
-                map: imageData.textureData.texture,
-                transparent: true,
-                opacity: 1,
-              });
-              const sprite = new THREE.Sprite(material);
-              sprite.scale.set(width, height, 1);
-
-              // Exact spiral pattern from original
-              const angle = (imageIndex / images.length) * Math.PI * 4; // 2 full rotations
-              const radius = (imageIndex / images.length) * 60 * 0.8; // clusterRadius = 60
-              const heightOffset = Math.sin(angle * 2) * 60 * 0.3;
-
-              sprite.position.set(
-                radius * Math.cos(angle),
-                radius * Math.sin(angle),
-                heightOffset
-              );
-
-              categoryGroup.add(sprite);
+          // Find the 2 closest sprites that aren't already connected
+          const distances = [];
+          for (let j = 0; j < spritePositions.length; j++) {
+            if (i !== j) {
+              const pos2 = spritePositions[j];
+              const dx = pos2.x - pos1.x;
+              const dy = pos2.y - pos1.y;
+              const dz = pos2.z - pos1.z;
+              const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+              distances.push({ index: j, distance: distance });
             }
+          }
+
+          // Sort by distance and connect to closest available sprites
+          distances.sort((a, b) => a.distance - b.distance);
+
+          let connectionsMade = 0;
+          for (const dist of distances) {
+            if (connectionsMade >= 2) break; // Ensure exactly 2 minimum connections
+
+            const j = dist.index;
+            const connectionKey = i < j ? `${i}-${j}` : `${j}-${i}`;
+
+            // Check if this connection already exists
+            if (!connections.includes(connectionKey) && dist.distance < 80) {
+              connections.push(connectionKey);
+              connectionCounts[i]++;
+              connectionCounts[j]++;
+              connectionsMade++;
+              totalConnections++;
+            }
+          }
+        }
+
+        // Second pass: add additional random connections for variety
+        for (
+          let i = 0;
+          i < spritePositions.length && totalConnections < maxConnections;
+          i++
+        ) {
+          const pos1 = spritePositions[i];
+
+          for (
+            let j = i + 1;
+            j < spritePositions.length && totalConnections < maxConnections;
+            j++
+          ) {
+            const pos2 = spritePositions[j];
+
+            const dx = pos2.x - pos1.x;
+            const dy = pos2.y - pos1.y;
+            const dz = pos2.z - pos1.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            const connectionKey = `${i}-${j}`;
+
+            // Add random connections if not already connected and within distance
+            if (
+              !connections.includes(connectionKey) &&
+              distance < 80 &&
+              Math.random() < 0.7
+            ) {
+              connections.push(connectionKey);
+              connectionCounts[i]++;
+              connectionCounts[j]++;
+              totalConnections++;
+            }
+          }
+        }
+
+        // Create the actual line geometries
+        connections.forEach((connectionKey) => {
+          const [i, j] = connectionKey.split("-").map(Number);
+          const pos1 = spritePositions[i];
+          const pos2 = spritePositions[j];
+
+          const geometry = new THREE.BufferGeometry();
+          const positions = new Float32Array([
+            pos1.x,
+            pos1.y,
+            pos1.z,
+            pos2.x,
+            pos2.y,
+            pos2.z,
+          ]);
+          geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(positions, 3)
+          );
+
+          const material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.6,
+            linewidth: 2,
           });
 
-          group.add(categoryGroup);
+          const line = new THREE.Line(geometry, material);
+          group.add(line);
         });
 
         return group;
@@ -465,11 +483,11 @@
           viewPositions.artist.z
         );
 
-        // Create helix structure exactly as in original
-        const turns = 20;
+        // Create helix structure exactly as in original (shorter)
+        const turns = 12; // Reduced from 20
         const radius = 40;
-        const totalHeight = 1500;
-        const segments = 1200;
+        const totalHeight = 800; // Reduced from 1500
+        const segments = 800; // Reduced from 1200
 
         // Create helix outline
         const points = [];
@@ -496,7 +514,7 @@
         for (let guide = 0; guide <= spiralGuides; guide++) {
           const guideRadius = radius * (0.2 + guide * 0.15);
           const guidePoints = [];
-          const guideSegments = 800;
+          const guideSegments = 600; // Reduced from 800
 
           for (let i = 0; i <= guideSegments; i++) {
             const angle = (i / guideSegments) * Math.PI * 2 * turns;
@@ -524,7 +542,7 @@
         }
 
         // Position images along helix
-        const avgClusterSize = 5;
+        const avgClusterSize = 8; // Increased from 5
         const estimatedClusters = Math.ceil(textures.length / avgClusterSize);
 
         for (
@@ -534,7 +552,7 @@
         ) {
           const clusterGroup = new THREE.Group();
 
-          // Position cluster on helix
+          // Position cluster on helix - more clustered along the axis
           const angle =
             (clusterIndex / estimatedClusters) * Math.PI * 2 * turns;
           const y =
@@ -546,7 +564,7 @@
 
           // Add images to cluster
           const clusterSize = Math.min(
-            Math.floor(Math.random() * 5) + 3,
+            Math.floor(Math.random() * 6) + 5, // Increased from 3-7 to 5-10
             textures.length - clusterIndex * avgClusterSize
           );
           for (let i = 0; i < clusterSize; i++) {
@@ -557,7 +575,7 @@
                 const aspectRatio =
                   textureData.texture.image.width /
                   textureData.texture.image.height;
-                const baseSize = 8;
+                const baseSize = 5; // Increased from 3
 
                 const material = new THREE.SpriteMaterial({
                   map: textureData.texture,
@@ -567,10 +585,10 @@
                 const sprite = new THREE.Sprite(material);
                 sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
 
-                // Grid layout within cluster
+                // Tighter grid layout within cluster
                 const gridCols = Math.ceil(Math.sqrt(clusterSize));
                 const gridRows = Math.ceil(clusterSize / gridCols);
-                const spacing = Math.max(10, baseSize * 1.3);
+                const spacing = Math.max(8, baseSize * 1.1); // Reduced spacing from 10 to 8
 
                 const col = i % gridCols;
                 const row = Math.floor(i / gridCols);
@@ -594,21 +612,21 @@
         const group = new THREE.Group();
         group.position.set(
           viewPositions.intimacy.x,
-          viewPositions.intimacy.y,
+          viewPositions.intimacy.y + 50, // Move higher
           viewPositions.intimacy.z
         );
 
-        // Create true spiraling tunnel structure
-        const tunnelLength = 500;
-        const spiralTurns = 12;
-        const segments = 300;
-        const startRadius = 80;
-        const endRadius = 10;
+        // Create true spiraling tunnel structure (larger and higher)
+        const tunnelLength = 350; // Reduced from 500
+        const spiralTurns = 8; // Reduced from 12
+        const segments = 150; // Reduced from 200
+        const startRadius = 120; // Increased from 80
+        const endRadius = 15; // Increased from 10
 
         // Create tube grid that wraps around the spiral
         const tubeGroup = new THREE.Group();
-        const tubeSegments = 16; // Number of segments around the tube circumference
-        const tubeRings = 40; // Number of rings along the tube length
+        const tubeSegments = 20; // Increased from 16 - Number of segments around the tube circumference
+        const tubeRings = 20; // Reduced from 35 - Number of rings along the tube length
 
         for (let ring = 0; ring < tubeRings; ring++) {
           const progress = ring / (tubeRings - 1);
@@ -619,7 +637,7 @@
 
           for (let segment = 0; segment < tubeSegments; segment++) {
             const segmentAngle = (segment / tubeSegments) * Math.PI * 2;
-            const tubeRadius = radius + 8; // Slightly larger than image radius
+            const tubeRadius = radius + 12; // Increased from 8 - Slightly larger than image radius
 
             const x = tubeRadius * Math.cos(segmentAngle);
             const y = tubeRadius * Math.sin(segmentAngle);
@@ -648,7 +666,7 @@
             const spiralAngle = progress * Math.PI * 2 * spiralTurns;
             const radius =
               startRadius * Math.pow(endRadius / startRadius, progress);
-            const tubeRadius = radius + 8;
+            const tubeRadius = radius + 12;
 
             const x = tubeRadius * Math.cos(segmentAngle);
             const y = tubeRadius * Math.sin(segmentAngle);
@@ -672,7 +690,7 @@
           const spiralAngle = progress * Math.PI * 2 * spiralTurns;
           const radius =
             startRadius * Math.pow(endRadius / startRadius, progress);
-          const tubeRadius = radius + 8;
+          const tubeRadius = radius + 12;
 
           const ringPoints = [];
           for (let j = 0; j <= tubeSegments; j++) {
@@ -716,7 +734,7 @@
               const aspectRatio =
                 textureData.texture.image.width /
                 textureData.texture.image.height;
-              const width = 4 + progress * 2; // Images get smaller as tunnel narrows
+              const width = 3 + progress * 1.5; // Increased from 2 + progress * 1
               const height = width / aspectRatio;
 
               const material = new THREE.SpriteMaterial({
@@ -730,7 +748,7 @@
               // Position images along the spiral with natural variation
               const imageAngle =
                 spiralAngle + (index / segmentImages.length) * Math.PI * 0.3;
-              const imageRadius = radius * 0.8; // Slightly inside the wireframe
+              const imageRadius = radius * 0.85; // Slightly inside the wireframe
 
               sprite.position.set(
                 imageRadius * Math.cos(imageAngle),
@@ -755,50 +773,62 @@
           viewPositions["open-question"].z
         );
 
-        // Layered circular arrangement
-        const layers = 5;
-        const imagesPerLayer = Math.ceil(textures.length / layers);
+        // Ultra-dense disk-like arrangement with tightly packed images
+        const layers = 8; // Reduced number of layers
+        const baseRadius = 5; // Smaller inner radius
+        const radiusIncrement = 8; // Consistent spacing between layers
 
         for (let layer = 0; layer < layers; layer++) {
-          const layerGroup = new THREE.Group();
-          const layerRadius = 40 + layer * 20;
-          const layerHeight = layer * 25;
+          const layerRadius = baseRadius + layer * radiusIncrement;
 
-          const startIndex = layer * imagesPerLayer;
-          const endIndex = Math.min(
-            startIndex + imagesPerLayer,
-            textures.length
-          );
-          const layerImages = textures.slice(startIndex, endIndex);
+          // Calculate how many images should be in this layer based on circumference
+          const circumference = 2 * Math.PI * layerRadius;
+          const imageWidth = 4.0; // Larger images
+          const imagesInLayer = Math.max(
+            8,
+            Math.floor(circumference / (imageWidth * 1.1))
+          ); // Tight packing with minimal gaps
 
-          layerImages.forEach((textureData, index) => {
-            if (textureData.texture) {
+          // Distribute images evenly around this layer
+          for (let i = 0; i < imagesInLayer; i++) {
+            const textureIndex = (layer * 50 + i) % textures.length; // Use more images per layer
+            const textureData = textures[textureIndex];
+
+            if (textureData && textureData.texture) {
               const aspectRatio =
                 textureData.texture.image.width /
                 textureData.texture.image.height;
-              const width = 10;
+              const width = imageWidth;
               const height = width / aspectRatio;
 
+              // Use sprites instead of planes to always face the camera
               const material = new THREE.SpriteMaterial({
                 map: textureData.texture,
                 transparent: true,
-                opacity: 0.8,
+                opacity: 0.95,
               });
               const sprite = new THREE.Sprite(material);
               sprite.scale.set(width, height, 1);
 
-              const angle = (index / layerImages.length) * Math.PI * 2;
+              const angle = (i / imagesInLayer) * Math.PI * 2;
+
+              // Create exponential volcano-like shape - center raised, edges at ground
+              const maxRadius = baseRadius + (layers - 1) * radiusIncrement;
+              const normalizedRadius = layerRadius / maxRadius; // 0 at center, 1 at edge
+              const heightFactor = Math.pow(1 - normalizedRadius, 2); // Exponential curve
+              const yPosition = heightFactor * 20; // Maximum height of 20 units at center
+
               sprite.position.set(
                 layerRadius * Math.cos(angle),
-                layerHeight,
+                yPosition, // Raised center effect
                 layerRadius * Math.sin(angle)
               );
 
-              layerGroup.add(sprite);
-            }
-          });
+              // Sprites automatically face the camera, no rotation needed
 
-          group.add(layerGroup);
+              group.add(sprite);
+            }
+          }
         }
 
         return group;
@@ -812,48 +842,139 @@
           viewPositions["hashtag-gallery"].z
         );
 
-        // Curved wall arrangement
-        const wallRadius = 80;
-        const imagesPerRow = 10;
-        const rows = Math.ceil(textures.length / imagesPerRow);
+        // Create circular wireframe grid floor (like hashtag gallery)
+        const gridRadius = 120; // Increased from 80
+        const floorGeometry = new THREE.BufferGeometry();
+        const floorVertices = [];
+        const floorIndices = [];
 
-        for (let row = 0; row < rows; row++) {
-          const rowGroup = new THREE.Group();
-          const rowHeight = (row - rows / 2) * 20;
+        // Create a full circular grid for the floor
+        const floorSegments = 24; // Number of segments around the full circle
+        const radialSegments = 6; // Number of radial lines
+        const y = -30; // Floor height - moved lower to accommodate larger structure
 
-          const startIndex = row * imagesPerRow;
-          const endIndex = Math.min(startIndex + imagesPerRow, textures.length);
-          const rowImages = textures.slice(startIndex, endIndex);
-
-          rowImages.forEach((textureData, index) => {
-            if (textureData.texture) {
-              const aspectRatio =
-                textureData.texture.image.width /
-                textureData.texture.image.height;
-              const width = 12;
-              const height = width / aspectRatio;
-
-              const material = new THREE.SpriteMaterial({
-                map: textureData.texture,
-                transparent: true,
-                opacity: 1,
-              });
-              const sprite = new THREE.Sprite(material);
-              sprite.scale.set(width, height, 1);
-
-              const angle = (index / rowImages.length) * Math.PI * 1.5; // Curved wall
-              sprite.position.set(
-                wallRadius * Math.cos(angle),
-                rowHeight,
-                wallRadius * Math.sin(angle)
-              );
-
-              rowGroup.add(sprite);
-            }
-          });
-
-          group.add(rowGroup);
+        // Generate vertices for full circular floor grid
+        for (let i = 0; i <= radialSegments; i++) {
+          for (let j = 0; j <= floorSegments; j++) {
+            const angle = (2 * Math.PI * j) / floorSegments; // Full 360 degrees
+            const currentRadius = (gridRadius * i) / radialSegments;
+            const x = currentRadius * Math.cos(angle);
+            const z = currentRadius * Math.sin(angle);
+            floorVertices.push(x, y, z);
+          }
         }
+
+        // Generate indices for rounded floor grid
+        for (let i = 0; i < radialSegments; i++) {
+          for (let j = 0; j < floorSegments; j++) {
+            const a = i * (floorSegments + 1) + j;
+            const b = a + 1;
+            const c = (i + 1) * (floorSegments + 1) + j;
+            const d = c + 1;
+
+            // Radial lines (from center outward)
+            floorIndices.push(a, c);
+            floorIndices.push(b, d);
+
+            // Arc lines (around the circle)
+            floorIndices.push(a, b);
+            floorIndices.push(c, d);
+          }
+        }
+
+        floorGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(floorVertices, 3)
+        );
+        floorGeometry.setIndex(floorIndices);
+
+        const floorMaterial = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.3,
+          linewidth: 1,
+          depthWrite: false,
+          depthTest: false,
+        });
+        const floorWireframe = new THREE.LineSegments(
+          floorGeometry,
+          floorMaterial
+        );
+        floorWireframe.renderOrder = -999; // Render behind everything
+        group.add(floorWireframe);
+
+        // Create curved wall arrangement (like hashtag gallery)
+        const wallRadius = 100; // Increased from 70
+        const arcAngle = Math.PI * 1.22; // 220 degrees (same as hashtag gallery)
+        const yCenter = 15; // Images positioned higher above floor
+        const fixedHeight = 18; // Increased fixed height for all images
+        const gap = 4; // Increased gap between images
+
+        // Calculate how many images to show (limit to fit the arc nicely)
+        const maxImages = Math.min(15, textures.length);
+        const imagesToShow = textures.slice(0, maxImages);
+
+        // Calculate total width needed
+        const widths = imagesToShow.map((textureData) => {
+          if (textureData.texture) {
+            const aspectRatio =
+              textureData.texture.image.width /
+              textureData.texture.image.height;
+            return aspectRatio * fixedHeight;
+          }
+          return 1.5; // Default aspect ratio
+        });
+
+        const totalWidth =
+          widths.reduce((a, b) => a + b, 0) + gap * (imagesToShow.length - 1);
+        const arcLength = wallRadius * arcAngle;
+
+        // Adjust radius if needed
+        let usedRadius = wallRadius;
+        if (totalWidth > arcLength) {
+          usedRadius = totalWidth / arcAngle;
+        }
+
+        // Calculate starting position to center images
+        const startArc =
+          -arcAngle / 2 + (arcLength - totalWidth) / (2 * usedRadius);
+
+        let currentArc = startArc;
+        imagesToShow.forEach((textureData, index) => {
+          if (textureData.texture) {
+            const aspectRatio =
+              textureData.texture.image.width /
+              textureData.texture.image.height;
+            const width = aspectRatio * fixedHeight;
+            const angle = currentArc + width / (2 * usedRadius);
+
+            const material = new THREE.SpriteMaterial({
+              map: textureData.texture,
+              transparent: true,
+              opacity: 0.9,
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(width, fixedHeight, 1);
+
+            // Position along the curved wall
+            sprite.position.set(
+              usedRadius * Math.cos(angle),
+              yCenter,
+              usedRadius * Math.sin(angle)
+            );
+
+            // Make sprite always face forward (toward the viewer)
+            // Calculate the normal vector pointing toward the center
+            const normalX = -Math.cos(angle);
+            const normalZ = -Math.sin(angle);
+            sprite.rotation.y = Math.atan2(normalX, normalZ);
+
+            group.add(sprite);
+
+            // Move to next position
+            currentArc += (width + gap) / usedRadius;
+          }
+        });
 
         return group;
       }
@@ -866,63 +987,60 @@
           viewPositions.completeness.z
         );
 
-        // Score-based arrangement
-        const scoreGroups = {
-          high: textures.slice(0, Math.floor(textures.length / 3)),
-          medium: textures.slice(
-            Math.floor(textures.length / 3),
-            Math.floor((2 * textures.length) / 3)
-          ),
-          low: textures.slice(Math.floor((2 * textures.length) / 3)),
-        };
+        // Create a floating sheet of images similar to the collage structure
+        const sheetWidth = 200;
+        const sheetHeight = 150;
+        const maxImages = Math.min(200, textures.length); // Limit for performance
 
-        const groupPositions = {
-          high: { x: 0, y: 80, z: 0 },
-          medium: { x: 0, y: 0, z: 0 },
-          low: { x: 0, y: -80, z: 0 },
-        };
+        // Create a main sheet group that will contain all images
+        const sheetGroup = new THREE.Group();
 
-        Object.entries(scoreGroups).forEach(([scoreLevel, images]) => {
-          const scoreGroup = new THREE.Group();
-          const pos = groupPositions[scoreLevel];
-          scoreGroup.position.set(pos.x, pos.y, pos.z);
+        // Use all available textures for a dense collage
+        const imagesToUse = textures.slice(0, maxImages);
 
-          images.forEach((textureData, index) => {
-            if (textureData.texture) {
-              const aspectRatio =
-                textureData.texture.image.width /
-                textureData.texture.image.height;
-              const width = 10;
-              const height = width / aspectRatio;
+        imagesToUse.forEach((textureData, index) => {
+          if (textureData.texture) {
+            const aspectRatio =
+              textureData.texture.image.width /
+              textureData.texture.image.height;
 
-              const material = new THREE.SpriteMaterial({
-                map: textureData.texture,
-                transparent: true,
-                opacity: 0.8,
-              });
-              const sprite = new THREE.Sprite(material);
-              sprite.scale.set(width, height, 1);
+            // Vary image sizes for visual interest (like the collage)
+            const baseSize = 6 + Math.random() * 8; // 6-14 units
+            const width = baseSize * aspectRatio;
+            const height = baseSize;
 
-              // Grid layout
-              const gridCols = Math.ceil(Math.sqrt(images.length));
-              const gridRows = Math.ceil(images.length / gridCols);
-              const spacing = 15;
+            // Create plane geometry instead of sprite for better rotation control
+            const geometry = new THREE.PlaneGeometry(width, height);
+            const material = new THREE.MeshBasicMaterial({
+              map: textureData.texture,
+              transparent: true,
+              opacity: 0.9,
+              side: THREE.DoubleSide,
+            });
+            const plane = new THREE.Mesh(geometry, material);
 
-              const row = Math.floor(index / gridCols);
-              const col = index % gridCols;
+            // Random position within the sheet bounds with some overflow for organic feel
+            const x = (Math.random() - 0.5) * sheetWidth * 1.2;
+            const y = (Math.random() - 0.5) * sheetHeight * 1.2;
+            const z = (Math.random() - 0.5) * 20; // Slight depth variation
 
-              sprite.position.set(
-                (col - gridCols / 2) * spacing,
-                (row - gridRows / 2) * spacing,
-                0
-              );
+            plane.position.set(x, y, z);
 
-              scoreGroup.add(sprite);
-            }
-          });
+            // Random rotation on all axes for the scattered, floating effect
+            plane.rotation.x = (Math.random() - 0.5) * 0.3; // Slight tilt
+            plane.rotation.y = (Math.random() - 0.5) * 0.3; // Slight yaw
+            plane.rotation.z = (Math.random() - 0.5) * Math.PI * 0.5; // More rotation on Z for paper-like effect
 
-          group.add(scoreGroup);
+            // Add some random scaling variation for more organic feel
+            const scaleVariation = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
+            plane.scale.set(scaleVariation, scaleVariation, 1);
+
+            sheetGroup.add(plane);
+          }
         });
+
+        // Add the sheet group to the main group
+        group.add(sheetGroup);
 
         return group;
       }
@@ -936,14 +1054,13 @@
         );
 
         // Scattered ball arrangement with colored squares
-        const ballRadius = 60;
-        const innerRadius = 30; // Boundary between red and blue squares
+        const ballRadius = 50; // Reduced from 80 to 50
+        const innerRadius = 25; // Reduced from 40 to 25
 
         // Create gradient squares from red center to blue outskirts
-        const totalSquareCount = 1400;
+        const totalSquareCount = 400; // Reduced from 2800 to 400 for better performance
         for (let i = 0; i < totalSquareCount; i++) {
-          const size = 0.5 + Math.random() * 1.5; // Varying sizes from 0.5-2 units
-          const geometry = new THREE.PlaneGeometry(size, size);
+          const size = 1.5 + Math.random() * 2.5; // Larger sizes to compensate for fewer squares
 
           // Random position throughout the ball
           const radius = ballRadius * Math.pow(Math.random(), 0.7);
@@ -961,17 +1078,26 @@
 
           const color = new THREE.Color(redComponent, 0, blueComponent);
 
-          const material = new THREE.MeshBasicMaterial({
-            color: color,
+          // Create a canvas texture for the colored square
+          const canvas = document.createElement("canvas");
+          canvas.width = 32;
+          canvas.height = 32;
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = `rgb(${Math.floor(
+            redComponent * 255
+          )}, 0, ${Math.floor(blueComponent * 255)})`;
+          ctx.fillRect(0, 0, 32, 32);
+
+          const texture = new THREE.CanvasTexture(canvas);
+          const material = new THREE.SpriteMaterial({
+            map: texture,
             transparent: true,
-            opacity: 0.5,
-            side: THREE.DoubleSide,
+            opacity: 0.6, // Slightly higher opacity to compensate for fewer squares
           });
-          const square = new THREE.Mesh(geometry, material);
+          const square = new THREE.Sprite(material);
 
           square.position.set(x, y, z);
-          // Make squares always face the viewer (like sprites)
-          square.userData = { isSprite: true }; // Mark for camera-facing update
+          square.scale.set(size, size, 1);
 
           group.add(square);
         }
@@ -982,7 +1108,7 @@
             const aspectRatio =
               textureData.texture.image.width /
               textureData.texture.image.height;
-            const width = 6 + Math.random() * 3; // Smaller images to fit with squares
+            const width = 5 + Math.random() * 3; // Further reduced image sizes
             const height = width / aspectRatio;
 
             const material = new THREE.SpriteMaterial({
@@ -1014,7 +1140,7 @@
 
       // Create particle system
       function createParticleSystem() {
-        const particleCount = 1500;
+        const particleCount = 500;
         const particleGeometry = new THREE.BufferGeometry();
         const particlePositions = new Float32Array(particleCount * 3);
         const particleSizes = new Float32Array(particleCount);
@@ -1104,19 +1230,20 @@
           speeds: particleSpeeds,
           opacities: new Float32Array(particleCount), // Store individual opacities
         };
-        scene.add(particles);
+        globalRotationGroup.add(particles);
       }
 
       // Initialize the scene
       async function init() {
         console.log("Starting initialization...");
 
-        // Load artistic data first
-        await loadArtisticData();
-
-        // Create scene
+        // Create scene first
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
+
+        // Create global rotation group
+        globalRotationGroup = new THREE.Group();
+        scene.add(globalRotationGroup);
 
         // Create noise texture background
         const canvas = document.createElement("canvas");
@@ -1151,12 +1278,25 @@
           0.1,
           3000
         );
-        camera.position.set(0, 0, 2000);
+        camera.position.set(0, 0, 70);
+
+        // Pre-allocate camera direction vector for reuse
+        camera.direction = new THREE.Vector3();
+
+        // Pre-calculate camera matrices to ensure proper initialization
+        camera.updateMatrix();
+        camera.updateMatrixWorld();
 
         // Create renderer
-        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          powerPreference: "high-performance",
+          stencil: false,
+          depth: true,
+        });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000000, 1); // Set black background color immediately
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
         document
           .getElementById("visualization")
           .appendChild(renderer.domElement);
@@ -1218,14 +1358,34 @@
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.minDistance = 100;
+        controls.minDistance = 1;
         controls.maxDistance = 2000;
         controls.target.set(0, 0, 0);
+        controls.enabled = false; // Disable controls initially
+
+        // Enable mouse scroll for zooming
+        controls.enableZoom = true;
+        controls.zoomSpeed = 1.0;
+
+        // Enable dragging to rotate the environment
+        controls.enablePan = false; // Disable panning to keep rotation behavior
+        controls.enableRotate = true;
+        controls.rotateSpeed = 1.0;
+
+        // Set the rotation center to the global rotation group
+        controls.target.set(0, 0, 0);
+
+        // Pre-initialize controls to prevent glitchy behavior
         controls.update();
 
-        // Set camera to maximum zoom out
-        camera.position.set(0, 0, 2000);
-        controls.update();
+        // Force a few update cycles to ensure stable initialization
+        for (let i = 0; i < 5; i++) {
+          controls.update();
+        }
+
+        // Pre-allocate vectors for controls to reduce garbage collection
+        controls._spherical = new THREE.Spherical();
+        controls._sphericalDelta = new THREE.Spherical();
 
         // Add mouse move event listener for tooltips
         renderer.domElement.addEventListener("mousemove", onMouseMove);
@@ -1234,13 +1394,19 @@
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
         scene.add(ambientLight);
 
-        // Load images
-        console.log("Loading images...");
-        const textures = await loadImages();
-        console.log(`Loaded ${textures.length} textures`);
-
-        // Create particle system
+        // Create particle system first (no dependencies)
         createParticleSystem();
+
+        // Load artistic data and images in parallel
+        console.log("Loading data and images in parallel...");
+        const [artisticDataResult, textures] = await Promise.all([
+          loadArtisticData(),
+          loadImages(),
+        ]);
+        artisticData = artisticDataResult;
+        console.log(
+          `Loaded ${textures.length} textures and ${artisticData.length} artistic records`
+        );
 
         // Create all views with accurate structures
         console.log("Creating views...");
@@ -1252,57 +1418,181 @@
         viewGroups.intimacy = createIntimacyView(textures);
         viewGroups.temperament = createTemperamentView(textures);
 
-        // Add all groups to scene
-        Object.values(viewGroups).forEach((group) => scene.add(group));
+        // Add all groups to global rotation group
+        Object.values(viewGroups).forEach((group) =>
+          globalRotationGroup.add(group)
+        );
+
+        // Ensure scene is fully rendered before proceeding
+        renderer.render(scene, camera);
+
+        // Force controls to update one more time
+        if (controls) {
+          controls.update();
+        }
 
         console.log("Initialization complete!");
+      }
+
+      // Simple smooth easing function for better performance
+      function easeInOutSmooth(t) {
+        // Simple cubic ease-in-out for smoother animation
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       }
 
       // Animation loop
       function animate() {
         requestAnimationFrame(animate);
 
-        // Animate particles
+        // Handle camera animation
+        if (cameraAnimation.isActive) {
+          const currentTime = Date.now();
+          const elapsed = currentTime - cameraAnimation.startTime;
+          const progress = Math.min(elapsed / cameraAnimation.duration, 1);
+          const easedProgress = easeInOutSmooth(progress);
+
+          // Pre-calculate values to avoid repeated calculations
+          const startDistance = cameraAnimation.startPosition.length();
+          const distanceDelta = cameraAnimation.targetDistance - startDistance;
+          const angleDelta =
+            cameraAnimation.targetAngle - cameraAnimation.startAngle;
+          const heightDelta =
+            cameraAnimation.targetHeight - cameraAnimation.startPosition.y;
+
+          // Calculate current position
+          const currentDistance = startDistance + distanceDelta * easedProgress;
+          const currentAngle =
+            cameraAnimation.startAngle + angleDelta * easedProgress;
+          const currentHeight =
+            cameraAnimation.startPosition.y + heightDelta * easedProgress;
+
+          // Position camera in orbit around the environment
+          camera.position.x = currentDistance * Math.cos(currentAngle);
+          camera.position.z = currentDistance * Math.sin(currentAngle);
+          camera.position.y = currentHeight;
+
+          // Make camera look at the center of the environment
+          camera.lookAt(0, 0, 0);
+
+          // Only update matrix once for better performance
+          camera.updateMatrixWorld();
+
+          // Start continuous rotation when animation is 90% complete for smooth blending
+          if (progress >= 0.9 && !continuousRotation.isActive) {
+            continuousRotation.isActive = true;
+            continuousRotation.startTime = currentTime;
+            continuousRotation.currentAngle = currentAngle;
+            continuousRotation.distance = currentDistance;
+            continuousRotation.height = currentHeight;
+            console.log("Starting continuous slow rotation (blended)");
+          }
+
+          // End animation when complete
+          if (progress >= 1) {
+            cameraAnimation.isActive = false;
+            console.log("Camera animation completed");
+
+            // Re-enable controls after animation completes
+            if (controls) {
+              // Set controls target to center of the galaxy (0,0,0)
+              controls.target.set(0, 0, 0);
+              controls.update();
+
+              // Enable controls with zoom and rotate functionality
+              controls.enabled = true;
+              controls.enableZoom = true;
+              controls.enableRotate = true;
+              controls.enablePan = false;
+              console.log("Orbit controls re-enabled after camera animation");
+            }
+          }
+        }
+
+        // Handle continuous rotation after initial animation
+        if (continuousRotation.isActive) {
+          const currentTime = Date.now();
+          const elapsed = currentTime - continuousRotation.startTime;
+
+          // Calculate new angle based on elapsed time and speed
+          continuousRotation.currentAngle += continuousRotation.speed * elapsed;
+          continuousRotation.startTime = currentTime; // Reset start time for next frame
+
+          // Position camera in orbit around the environment
+          camera.position.x =
+            continuousRotation.distance *
+            Math.cos(continuousRotation.currentAngle);
+          camera.position.z =
+            continuousRotation.distance *
+            Math.sin(continuousRotation.currentAngle);
+          camera.position.y = continuousRotation.height;
+
+          // Make camera look at the center of the environment
+          camera.lookAt(0, 0, 0);
+
+          // Only update matrix once for better performance
+          camera.updateMatrixWorld();
+        }
+
+        // Animate particles (optimized for performance)
         if (particles) {
           const positions = particles.geometry.attributes.position.array;
           const speeds = particles.userData.speeds;
-          const opacities = particles.userData.opacities;
+          const time = Date.now() * 0.001;
 
           for (let i = 0; i < positions.length; i += 3) {
             // Move particles in a circular motion
             const speed = speeds[i / 3];
-            const time = Date.now() * 0.001 * speed;
+            const particleTime = time * speed;
 
-            positions[i] += Math.sin(time) * 0.5;
-            positions[i + 1] += Math.cos(time) * 0.5;
-            positions[i + 2] += Math.sin(time * 0.5) * 0.5;
-
-            // Check if particle is in front of images (z > 0)
-            const z = positions[i + 2];
-            opacities[i / 3] = z > 0 ? 0 : 0.3; // Make transparent if in front
+            positions[i] += Math.sin(particleTime) * 0.3; // Reduced movement for better performance
+            positions[i + 1] += Math.cos(particleTime) * 0.3;
+            positions[i + 2] += Math.sin(particleTime * 0.5) * 0.3;
           }
 
           particles.geometry.attributes.position.needsUpdate = true;
-          particles.material.opacity = 0.3; // Base opacity
         }
 
-        // Animate view groups with gentle rotation
-        Object.values(viewGroups).forEach((group, index) => {
-          group.rotation.y += 0.0005 + index * 0.0002;
-          group.rotation.x += 0.0002 + index * 0.0001;
+        // Global rotation around Y-axis (like a dreidel) - DISABLED
+        // globalRotationGroup.rotation.y += 0.0005; // Much slower constant rotation
 
-          // Make temperament squares always face the camera
-          if (index === 6) {
-            // Temperament view index
-            group.children.forEach((child) => {
-              if (child.userData && child.userData.isSprite) {
-                child.lookAt(camera.position);
-              }
-            });
-          }
-        });
+        // Individual view rotations - each view rotates around different axes and directions (slower)
+        // Reduce rotation speed during camera animation for better performance
+        const rotationMultiplier = cameraAnimation.isActive ? 0.5 : 1.0;
 
-        controls.update();
+        if (viewGroups.rhizome) {
+          viewGroups.rhizome.rotation.y += 0.001 * rotationMultiplier; // Clockwise around Y (slower)
+          viewGroups.rhizome.rotation.x += 0.0005 * rotationMultiplier; // Tilt forward (slower)
+        }
+        if (viewGroups.artist) {
+          viewGroups.artist.rotation.y += 0.001 * rotationMultiplier; // Rotate around Y-axis (upright rotation)
+        }
+        if (viewGroups["open-question"]) {
+          viewGroups["open-question"].rotation.x += 0.001 * rotationMultiplier; // Forward tilt (slower)
+          viewGroups["open-question"].rotation.y += 0.0005 * rotationMultiplier; // Slow clockwise (slower)
+        }
+        if (viewGroups["hashtag-gallery"]) {
+          // Rotate the gallery wall around its own Y-axis
+          viewGroups["hashtag-gallery"].rotation.y +=
+            0.002 * rotationMultiplier; // Rotate wall around itself
+        }
+        if (viewGroups.completeness) {
+          viewGroups.completeness.rotation.x -= 0.0008 * rotationMultiplier; // Backward tilt (slower)
+          viewGroups.completeness.rotation.y += 0.001 * rotationMultiplier; // Clockwise (slower)
+        }
+        if (viewGroups.intimacy) {
+          viewGroups.intimacy.rotation.z += 0.0005 * rotationMultiplier; // Roll (slower)
+          viewGroups.intimacy.rotation.y -= 0.0003 * rotationMultiplier; // Very slow counter-clockwise (slower)
+        }
+        if (viewGroups.temperament) {
+          viewGroups.temperament.rotation.x += 0.0008 * rotationMultiplier; // Forward tilt (slower)
+          viewGroups.temperament.rotation.z += 0.0005 * rotationMultiplier; // Roll (slower)
+          viewGroups.temperament.rotation.y += 0.0008 * rotationMultiplier; // Clockwise (slower)
+        }
+
+        // Only update controls if they are enabled
+        if (controls && controls.enabled) {
+          controls.update();
+        }
         composer.render();
       }
 
@@ -1328,6 +1618,29 @@
 
           // Setup resize handler
           window.addEventListener("resize", onWindowResize, false);
+
+          // Pre-warm the GPU by rendering a few frames
+          for (let i = 0; i < 10; i++) {
+            composer.render();
+            await new Promise((resolve) => setTimeout(resolve, 16)); // ~60fps
+          }
+
+          // Start camera animation after 2 seconds
+          setTimeout(() => {
+            // Store current camera state
+            cameraAnimation.startPosition.copy(camera.position);
+            cameraAnimation.startAngle = Math.atan2(
+              camera.position.z,
+              camera.position.x
+            );
+            cameraAnimation.startTime = Date.now();
+            cameraAnimation.isActive = true;
+            console.log(
+              "Starting camera animation: zoom out and orbit leftward"
+            );
+          }, 2000);
+
+          // Note: Controls will be re-enabled automatically when camera animation completes
 
           console.log("Visualization started successfully!");
         } catch (error) {
