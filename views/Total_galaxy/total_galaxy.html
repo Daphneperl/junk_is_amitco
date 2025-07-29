@@ -220,7 +220,7 @@
       <div class="view-label" data-view="hashtag-gallery">Hashtag Gallery</div>
       <div class="view-label" data-view="completeness">Completeness</div>
       <div class="view-label" data-view="intimacy">Intimacy</div>
-      <div class="view-label" data-view="temperament">Temperament</div>
+      <div class="view-label" data-view="temperature">Temperature</div>
     </div>
 
     <div id="camera-info">
@@ -259,7 +259,7 @@
         "hashtag-gallery": { x: 400, y: -400, z: 600 },
         completeness: { x: -400, y: -600, z: 300 },
         intimacy: { x: 600, y: 500, z: -400 },
-        temperament: { x: -800, y: 100, z: -200 },
+        temperature: { x: -800, y: 100, z: -200 },
       };
 
       // View groups to store each visualization
@@ -870,16 +870,16 @@
         return group;
       }
 
-      // Create Temperament view (score-based spiral)
-      function createTemperamentView(textures) {
+      // Create Temperature view (score-based spiral)
+      function createTemperatureView(textures) {
         const group = new THREE.Group();
         group.position.set(
-          viewPositions.temperament.x,
-          viewPositions.temperament.y,
-          viewPositions.temperament.z
+          viewPositions.temperature.x,
+          viewPositions.temperature.y,
+          viewPositions.temperature.z
         );
 
-        // Create spiral arrangement based on temperament scores
+        // Create spiral arrangement based on temperature scores
         const spiralTurns = 6;
         const spiralRadius = 50;
         const spiralHeight = 200;
@@ -1057,7 +1057,7 @@
         viewGroups["hashtag-gallery"] = createHashtagGalleryView(textures);
         viewGroups.completeness = createCompletenessView(textures);
         viewGroups.intimacy = createIntimacyView(textures);
-        viewGroups.temperament = createTemperamentView(textures);
+        viewGroups.temperature = createTemperatureView(textures);
 
         // Add all view groups to scene
         Object.values(viewGroups).forEach((group) => scene.add(group));

@@ -12,7 +12,7 @@ This is a unified 3D galaxy view that combines all the different visualizations 
 - **Hashtag Gallery**: Curved wall at (400, -400, 600)
 - **Completeness**: Score-based arrangement at (-400, -600, 300)
 - **Intimacy**: Tunnel structure at (600, 500, -400)
-- **Temperament**: Score-based spiral at (-800, 100, -200)
+- **Temperature**: Score-based spiral at (-800, 100, -200)
 
 ### Navigation
 

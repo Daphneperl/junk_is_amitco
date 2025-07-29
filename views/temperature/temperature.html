@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Temperament Scores Visualization</title>
+    <title>Temperature Scores Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -781,8 +781,8 @@
 
     <!-- Tooltip -->
     <div id="eye-tooltip">
-      Here is the Temperament View. Explore the emotional landscape of junk
-      through temperament scores.
+      Here is the Temperature View. Explore the emotional landscape of junk
+      through temperature scores.
     </div>
 
     <!-- Pixel Arrow Indicator -->
@@ -1257,11 +1257,11 @@
         // Ring 1 (horizontal, up is +Y)
         const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
         const group1a = createEyeWithLabel(
-          "../../Eyes/Temperament_open.png",
-          "Temperament",
+          "../../Eyes/Temperature_open.png",
+          "Temperature",
           new THREE.Vector3(9, 0, 0),
           new THREE.Vector3(0, 1, 0),
-          "eye-temperament"
+          "eye-temperature"
         );
         const group1b = createEyeWithLabel(
           "../../Eyes/Rhizome_open.png",
@@ -1467,8 +1467,8 @@
 
           // Navigation logic
           switch (eyeId) {
-            case "eye-temperament":
-              // Already on temperament page
+            case "eye-temperature":
+              // Already on temperature page
               break;
             case "eye-secret":
               window.location.href = "../hashtag_gallery/hashtag_gallery.html";
@@ -2302,7 +2302,7 @@
       }
 
       // Load the JSON data and create 3D visualization
-      fetch("temperament_scores.json")
+      fetch("temperature_scores.json")
         .then((response) => response.json())
         .then((data) => {
           const totalImages = Object.keys(data).length;
@@ -2331,16 +2331,16 @@
                 })
               );
 
-              const maxScore = d3.max(dataArray, (d) => d.temperament_score);
-              const minScore = d3.min(dataArray, (d) => d.temperament_score);
+              const maxScore = d3.max(dataArray, (d) => d.temperature_score);
+              const minScore = d3.min(dataArray, (d) => d.temperature_score);
 
               // Create image sprites in 3D space
               const createSpritesPromises = dataArray.map((d) => {
                 const normalizedScore =
-                  (d.temperament_score - minScore) / (maxScore - minScore);
+                  (d.temperature_score - minScore) / (maxScore - minScore);
 
-                // Spherical coordinates mapping based only on temperament for radius
-                const radius = 80 * (1 - normalizedScore); // Map temperament to radius
+                // Spherical coordinates mapping based only on temperature for radius
+                const radius = 80 * (1 - normalizedScore); // Map temperature to radius
                 const theta = Math.random() * Math.PI; // Random inclination (0 to PI)
                 const phi = Math.random() * 2 * Math.PI; // Random azimuthal angle (0 to 2*PI)
 
@@ -2353,7 +2353,7 @@
                   `../../images/${d.filename}`,
                   { x, y, z },
                   {
-                    temperament_score: d.temperament_score,
+                    temperature_score: d.temperature_score,
                     intimacy_score: d.intimacy_score,
                   },
                   normalizedScore
@@ -2395,7 +2395,7 @@
                     const scores = intersectedSprite.userData.scores;
 
                     // Display the scores
-                    scoreOverlay.textContent = `Temperament: ${scores.temperament_score.toFixed(
+                    scoreOverlay.textContent = `Temperature: ${scores.temperature_score.toFixed(
                       2
                     )}`;
 

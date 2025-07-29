@@ -27,7 +27,7 @@ The views are arranged in a 3D grid as follows:
 
 ```
 Y=500: [completeness] [hashtag]     [open-question] [total-galaxy]
-Y=0:   [artists]     [intimacy]     [rhizome]       [temperament]
+Y=0:   [artists]     [intimacy]     [rhizome]       [temperature]
 ```
 
 Each view is positioned 500 units apart in X, Y, and Z coordinates.
@@ -37,7 +37,7 @@ Each view is positioned 500 units apart in X, Y, and Z coordinates.
 - **Artists Gallery**: Artist clusters with image representations
 - **Intimacy Tunnel**: Cylindrical tunnel with floating intimacy elements
 - **Rhizome Network**: Network nodes with connecting lines
-- **Temperament Scores**: 3D scatter plot of temperament data
+- **Temperature Scores**: 3D scatter plot of temperature data
 - **Completeness Analysis**: 3D grid of completeness scores
 - **Hashtag Gallery**: Floating hashtag elements
 - **Open Question**: Octahedron elements representing questions

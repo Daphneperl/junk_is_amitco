@@ -231,7 +231,7 @@
         left: 98px;
         top: 0px;
       }
-      #eye-temperament {
+      #eye-temperature {
         left: 200px;
         top: 38px;
       }
@@ -1009,7 +1009,7 @@
     <!-- Eyes Menu (fixed, bottom left) -->
     <div id="eyes-menu">
       <button class="eye-btn" id="eye-artist" title="Artist"></button>
-      <button class="eye-btn" id="eye-temperament" title="Temperament"></button>
+      <button class="eye-btn" id="eye-temperature" title="Temperature"></button>
       <button class="eye-btn" id="eye-intimacy" title="Intimacy"></button>
       <button class="eye-btn" id="eye-rhizome" title="Rhizome"></button>
       <button
@@ -1613,7 +1613,7 @@
 
       const EYE_VIEWS = [
         { key: "Artist", name: "Artist" },
-        { key: "Temperament", name: "Temperament" },
+        { key: "Temperature", name: "Temperature" },
         { key: "Intimacy", name: "Intimacy" },
         { key: "Rhizome", name: "Rhizome" },
         { key: "Completeness", name: "Completeness" },
@@ -1663,9 +1663,9 @@
             open: "Eyes/Artist_open.png",
           },
           {
-            id: "eye-temperament",
-            closed: "Eyes/Temperament_closed.png",
-            open: "Eyes/Temperament_open.png",
+            id: "eye-temperature",
+            closed: "Eyes/Temperature_closed.png",
+            open: "Eyes/Temperature_open.png",
           },
           {
             id: "eye-intimacy",
@@ -1745,8 +1745,8 @@
           btn.addEventListener("click", () => {
             // Navigation logic here
             switch (btn.id) {
-              case "eye-temperament":
-                window.location.href = "views/temperament/temperament.html";
+              case "eye-temperature":
+                window.location.href = "views/temperature/temperature.html";
                 break;
               case "eye-secret":
                 window.location.href =

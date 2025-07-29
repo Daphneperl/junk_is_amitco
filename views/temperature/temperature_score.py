@@ -13,7 +13,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 IMAGE_DIR = "../../images"
-OUTPUT_JSON = "temperament_scores.json"
+OUTPUT_JSON = "temperature_scores.json"
 
 # Load model and tokenizer
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -33,7 +33,7 @@ with torch.no_grad():
     text_features = model.encode_text(text_tokens)
     text_features /= text_features.norm(dim=-1, keepdim=True)
 
-def get_temperament_score(image_path):
+def get_temperature_score(image_path):
     try:
         # Try to open and convert image to RGB
         with Image.open(image_path) as img:
@@ -75,7 +75,7 @@ def main():
 
     # Process images with progress bar
     for image_path in tqdm(image_files, desc="Processing images", unit="image"):
-        score = get_temperament_score(image_path)
+        score = get_temperature_score(image_path)
         if score != float("-inf"):  # Only add if processing was successful
             # Get relative path from IMAGE_DIR
             rel_path = os.path.relpath(image_path, IMAGE_DIR)
@@ -93,7 +93,7 @@ def main():
     # Create ranked + randomized output
     ranked = {
         filename: {
-            "temperament_score": rank + 1,
+            "temperature_score": rank + 1,
             "intimacy_score": random.randint(1, 10)
         }
         for rank, (filename, _) in enumerate(scores)

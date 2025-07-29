@@ -932,11 +932,11 @@
         // Ring 1 (horizontal, up is +Y)
         const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
         const group1a = createEyeWithLabel(
-          "Eyes/Temperament_open.png",
-          "Temperament",
+          "Eyes/Temperature_open.png",
+          "Temperature",
           new THREE.Vector3(9, 0, 0),
           new THREE.Vector3(0, 1, 0),
-          "eye-temperament"
+          "eye-temperature"
         );
         const group1b = createEyeWithLabel(
           "Eyes/Rhizome_open.png",
@@ -1172,8 +1172,8 @@
 
           // Navigation logic
           switch (eyeId) {
-            case "eye-temperament":
-              window.location.href = "views/temperament/temperament.html";
+            case "eye-temperature":
+              window.location.href = "views/temperature/temperature.html";
               break;
             case "eye-secret":
               window.location.href =
