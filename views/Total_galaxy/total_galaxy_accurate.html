@@ -29,6 +29,7 @@
         top: 0;
         left: 0;
         z-index: 1;
+        cursor: pointer; /* Indicate clickable areas */
       }
 
       #loading-container {
@@ -126,6 +127,17 @@
         temperament: "TEMPERAMENT",
       };
 
+      // View navigation URLs
+      const viewNavigationUrls = {
+        rhizome: "../rhizome/rhizome-with-ui.html",
+        artist: "../Artists/Artist.html",
+        "open-question": "../open_question/openQuestion.html",
+        "hashtag-gallery": "../hashtag_gallery/hashtag_gallery.html",
+        completeness: "../Completeness/Completeness.html",
+        intimacy: "../intimacy/Intimacy.html",
+        temperament: "../temperament/temperament.html",
+      };
+
       // Create title sprite for a view
       function createTitleSprite(text, position) {
         // Create canvas for the title text
@@ -133,11 +145,11 @@
         const ctx = canvas.getContext("2d");
 
         // Set canvas size
-        canvas.width = 512;
-        canvas.height = 128;
+        canvas.width = 768;
+        canvas.height = 192;
 
         // Set font style (pixelated)
-        ctx.font = "48px VT323, monospace";
+        ctx.font = "72px VT323, monospace";
         ctx.fillStyle = "white";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -164,7 +176,7 @@
 
         // Create sprite
         const sprite = new THREE.Sprite(material);
-        sprite.scale.set(80, 20, 1); // Large size
+        sprite.scale.set(120, 30, 1); // Bigger size
         sprite.position.copy(position);
 
         // Add jitter properties
@@ -180,6 +192,164 @@
         };
 
         return sprite;
+      }
+
+      // Handle view clicks for navigation
+      function onViewClick(event) {
+        // Only handle clicks if controls are enabled (after initial animation)
+        if (!controls || !controls.enabled) {
+          return;
+        }
+
+        // Calculate mouse position in normalized device coordinates
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Create raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+
+        // Get all objects in the scene that can be clicked
+        const clickableObjects = [];
+
+        // Add all view groups and their children
+        Object.values(viewGroups).forEach((group) => {
+          clickableObjects.push(group);
+          // Add all children of the group (sprites, lines, etc.)
+          group.traverse((child) => {
+            if (child.isMesh || child.isSprite || child.isLine) {
+              clickableObjects.push(child);
+            }
+          });
+        });
+
+        // Perform raycasting
+        const intersects = raycaster.intersectObjects(clickableObjects, true);
+
+        if (intersects.length > 0) {
+          const clickedObject = intersects[0].object;
+
+          // Find which view group contains the clicked object
+          let targetView = null;
+          for (const [viewName, group] of Object.entries(viewGroups)) {
+            // Check if the clicked object is the group itself
+            if (group === clickedObject) {
+              targetView = viewName;
+              break;
+            }
+
+            // Check if the clicked object is a child of this group
+            let isChild = false;
+            group.traverse((child) => {
+              if (child === clickedObject) {
+                isChild = true;
+              }
+            });
+
+            if (isChild) {
+              targetView = viewName;
+              break;
+            }
+          }
+
+          // If we found a view, navigate to it
+          if (targetView && viewNavigationUrls[targetView]) {
+            console.log(
+              `Navigating to ${targetView} view: ${viewNavigationUrls[targetView]}`
+            );
+
+            // Add a brief visual feedback (optional)
+            const originalColor = clickedObject.material
+              ? clickedObject.material.color.clone()
+              : null;
+            if (clickedObject.material && clickedObject.material.color) {
+              clickedObject.material.color.setHex(0x00ff00); // Flash green
+              setTimeout(() => {
+                if (
+                  clickedObject.material &&
+                  clickedObject.material.color &&
+                  originalColor
+                ) {
+                  clickedObject.material.color.copy(originalColor);
+                }
+              }, 200);
+            }
+
+            // Navigate after a brief delay to show the feedback
+            setTimeout(() => {
+              window.location.href = viewNavigationUrls[targetView];
+            }, 300);
+          }
+        }
+      }
+
+      // Handle mouse movement for hover effects
+      function onMouseMove(event) {
+        // Only handle hover if controls are enabled (after initial animation)
+        if (!controls || !controls.enabled) {
+          return;
+        }
+
+        // Calculate mouse position in normalized device coordinates
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Create raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
+
+        // Get all objects in the scene that can be clicked
+        const clickableObjects = [];
+
+        // Add all view groups and their children
+        Object.values(viewGroups).forEach((group) => {
+          clickableObjects.push(group);
+          // Add all children of the group (sprites, lines, etc.)
+          group.traverse((child) => {
+            if (child.isMesh || child.isSprite || child.isLine) {
+              clickableObjects.push(child);
+            }
+          });
+        });
+
+        // Perform raycasting
+        const intersects = raycaster.intersectObjects(clickableObjects, true);
+
+        // Reset cursor style
+        renderer.domElement.style.cursor = "default";
+
+        if (intersects.length > 0) {
+          const hoveredObject = intersects[0].object;
+
+          // Check if we're hovering over a view
+          let isOverView = false;
+          for (const [viewName, group] of Object.entries(viewGroups)) {
+            // Check if the hovered object is the group itself
+            if (group === hoveredObject) {
+              isOverView = true;
+              break;
+            }
+
+            // Check if the hovered object is a child of this group
+            let isChild = false;
+            group.traverse((child) => {
+              if (child === hoveredObject) {
+                isChild = true;
+              }
+            });
+
+            if (isChild) {
+              isOverView = true;
+              break;
+            }
+          }
+
+          if (isOverView) {
+            renderer.domElement.style.cursor = "pointer";
+          }
+        }
       }
 
       // Update loading UI
@@ -1296,21 +1466,21 @@
             uniform float offset;
             uniform float darkness;
             varying vec2 vUv;
-            
+
             void main() {
               vec2 uv = vUv;
               vec4 color = texture2D(tDiffuse, uv);
-              
+
               // Calculate distance from center
               vec2 center = vec2(0.5, 0.5);
               float dist = distance(uv, center);
-              
+
               // Create vignette effect
               float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
-              
+
               // Apply vignette
               color.rgb *= vignette;
-              
+
               gl_FragColor = color;
             }
           `,
@@ -1358,8 +1528,11 @@
         controls._spherical = new THREE.Spherical();
         controls._sphericalDelta = new THREE.Spherical();
 
-        // Remove tooltip functionality since we're using floating titles now
-        // renderer.domElement.addEventListener("mousemove", onMouseMove);
+        // Add click event listener for navigation
+        renderer.domElement.addEventListener("click", onViewClick);
+
+        // Add hover event listener for visual feedback
+        renderer.domElement.addEventListener("mousemove", onMouseMove);
 
         // Add event listeners to pause auto-rotation during user interaction
         renderer.domElement.addEventListener("mousedown", () => {
@@ -1414,10 +1587,21 @@
         // Create and position title sprites above each view
         Object.entries(viewGroups).forEach(([viewName, group]) => {
           if (viewDisplayNames[viewName]) {
-            // Position title above the view
+            // Position title above the view with custom offsets for specific views
+            let verticalOffset = 100; // Default offset
+
+            // Custom offsets for specific views to bring them closer
+            if (viewName === "open-question") {
+              verticalOffset = 70; // Much closer for open question
+            } else if (viewName === "temperament") {
+              verticalOffset = 70; // Closer for temperament
+            } else if (viewName === "hashtag-gallery") {
+              verticalOffset = 70; // Closer for hashtag gallery
+            }
+
             const titlePosition = new THREE.Vector3(
               group.position.x,
-              group.position.y + 100, // 100 units above the view
+              group.position.y + verticalOffset,
               group.position.z
             );
 
@@ -1547,9 +1731,9 @@
             const jitterTime =
               time * jitterData.jitterSpeed + jitterData.jitterTime;
 
-            const jitterX = Math.sin(jitterTime) * 0.5;
-            const jitterY = Math.cos(jitterTime * 0.7) * 0.3;
-            const jitterZ = Math.sin(jitterTime * 0.5) * 0.2;
+            const jitterX = Math.sin(jitterTime) * 0.8;
+            const jitterY = Math.cos(jitterTime * 0.7) * 0.5;
+            const jitterZ = Math.sin(jitterTime * 0.5) * 0.3;
 
             titleSprite.position.set(
               jitterData.originalPosition.x + jitterX,
