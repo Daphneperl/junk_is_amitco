@@ -53,25 +53,6 @@
         background: #ffffff;
         transition: width 0.3s ease;
       }
-
-      #view-tooltip {
-        position: fixed;
-        color: white;
-        font-family: "VT323", monospace;
-        font-size: 18px;
-        background: rgba(0, 0, 0, 0.8);
-        padding: 8px 12px;
-        border-radius: 4px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        pointer-events: none;
-        z-index: 1000;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
-      #view-tooltip.visible {
-        opacity: 1;
-      }
     </style>
   </head>
   <body>
@@ -93,8 +74,6 @@
 
     <div id="visualization"></div>
 
-    <div id="view-tooltip"></div>
-
     <script>
       let scene, camera, renderer, controls;
       let composer;
@@ -104,9 +83,10 @@
       let loadedImages = 0;
       let totalImages = 0;
       let artisticData = [];
-      let raycaster, mouse;
       let tooltip = null;
       let globalRotationGroup; // Container for all content that will rotate
+      let viewTitles = {}; // Store title sprites for each view
+      let titleFadeInStartTime = 0; // When titles start fading in
       let cameraAnimation = {
         isActive: false,
         startTime: 0,
@@ -121,11 +101,7 @@
       // Continuous rotation after animation
       let continuousRotation = {
         isActive: false,
-        startTime: 0,
-        speed: -0.00004, // Even slower rotation speed (radians per millisecond) - negative for clockwise
-        currentAngle: 0,
-        distance: 800,
-        height: 200,
+        speed: -0.5, // Slow rotation speed (degrees per second) - negative for clockwise
       };
 
       // View positions in 3D space
@@ -141,74 +117,69 @@
 
       // View display names
       const viewDisplayNames = {
-        rhizome: "Rhizome",
-        artist: "Artist",
-        "open-question": "Open Question",
-        "hashtag-gallery": "Hashtag Gallery",
-        completeness: "Completeness",
-        intimacy: "Intimacy",
-        temperament: "Temperament",
+        rhizome: "RHIZOME",
+        artist: "ARTIST",
+        "open-question": "OPEN QUESTION",
+        "hashtag-gallery": "HASHTAG GALLERY",
+        completeness: "COMPLETENESS",
+        intimacy: "INTIMACY",
+        temperament: "TEMPERAMENT",
       };
 
-      // Tooltip functions
-      function showTooltip(text, x, y) {
-        if (!tooltip) {
-          tooltip = document.getElementById("view-tooltip");
-        }
-        tooltip.textContent = text;
-        tooltip.style.left = x + 10 + "px";
-        tooltip.style.top = y - 10 + "px";
-        tooltip.classList.add("visible");
-      }
+      // Create title sprite for a view
+      function createTitleSprite(text, position) {
+        // Create canvas for the title text
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
-      function hideTooltip() {
-        if (tooltip) {
-          tooltip.classList.remove("visible");
-        }
-      }
+        // Set canvas size
+        canvas.width = 512;
+        canvas.height = 128;
 
-      function onMouseMove(event) {
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        // Set font style (pixelated)
+        ctx.font = "48px VT323, monospace";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
-        raycaster.setFromCamera(mouse, camera);
+        // Add text shadow for better visibility
+        ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
 
-        // Check intersection with view groups
-        const intersects = raycaster.intersectObjects(scene.children, true);
+        // Draw the text
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
-        if (intersects.length > 0) {
-          // Find which view group the intersected object belongs to
-          let currentObject = intersects[0].object;
-          let viewName = null;
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
 
-          // Traverse up the parent chain to find the view group
-          while (currentObject && !viewName) {
-            for (const [name, group] of Object.entries(viewGroups)) {
-              if (
-                currentObject === group ||
-                group.children.includes(currentObject)
-              ) {
-                viewName = name;
-                break;
-              }
-            }
-            if (!viewName) {
-              currentObject = currentObject.parent;
-            }
-          }
+        // Create sprite material
+        const material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0, // Start invisible
+        });
 
-          if (viewName && viewDisplayNames[viewName]) {
-            showTooltip(
-              viewDisplayNames[viewName],
-              event.clientX,
-              event.clientY
-            );
-          } else {
-            hideTooltip();
-          }
-        } else {
-          hideTooltip();
-        }
+        // Create sprite
+        const sprite = new THREE.Sprite(material);
+        sprite.scale.set(80, 20, 1); // Large size
+        sprite.position.copy(position);
+
+        // Add jitter properties
+        sprite.userData = {
+          originalPosition: position.clone(),
+          jitterOffset: new THREE.Vector3(
+            (Math.random() - 0.5) * 0.1,
+            (Math.random() - 0.5) * 0.1,
+            (Math.random() - 0.5) * 0.1
+          ),
+          jitterSpeed: 0.5 + Math.random() * 0.5,
+          jitterTime: Math.random() * Math.PI * 2,
+        };
+
+        return sprite;
       }
 
       // Update loading UI
@@ -1350,10 +1321,6 @@
         vignettePass.uniforms.darkness.value = 0.5;
         composer.addPass(vignettePass);
 
-        // Initialize raycaster and mouse
-        raycaster = new THREE.Raycaster();
-        mouse = new THREE.Vector2();
-
         // Add controls
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
@@ -1372,6 +1339,10 @@
         controls.enableRotate = true;
         controls.rotateSpeed = 1.0;
 
+        // Enable automatic rotation (this will be controlled by our custom logic)
+        controls.autoRotate = false; // We'll handle this manually
+        controls.autoRotateSpeed = continuousRotation.speed; // Set the speed
+
         // Set the rotation center to the global rotation group
         controls.target.set(0, 0, 0);
 
@@ -1387,8 +1358,25 @@
         controls._spherical = new THREE.Spherical();
         controls._sphericalDelta = new THREE.Spherical();
 
-        // Add mouse move event listener for tooltips
-        renderer.domElement.addEventListener("mousemove", onMouseMove);
+        // Remove tooltip functionality since we're using floating titles now
+        // renderer.domElement.addEventListener("mousemove", onMouseMove);
+
+        // Add event listeners to pause auto-rotation during user interaction
+        renderer.domElement.addEventListener("mousedown", () => {
+          if (controls && continuousRotation.isActive) {
+            controls.autoRotate = false;
+          }
+        });
+        renderer.domElement.addEventListener("mouseup", () => {
+          if (controls && continuousRotation.isActive) {
+            controls.autoRotate = true;
+          }
+        });
+        renderer.domElement.addEventListener("mouseleave", () => {
+          if (controls && continuousRotation.isActive) {
+            controls.autoRotate = true;
+          }
+        });
 
         // Add light
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -1422,6 +1410,26 @@
         Object.values(viewGroups).forEach((group) =>
           globalRotationGroup.add(group)
         );
+
+        // Create and position title sprites above each view
+        Object.entries(viewGroups).forEach(([viewName, group]) => {
+          if (viewDisplayNames[viewName]) {
+            // Position title above the view
+            const titlePosition = new THREE.Vector3(
+              group.position.x,
+              group.position.y + 100, // 100 units above the view
+              group.position.z
+            );
+
+            const titleSprite = createTitleSprite(
+              viewDisplayNames[viewName],
+              titlePosition
+            );
+
+            viewTitles[viewName] = titleSprite;
+            globalRotationGroup.add(titleSprite);
+          }
+        });
 
         // Ensure scene is fully rendered before proceeding
         renderer.render(scene, camera);
@@ -1480,11 +1488,13 @@
           // Start continuous rotation when animation is 90% complete for smooth blending
           if (progress >= 0.9 && !continuousRotation.isActive) {
             continuousRotation.isActive = true;
-            continuousRotation.startTime = currentTime;
-            continuousRotation.currentAngle = currentAngle;
-            continuousRotation.distance = currentDistance;
-            continuousRotation.height = currentHeight;
             console.log("Starting continuous slow rotation (blended)");
+          }
+
+          // Start title fade-in when animation completes
+          if (progress >= 1 && titleFadeInStartTime === 0) {
+            titleFadeInStartTime = Date.now();
+            console.log("Starting title fade-in animation");
           }
 
           // End animation when complete
@@ -1509,28 +1519,44 @@
         }
 
         // Handle continuous rotation after initial animation
-        if (continuousRotation.isActive) {
+        if (continuousRotation.isActive && controls && controls.enabled) {
+          // Enable auto-rotate when continuous rotation is active
+          controls.autoRotate = true;
+        }
+
+        // Animate titles
+        if (titleFadeInStartTime > 0) {
           const currentTime = Date.now();
-          const elapsed = currentTime - continuousRotation.startTime;
+          const fadeInDuration = 3000; // 3 seconds fade-in
+          const elapsed = currentTime - titleFadeInStartTime;
+          const fadeProgress = Math.min(elapsed / fadeInDuration, 1);
 
-          // Calculate new angle based on elapsed time and speed
-          continuousRotation.currentAngle += continuousRotation.speed * elapsed;
-          continuousRotation.startTime = currentTime; // Reset start time for next frame
+          // Animate each title
+          Object.values(viewTitles).forEach((titleSprite) => {
+            // Fade in
+            if (titleSprite.material) {
+              titleSprite.material.opacity = fadeProgress;
+            }
 
-          // Position camera in orbit around the environment
-          camera.position.x =
-            continuousRotation.distance *
-            Math.cos(continuousRotation.currentAngle);
-          camera.position.z =
-            continuousRotation.distance *
-            Math.sin(continuousRotation.currentAngle);
-          camera.position.y = continuousRotation.height;
+            // Make title always face the camera
+            titleSprite.lookAt(camera.position);
 
-          // Make camera look at the center of the environment
-          camera.lookAt(0, 0, 0);
+            // Add subtle jitter
+            const time = Date.now() * 0.001;
+            const jitterData = titleSprite.userData;
+            const jitterTime =
+              time * jitterData.jitterSpeed + jitterData.jitterTime;
 
-          // Only update matrix once for better performance
-          camera.updateMatrixWorld();
+            const jitterX = Math.sin(jitterTime) * 0.5;
+            const jitterY = Math.cos(jitterTime * 0.7) * 0.3;
+            const jitterZ = Math.sin(jitterTime * 0.5) * 0.2;
+
+            titleSprite.position.set(
+              jitterData.originalPosition.x + jitterX,
+              jitterData.originalPosition.y + jitterY,
+              jitterData.originalPosition.z + jitterZ
+            );
+          });
         }
 
         // Animate particles (optimized for performance)
