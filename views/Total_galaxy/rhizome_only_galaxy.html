@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rhizome Network</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <style>
+      @font-face {
+        font-family: "VT323";
+        src: url("../../assets/VT323-Regular.ttf") format("truetype");
+      }
+
+      body {
+        margin: 0;
+        background-color: black;
+        overflow: hidden;
+        font-family: "VT323", monospace;
+      }
+
+      #visualization {
+        width: 100vw;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1;
+      }
+
+      #loading-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 1001;
+      }
+
+      .loading-bar {
+        width: 300px;
+        height: 20px;
+        background: #333;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .loading-progress {
+        height: 100%;
+        background: #ffffff;
+        transition: width 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading-container">
+      <div class="loading-bar">
+        <div
+          id="loading-progress"
+          class="loading-progress"
+          style="width: 0%"
+        ></div>
+      </div>
+      <div
+        id="loading-text"
+        style="color: #ffffff; font-family: monospace; margin-top: 10px"
+      >
+        LOADING RHIZOME... 0%
+      </div>
+    </div>
+
+    <div id="visualization"></div>
+
+    <script>
+      let scene, camera, renderer, controls;
+      let composer;
+      let rhizomeGroup;
+      let loadedImages = 0;
+      let totalImages = 0;
+
+      // Update loading UI
+      function updateLoadingUI(progress) {
+        const progressBar = document.getElementById("loading-progress");
+        const loadingText = document.getElementById("loading-text");
+
+        if (progressBar && loadingText) {
+          progressBar.style.width = `${progress}%`;
+          loadingText.textContent = `LOADING RHIZOME... ${Math.floor(
+            progress
+          )}%`;
+        }
+      }
+
+      // Load images with progress tracking and parallel loading
+      async function loadImages() {
+        try {
+          const response = await fetch("../../images/images.json");
+          const imageList = await response.json();
+          totalImages = imageList.length;
+
+          const textureLoader = new THREE.TextureLoader();
+          const textures = new Array(imageList.length);
+          const loadPromises = [];
+
+          // Create all load promises in parallel
+          for (let i = 0; i < imageList.length; i++) {
+            const imageName = imageList[i];
+            const loadPromise = new Promise((resolve) => {
+              textureLoader.load(
+                `../../images/${imageName}`,
+                (texture) => {
+                  // Optimize texture for performance
+                  texture.generateMipmaps = false;
+                  texture.minFilter = THREE.LinearFilter;
+                  texture.magFilter = THREE.LinearFilter;
+                  texture.format = THREE.RGBFormat;
+                  texture.flipY = true; // Fix upside-down images
+
+                  textures[i] = { texture, filename: imageName, index: i };
+                  loadedImages++;
+                  updateLoadingUI((loadedImages / totalImages) * 100);
+                  resolve();
+                },
+                undefined,
+                (error) => {
+                  console.warn(`Failed to load ${imageName}:`, error);
+                  textures[i] = {
+                    texture: null,
+                    filename: imageName,
+                    index: i,
+                  };
+                  loadedImages++;
+                  updateLoadingUI((loadedImages / totalImages) * 100);
+                  resolve();
+                }
+              );
+            });
+            loadPromises.push(loadPromise);
+          }
+
+          // Wait for all images to load
+          await Promise.all(loadPromises);
+
+          // Filter out null textures and return
+          return textures.filter((t) => t !== null);
+        } catch (error) {
+          console.error("Error loading images:", error);
+          return [];
+        }
+      }
+
+      // Create Rhizome view - random sphere with white connections
+      function createRhizomeView(textures) {
+        const group = new THREE.Group();
+        group.position.set(0, 0, 0);
+
+        // Create sprites and store their positions for connections
+        const sprites = [];
+        const spritePositions = [];
+        const sphereRadius = 70;
+
+        // Position images randomly in a sphere
+        textures.forEach((textureData, index) => {
+          if (textureData.texture) {
+            const aspectRatio =
+              textureData.texture.image.width /
+              textureData.texture.image.height;
+            const width = 6; // Smaller size for better density
+            const height = width / aspectRatio;
+
+            const material = new THREE.SpriteMaterial({
+              map: textureData.texture,
+              transparent: true,
+              opacity: 0.9,
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(width, height, 1);
+
+            // Random position within more spherical shape
+            const baseRadius = sphereRadius * Math.pow(Math.random(), 0.3); // Less bias toward center for more uniform distribution
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+
+            // Add minimal noise to maintain some organic feel
+            const noiseX = (Math.random() - 0.5) * 0.2;
+            const noiseY = (Math.random() - 0.5) * 0.2;
+            const noiseZ = (Math.random() - 0.5) * 0.2;
+
+            // Create minimal radius variations for slight organic feel
+            const radiusVariation =
+              1 + Math.sin(theta * 2) * 0.1 + Math.cos(phi * 1.5) * 0.1;
+            const radius = baseRadius * radiusVariation;
+
+            const x =
+              radius * Math.sin(phi) * Math.cos(theta) + noiseX * sphereRadius;
+            const y =
+              radius * Math.sin(phi) * Math.sin(theta) + noiseY * sphereRadius;
+            const z = radius * Math.cos(phi) + noiseZ * sphereRadius;
+
+            sprite.position.set(x, y, z);
+            sprites.push(sprite);
+            spritePositions.push({ x, y, z, index });
+
+            group.add(sprite);
+          }
+        });
+
+        // Create white connecting lines between nearby sprites
+        // Ensure each image has at least 2 connections for moderate density
+        const connections = [];
+        const connectionCounts = new Array(spritePositions.length).fill(0);
+        const maxConnections = 800; // Reduced for sparser network with outliers
+        let totalConnections = 0;
+
+        // First pass: ensure each sprite has at least 2 connections
+        for (let i = 0; i < spritePositions.length; i++) {
+          const pos1 = spritePositions[i];
+
+          // Find the closest sprites that aren't already connected
+          const distances = [];
+          for (let j = 0; j < spritePositions.length; j++) {
+            if (i !== j) {
+              const pos2 = spritePositions[j];
+              const dx = pos2.x - pos1.x;
+              const dy = pos2.y - pos1.y;
+              const dz = pos2.z - pos1.z;
+              const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+              distances.push({ index: j, distance: distance });
+            }
+          }
+
+          // Sort by distance and connect to closest available sprites
+          distances.sort((a, b) => a.distance - b.distance);
+
+          let connectionsMade = 0;
+          for (const dist of distances) {
+            if (connectionsMade >= 1) break; // Reduced to 1 minimum connection for sparser network
+
+            const j = dist.index;
+            const connectionKey = i < j ? `${i}-${j}` : `${j}-${i}`;
+
+            // Check if this connection already exists and respect max connections limit
+            if (
+              !connections.includes(connectionKey) &&
+              dist.distance < 80 &&
+              connectionCounts[i] < 2 && // Keep low max connections per image for sparsity
+              connectionCounts[j] < 2 // Keep low max connections per image for sparsity
+            ) {
+              connections.push(connectionKey);
+              connectionCounts[i]++;
+              connectionCounts[j]++;
+              connectionsMade++;
+              totalConnections++;
+            }
+          }
+        }
+
+        // Second pass: add many more random connections for dense network
+        for (
+          let i = 0;
+          i < spritePositions.length && totalConnections < maxConnections;
+          i++
+        ) {
+          const pos1 = spritePositions[i];
+
+          for (
+            let j = i + 1;
+            j < spritePositions.length && totalConnections < maxConnections;
+            j++
+          ) {
+            const pos2 = spritePositions[j];
+
+            const dx = pos2.x - pos1.x;
+            const dy = pos2.y - pos1.y;
+            const dz = pos2.z - pos1.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            const connectionKey = `${i}-${j}`;
+
+            // Add random connections if not already connected and within distance
+            // Very low probability for sparse network
+            if (
+              !connections.includes(connectionKey) &&
+              distance < 100 && // Reduced distance threshold for sparser local connections
+              Math.random() < 0.025 && // Very low probability for sparse edges
+              connectionCounts[i] < 2 && // Keep low max connections per image for sparsity
+              connectionCounts[j] < 2 // Keep low max connections per image for sparsity
+            ) {
+              connections.push(connectionKey);
+              connectionCounts[i]++;
+              connectionCounts[j]++;
+              totalConnections++;
+            }
+          }
+        }
+
+        // Third pass: add some longer-range connections for network resilience
+        for (
+          let i = 0;
+          i < spritePositions.length && totalConnections < maxConnections;
+          i++
+        ) {
+          const pos1 = spritePositions[i];
+
+          for (
+            let j = i + 1;
+            j < spritePositions.length && totalConnections < maxConnections;
+            j++
+          ) {
+            const pos2 = spritePositions[j];
+
+            const dx = pos2.x - pos1.x;
+            const dy = pos2.y - pos1.y;
+            const dz = pos2.z - pos1.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            const connectionKey = `${i}-${j}`;
+
+            // Add some longer-range connections with lower probability
+            if (
+              !connections.includes(connectionKey) &&
+              distance >= 100 &&
+              distance < 150 &&
+              Math.random() < 0.01 && // Low probability for medium-range connections
+              connectionCounts[i] < 2 && // Keep low max connections per image for sparsity
+              connectionCounts[j] < 2 // Keep low max connections per image for sparsity
+            ) {
+              connections.push(connectionKey);
+              connectionCounts[i]++;
+              connectionCounts[j]++;
+              totalConnections++;
+            }
+          }
+        }
+
+        // Fourth pass: add very long-range outlier connections
+        for (
+          let i = 0;
+          i < spritePositions.length && totalConnections < maxConnections;
+          i++
+        ) {
+          const pos1 = spritePositions[i];
+
+          for (
+            let j = i + 1;
+            j < spritePositions.length && totalConnections < maxConnections;
+            j++
+          ) {
+            const pos2 = spritePositions[j];
+
+            const dx = pos2.x - pos1.x;
+            const dy = pos2.y - pos1.y;
+            const dz = pos2.z - pos1.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            const connectionKey = `${i}-${j}`;
+
+            // Add very long-range outlier connections with very low probability
+            if (
+              !connections.includes(connectionKey) &&
+              distance >= 150 &&
+              distance < 250 &&
+              Math.random() < 0.005 && // Very low probability for outlier connections
+              connectionCounts[i] < 2 && // Keep low max connections per image for sparsity
+              connectionCounts[j] < 2 // Keep low max connections per image for sparsity
+            ) {
+              connections.push(connectionKey);
+              connectionCounts[i]++;
+              connectionCounts[j]++;
+              totalConnections++;
+            }
+          }
+        }
+
+        // Create the actual line geometries with varying weights
+        connections.forEach((connectionKey) => {
+          const [i, j] = connectionKey.split("-").map(Number);
+          const pos1 = spritePositions[i];
+          const pos2 = spritePositions[j];
+
+          // Calculate distance for weight
+          const dx = pos2.x - pos1.x;
+          const dy = pos2.y - pos1.y;
+          const dz = pos2.z - pos1.z;
+          const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+          // Calculate weight based on distance (closer = stronger connection)
+          const maxDistance = 100; // Much smaller maximum distance for extreme contrast
+          const normalizedDistance = Math.min(distance / maxDistance, 1);
+          const weight = Math.pow(1 - normalizedDistance, 3); // Cubed for extremely dramatic falloff
+
+          // Vary line thickness and opacity based on weight with extremely drastic differences
+          const lineWidth = 4 + weight * 40; // 4-44 pixels thick (11x difference, much higher base)
+          const opacity = 1.0; // Full opacity for all edges
+
+          const geometry = new THREE.BufferGeometry();
+          const positions = new Float32Array([
+            pos1.x,
+            pos1.y,
+            pos1.z,
+            pos2.x,
+            pos2.y,
+            pos2.z,
+          ]);
+          geometry.setAttribute(
+            "position",
+            new THREE.BufferAttribute(positions, 3)
+          );
+
+          const material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: opacity,
+            linewidth: lineWidth,
+          });
+
+          const line = new THREE.Line(geometry, material);
+          group.add(line);
+        });
+
+        return group;
+      }
+
+      // Initialize the scene
+      async function init() {
+        console.log("Starting initialization...");
+
+        // Create scene first
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+
+        // Set black background
+        scene.background = new THREE.Color(0x000000);
+
+        // Create camera
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          3000
+        );
+        camera.position.set(0, 0, 200);
+
+        // Create renderer
+        renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          powerPreference: "high-performance",
+          stencil: false,
+          depth: true,
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document
+          .getElementById("visualization")
+          .appendChild(renderer.domElement);
+
+        // Setup post-processing
+        composer = new THREE.EffectComposer(renderer);
+        const renderPass = new THREE.RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        // Add controls
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 50;
+        controls.maxDistance = 500;
+        controls.target.set(0, 0, 0);
+        controls.enabled = true;
+
+        // Enable mouse scroll for zooming
+        controls.enableZoom = true;
+        controls.zoomSpeed = 1.0;
+
+        // Enable dragging to rotate the environment
+        controls.enablePan = false;
+        controls.enableRotate = true;
+        controls.rotateSpeed = 1.0;
+
+        // Set the rotation center
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        // Add light
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        // Load images
+        console.log("Loading images...");
+        const textures = await loadImages();
+        console.log(`Loaded ${textures.length} textures`);
+
+        // Create rhizome view
+        console.log("Creating rhizome view...");
+        rhizomeGroup = createRhizomeView(textures);
+        scene.add(rhizomeGroup);
+
+        console.log("Initialization complete!");
+      }
+
+      // Animation loop (minimal - just for controls)
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // Only update controls if they are enabled
+        if (controls && controls.enabled) {
+          controls.update();
+        }
+        composer.render();
+      }
+
+      // Handle window resize
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      // Start the visualization
+      async function startVisualization() {
+        try {
+          console.log("Starting visualization...");
+          await init();
+
+          // Hide loading screen
+          document.getElementById("loading-container").style.display = "none";
+
+          // Start animation
+          animate();
+
+          // Setup resize handler
+          window.addEventListener("resize", onWindowResize, false);
+
+          console.log("Visualization started successfully!");
+        } catch (error) {
+          console.error("Error starting visualization:", error);
+          const loadingText = document.getElementById("loading-text");
+          if (loadingText) {
+            loadingText.textContent = "ERROR: Failed to load. Please refresh.";
+            loadingText.style.color = "#ff4444";
+          }
+        }
+      }
+
+      // Start when page loads
+      window.addEventListener("load", startVisualization);
+    </script>
+  </body>
+</html>
