@@ -63,51 +63,6 @@
         background: #ffffff;
         transition: width 0.3s ease;
       }
-      #quote-info {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        color: white;
-        font-family: "Heming", monospace;
-        font-size: 14px;
-        z-index: 100;
-        background: rgba(0, 0, 0, 0.7);
-        padding: 15px;
-        border-radius: 8px;
-        max-width: 400px;
-        display: none;
-      }
-      #quote-info h3 {
-        margin: 0 0 10px 0;
-        font-size: 16px;
-        color: #ffffff;
-      }
-      #quote-info p {
-        margin: 5px 0;
-        color: #cccccc;
-      }
-      #quote-info .bottom-line {
-        color: #ffaa00;
-        font-weight: bold;
-      }
-      #refresh-button {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 10px 15px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-family: "Heming", monospace;
-        font-size: 14px;
-        z-index: 100;
-        transition: background 0.3s ease;
-      }
-      #refresh-button:hover {
-        background: rgba(255, 255, 255, 0.3);
-      }
 
       /* Floating Eye Styles */
       #floating-eye {
@@ -176,6 +131,9 @@
         pointer-events: auto;
         cursor: grab;
         transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+          opacity 0.5s ease;
       }
 
       #rings-container:active {
@@ -305,6 +263,13 @@
       #upload-hand-btn.dock-hidden {
         opacity: 0;
         bottom: -200px;
+      }
+
+      /* UI visibility control */
+      .ui-ready #rings-container,
+      .ui-ready #search-bar,
+      .ui-ready #upload-hand-btn {
+        opacity: 1;
       }
       #upload-hand-btn-text {
         position: absolute;
@@ -782,13 +747,6 @@
       </div>
     </div>
     <div id="visualization"></div>
-    <div id="quote-info">
-      <h3 id="quote-title"></h3>
-      <p class="bottom-line" id="quote-bottom-line"></p>
-      <p id="quote-origin"></p>
-      <p id="quote-images-count"></p>
-    </div>
-    <button id="refresh-button" onclick="refreshGallery()">New Quote</button>
 
     <!-- Floating Eye -->
     <div id="floating-eye">
@@ -842,6 +800,20 @@
       let raycaster, mouse;
       let quoteConnections = {}; // Store the quote connections data
       let currentQuoteData = null; // Store current quote data
+
+      // Floating eye movement variables
+      let eyeX = 100;
+      let eyeY = 100;
+      let eyeTargetX = 100;
+      let eyeTargetY = 100;
+      let eyeSpeed = 0.02;
+      let eyeDriftX = 0;
+      let eyeDriftY = 0;
+      let eyeDriftSpeed = 0.5;
+      let eyeDriftAmplitude = 2;
+      let lastEyeMoveTime = 0;
+      let eyeMoveInterval = 8000; // 8 seconds between target changes
+      let eyeIsHovered = false;
 
       // Separate variables for rings
       let ringsScene, ringsCamera, ringsRenderer;
@@ -1112,6 +1084,17 @@
             camera.position.y = cameraY;
             camera.lookAt(0, cameraY, 0);
             isRotating = false;
+
+            // Show pixel arrow indicator when camera rotation finishes
+            const pixelArrowIndicator = document.getElementById(
+              "pixel-arrow-indicator"
+            );
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.add("show");
+            }
+
+            // Enable UI when animation completes
+            document.body.classList.add("ui-ready");
           }
         }
 
@@ -1149,6 +1132,9 @@
         controls.update();
         composer.render();
         ringsRenderer.render(ringsScene, ringsCamera);
+
+        // Update floating eye position
+        updateFloatingEye();
       }
 
       function updateLoadingUI(progress) {
@@ -1165,7 +1151,7 @@
         const numImages = imageList.length;
         const arcAngle = Math.PI * 1.22; // 220 degrees
         let radius = wallRadius; // Use shared wall radius
-        const yCenter = 8; // Moved images higher
+        const yCenter = 17; // Moved images even higher
         const fixedHeight = 18; // All images have this height
         const zOffset = 0;
 
@@ -1361,7 +1347,7 @@
         const floorRadius = gridRadius; // Match the wall grid radius for alignment
         const floorSegments = 32; // Number of segments around the full circle
         const radialSegments = 8; // Number of radial lines
-        const y = -height; // Floor height - moved lower
+        const y = -height + 9; // Floor height - moved higher
 
         // Generate vertices for full circular floor grid
         for (let i = 0; i <= radialSegments; i++) {
@@ -1841,28 +1827,6 @@
         return currentQuoteData;
       }
 
-      // Update quote info display
-      function updateQuoteInfo() {
-        if (!currentQuoteData) return;
-
-        const quoteInfo = document.getElementById("quote-info");
-        const quoteTitle = document.getElementById("quote-title");
-        const quoteBottomLine = document.getElementById("quote-bottom-line");
-        const quoteOrigin = document.getElementById("quote-origin");
-        const quoteImagesCount = document.getElementById("quote-images-count");
-
-        // Format quote text (replace underscores with spaces)
-        const formattedQuote = currentQuoteData.quote.replace(/_/g, " ");
-
-        quoteTitle.textContent = formattedQuote;
-        quoteBottomLine.textContent = currentQuoteData.bottom_line;
-        quoteOrigin.textContent = currentQuoteData.origin;
-        quoteImagesCount.textContent = `${currentQuoteData.num_images} semantically connected images`;
-
-        // Show the quote info
-        quoteInfo.style.display = "block";
-      }
-
       // Create curved 3D text wrapped around the cylinder
       function createCurvedText(text) {
         // Remove existing curved text if any
@@ -1915,7 +1879,7 @@
         curvedText = new THREE.Mesh(geometry, material);
 
         // Position and curve the text
-        curvedText.position.set(0, 32, 0); // Above the images - moved even higher
+        curvedText.position.set(0, 45, 0); // Above the images - moved even higher
         curvedText.rotation.y = Math.PI / 2; // Face outward
 
         // Apply curvature by bending the geometry
@@ -1965,13 +1929,6 @@
                 init();
 
                 // Add image wall with semantically connected images
-                addImageWall(quoteData.matching_images);
-
-                // Create curved text with the quote
-                const formattedQuote = quoteData.quote.replace(/_/g, " ");
-                createCurvedText(formattedQuote);
-
-                // Update quote info display
                 updateQuoteInfo();
               }
 
@@ -1998,62 +1955,6 @@
 
       // Start the visualization when the page loads
       window.addEventListener("load", startVisualization);
-
-      function refreshGallery() {
-        document.getElementById("loading-container").style.display = "block";
-        document.getElementById("black-overlay").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "1";
-        document.getElementById("visualization").style.display = "none";
-
-        // Hide pixel arrow indicator during refresh
-        const pixelArrowIndicator = document.getElementById(
-          "pixel-arrow-indicator"
-        );
-        if (pixelArrowIndicator) {
-          pixelArrowIndicator.classList.remove("show");
-        }
-
-        // Clear current images and text without reinitializing the scene
-        clearPreviousImages();
-        if (curvedText) {
-          scene.remove(curvedText);
-          curvedText = null;
-        }
-        currentQuoteData = null;
-
-        // Load new quote connections
-        loadQuoteConnections().then((quoteData) => {
-          if (quoteData) {
-            // Add image wall with semantically connected images (don't reinitialize scene)
-            addImageWall(quoteData.matching_images);
-
-            // Create curved text with the quote
-            const formattedQuote = quoteData.quote.replace(/_/g, " ");
-            createCurvedText(formattedQuote);
-
-            // Update quote info display
-            updateQuoteInfo();
-          }
-
-          // Hide loading page and show visualization
-          document.getElementById("loading-container").style.display = "none";
-          document.getElementById("visualization").style.display = "block";
-          document.getElementById("black-overlay").style.opacity = "0";
-          setTimeout(() => {
-            document.getElementById("black-overlay").style.display = "none";
-          }, 500);
-
-          // Start camera position animation after loading
-          isRotating = true;
-          rotationStart = performance.now();
-          initialAngle = 0;
-
-          // Show pixel arrow indicator after refresh is complete
-          if (pixelArrowIndicator) {
-            pixelArrowIndicator.classList.add("show");
-          }
-        });
-      }
 
       // Chatbot state
       let chatbotState = {
@@ -2245,11 +2146,13 @@
         // Set up hover events
         eye.addEventListener("mouseenter", () => {
           console.log("Eye hovered!");
+          eyeIsHovered = true;
           tooltip.classList.add("show");
         });
 
         eye.addEventListener("mouseleave", () => {
           console.log("Eye unhovered!");
+          eyeIsHovered = false;
           tooltip.classList.remove("show");
         });
 
@@ -2274,14 +2177,144 @@
         });
 
         // Set initial position
-        eye.style.left = "100px";
-        eye.style.top = "100px";
+        eye.style.left = eyeX + "px";
+        eye.style.top = eyeY + "px";
 
         // Show the floating eye after initialization
         eye.style.display = "block";
 
-        console.log("Eye positioned at: 100, 100");
+        console.log("Eye positioned at:", eyeX, eyeY);
         console.log("Eye should be visible now!");
+      }
+
+      function updateFloatingEye() {
+        const eye = document.getElementById("floating-eye");
+        if (!eye || eye.style.display === "none") return;
+
+        // Don't move if hovered
+        if (eyeIsHovered) return;
+
+        const now = Date.now();
+        const time = now * 0.001; // Convert to seconds
+
+        // Change target position periodically with more organic timing
+        if (now - lastEyeMoveTime > eyeMoveInterval) {
+          const margin = 150;
+          const screenWidth = window.innerWidth;
+          const screenHeight = window.innerHeight;
+          const topMargin = 150; // Keep eye away from top
+          const bottomMargin = 300; // Keep eye far from bottom
+          const centerAvoidanceRadius =
+            Math.min(window.innerWidth, window.innerHeight) * 0.3; // Avoid center area
+
+          // Create perimeter-based movement - avoid bottom and center
+          const perimeterChoice = Math.random();
+
+          if (perimeterChoice < 0.5) {
+            // Top edge only
+            eyeTargetX = margin + Math.random() * (screenWidth - 2 * margin);
+            eyeTargetY = topMargin + Math.random() * 100; // Stay in top area
+          } else if (perimeterChoice < 0.75) {
+            // Left edge (avoiding bottom)
+            eyeTargetX = margin + Math.random() * 100;
+            eyeTargetY =
+              topMargin +
+              Math.random() * (screenHeight - bottomMargin - topMargin);
+          } else {
+            // Right edge (avoiding bottom)
+            eyeTargetX = screenWidth - margin - Math.random() * 100;
+            eyeTargetY =
+              topMargin +
+              Math.random() * (screenHeight - bottomMargin - topMargin);
+          }
+
+          // Ensure target is not in center area
+          const centerX = screenWidth / 2;
+          const centerY = screenHeight / 2;
+          const distanceFromCenter = Math.sqrt(
+            (eyeTargetX - centerX) ** 2 + (eyeTargetY - centerY) ** 2
+          );
+
+          if (distanceFromCenter < centerAvoidanceRadius) {
+            // Move target away from center
+            const angle = Math.atan2(
+              eyeTargetY - centerY,
+              eyeTargetX - centerX
+            );
+            eyeTargetX = centerX + Math.cos(angle) * centerAvoidanceRadius;
+            eyeTargetY = centerY + Math.sin(angle) * centerAvoidanceRadius;
+          }
+
+          lastEyeMoveTime = now;
+        }
+
+        // Add subtle organic drift using sine waves
+        eyeDriftX = Math.sin(time * eyeDriftSpeed) * eyeDriftAmplitude;
+        eyeDriftY =
+          Math.cos(time * eyeDriftSpeed * 0.7) * eyeDriftAmplitude * 0.8;
+
+        // Smooth movement towards target with easing
+        const dx = eyeTargetX - eyeX;
+        const dy = eyeTargetY - eyeY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Calculate distance from center and bottom to avoid them
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const distanceFromCenter = Math.sqrt(
+          (eyeX - centerX) ** 2 + (eyeY - centerY) ** 2
+        );
+        const centerAvoidanceRadius =
+          Math.min(window.innerWidth, window.innerHeight) * 0.3;
+        const bottomAvoidanceY = window.innerHeight - 300; // Keep 300px from bottom
+
+        // Add center and bottom avoidance force
+        let avoidanceX = 0;
+        let avoidanceY = 0;
+
+        // Center avoidance
+        if (distanceFromCenter < centerAvoidanceRadius) {
+          const avoidanceStrength = 0.08; // Increased strength
+          const centerDx = eyeX - centerX;
+          const centerDy = eyeY - centerY;
+          const centerDistance = Math.sqrt(
+            centerDx * centerDx + centerDy * centerDy
+          );
+          if (centerDistance > 0) {
+            // Stronger avoidance when closer to center
+            const avoidanceMultiplier =
+              1 + (1 - distanceFromCenter / centerAvoidanceRadius);
+            avoidanceX =
+              (centerDx / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+            avoidanceY =
+              (centerDy / centerDistance) *
+              avoidanceStrength *
+              avoidanceMultiplier;
+          }
+        }
+
+        // Bottom avoidance
+        if (eyeY > bottomAvoidanceY) {
+          const bottomAvoidanceStrength = 0.1; // Strong bottom avoidance
+          avoidanceY -=
+            (bottomAvoidanceStrength * (eyeY - bottomAvoidanceY)) / 100;
+        }
+
+        // Slower movement when closer to target (easing)
+        const currentSpeed = eyeSpeed * (0.5 + (distance / 200) * 0.5);
+
+        eyeX += dx * currentSpeed + avoidanceX;
+        eyeY += dy * currentSpeed + avoidanceY;
+
+        // Add drift to final position
+        const finalX = eyeX + eyeDriftX;
+        const finalY = eyeY + eyeDriftY;
+
+        // Update position
+        eye.style.left = finalX + "px";
+        eye.style.top = finalY + "px";
       }
 
       // Update the startVisualization function to initialize floating eye
@@ -2313,9 +2346,6 @@
                 // Create curved text with the quote
                 const formattedQuote = quoteData.quote.replace(/_/g, " ");
                 createCurvedText(formattedQuote);
-
-                // Update quote info display
-                updateQuoteInfo();
               }
 
               // Hide loading page and show visualization
@@ -2339,14 +2369,6 @@
               console.log("About to initialize floating eye...");
               initFloatingEye();
               console.log("Floating eye initialization completed");
-
-              // Show pixel arrow indicator after loading is complete
-              const pixelArrowIndicator = document.getElementById(
-                "pixel-arrow-indicator"
-              );
-              if (pixelArrowIndicator) {
-                pixelArrowIndicator.classList.add("show");
-              }
 
               // Initialize dock behavior after loading is complete
               initDockBehavior();
