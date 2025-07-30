@@ -860,6 +860,42 @@
         margin-bottom: 10px;
         text-align: center;
       }
+
+      /* Pixel Arrow Indicator */
+      #pixel-arrow-indicator {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 40px;
+        z-index: 1000;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        animation: arrow-bounce 2s ease-in-out infinite;
+      }
+
+      #pixel-arrow-indicator.show {
+        opacity: 0.7;
+      }
+
+      #pixel-arrow-indicator img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+      }
+
+      @keyframes arrow-bounce {
+        0%,
+        100% {
+          transform: translateX(-50%) translateY(0px);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-8px);
+        }
+      }
     </style>
   </head>
   <body>
@@ -896,6 +932,11 @@
       images and discover hidden connections between different pieces of junk.
     </div>
 
+    <!-- Pixel Arrow Indicator -->
+    <div id="pixel-arrow-indicator">
+      <img src="../../assets/pixel_arrow.png" alt="Arrow pointing up" />
+    </div>
+
     <div id="rings-container">
       <div id="hover-title"></div>
     </div>
@@ -921,7 +962,7 @@
       let totalImages = 0;
       let loadedImages = 0;
       let entranceAnimationStart = 0;
-      let entranceAnimationDuration = 4000; // 4 seconds for faster rotation
+      let entranceAnimationDuration = 8000; // 12 seconds for much slower rotation
 
       // Separate variables for rings
       let ringsScene, ringsCamera, ringsRenderer;
@@ -2179,7 +2220,7 @@
 
           for (let i = 0; i < positions.length; i += 3) {
             const speed = speeds[i / 3];
-            const time = Date.now() * 0.1 * speed; // Much slower time factor
+            const time = Date.now() * 0.02 * speed; // Much slower time factor
 
             // Get original positions from stored data
             const originalX = particles.userData.originalPositions[i];
@@ -2194,10 +2235,10 @@
             );
             particlePosition.applyMatrix4(particleRotationMatrix);
 
-            // Very gentle, slow movement on top of rotation
-            const movementX = Math.sin(time) * 0.1; // Reduced movement amplitude
-            const movementY = Math.cos(time) * 0.1;
-            const movementZ = Math.sin(time * 0.3) * 0.1; // Slower oscillation
+            // Simple particle movement - much larger amplitude
+            const movementX = Math.sin(time) * 50; // Much larger movement
+            const movementY = Math.cos(time * 0.7) * 50;
+            const movementZ = Math.sin(time * 0.5) * 30;
 
             positions[i] = particlePosition.x + movementX;
             positions[i + 1] = particlePosition.y + movementY;
@@ -2420,6 +2461,8 @@
         // Initialize dock behavior after loading
         setTimeout(() => {
           initDockBehavior();
+          // Show pixel arrow after loading is complete
+          showPixelArrow();
         }, 100);
       }
 
@@ -2656,16 +2699,24 @@
         const ringsContainer = document.getElementById("rings-container");
         const searchBar = document.getElementById("search-bar");
         const uploadBtn = document.getElementById("upload-hand-btn");
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
 
         let dockTimeout;
         let isDockVisible = false;
         const dockDelay = 400; // Delay before hiding dock (ms)
-        const hoverZoneHeight = 40; // Height of hover zone from bottom (px)
+        const hoverZoneHeight = 120; // Height of hover zone from bottom (px) - increased for easier access
 
         // Initialize dock state - hidden by default
         ringsContainer.classList.add("dock-hidden");
         searchBar.classList.add("dock-hidden");
         uploadBtn.classList.add("dock-hidden");
+
+        // Don't show pixel arrow indicator initially - it will be shown after loading
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.remove("show");
+        }
 
         function showDock() {
           if (!isDockVisible) {
@@ -2676,6 +2727,11 @@
             searchBar.classList.add("dock-visible");
             uploadBtn.classList.remove("dock-hidden");
             uploadBtn.classList.add("dock-visible");
+
+            // Hide pixel arrow indicator when dock is visible
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.remove("show");
+            }
           }
         }
 
@@ -2688,6 +2744,11 @@
             searchBar.classList.add("dock-hidden");
             uploadBtn.classList.remove("dock-visible");
             uploadBtn.classList.add("dock-hidden");
+
+            // Show pixel arrow indicator when dock is hidden
+            if (pixelArrowIndicator) {
+              pixelArrowIndicator.classList.add("show");
+            }
           }
         }
 
@@ -2724,6 +2785,16 @@
         window.addEventListener("resize", () => {
           // Recalculate hover zone if needed
         });
+      }
+
+      // Function to show pixel arrow after loading
+      function showPixelArrow() {
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.add("show");
+        }
       }
 
       // Initialize dock behavior when DOM is loaded
