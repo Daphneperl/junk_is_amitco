@@ -2005,6 +2005,14 @@
         document.getElementById("black-overlay").style.opacity = "1";
         document.getElementById("visualization").style.display = "none";
 
+        // Hide pixel arrow indicator during refresh
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.remove("show");
+        }
+
         // Clear current images and text without reinitializing the scene
         clearPreviousImages();
         if (curvedText) {
@@ -2039,6 +2047,11 @@
           isRotating = true;
           rotationStart = performance.now();
           initialAngle = 0;
+
+          // Show pixel arrow indicator after refresh is complete
+          if (pixelArrowIndicator) {
+            pixelArrowIndicator.classList.add("show");
+          }
         });
       }
 
@@ -2126,8 +2139,10 @@
         searchBar.classList.add("dock-hidden");
         uploadBtn.classList.add("dock-hidden");
 
-        // Don't show pixel arrow indicator initially - wait for loading to complete
-        // The pixel arrow will be shown in startVisualization after loading is done
+        // Ensure pixel arrow indicator is hidden initially
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.classList.remove("show");
+        }
 
         function showDock() {
           if (!isDockVisible) {
@@ -2200,8 +2215,8 @@
 
       // Initialize dock behavior when DOM is loaded
       document.addEventListener("DOMContentLoaded", () => {
-        // Small delay to ensure all elements are properly loaded
-        setTimeout(initDockBehavior, 100);
+        // Don't initialize dock behavior immediately - wait for loading to complete
+        // The dock behavior will be initialized in startVisualization after loading
       });
 
       // Search functionality
@@ -2332,6 +2347,9 @@
               if (pixelArrowIndicator) {
                 pixelArrowIndicator.classList.add("show");
               }
+
+              // Initialize dock behavior after loading is complete
+              initDockBehavior();
             });
           }
         }, 50);
