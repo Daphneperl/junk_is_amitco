@@ -50,6 +50,7 @@
         z-index: 1000;
         transition: opacity 0.5s ease;
         opacity: 1;
+        display: block;
       }
       #loading-container {
         position: fixed;
@@ -58,6 +59,7 @@
         transform: translate(-50%, -50%);
         text-align: center;
         z-index: 1001;
+        display: block;
       }
       .loading-bar {
         width: 300px;
@@ -254,8 +256,8 @@
       /* Upload Button Styles */
       #upload-hand-btn {
         position: fixed;
-        right: 2vw;
-        bottom: 2vw;
+        right: -1vw;
+        bottom: -2vw;
         width: 280px;
         height: 280px;
         background: none;
@@ -266,28 +268,27 @@
         align-items: center;
         justify-content: center;
         box-shadow: none;
-        flex-direction: unset;
+        flex-direction: column;
         opacity: 0;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        margin-top: 25px;
       }
 
       #upload-hand-btn.dock-visible {
         opacity: 1;
-        bottom: 2vw;
+        bottom: 0vw;
       }
 
       #upload-hand-btn.dock-hidden {
         opacity: 0;
         bottom: -200px;
       }
+
       #upload-hand-btn-text {
-        position: absolute;
-        left: 30%;
-        top: 55%;
-        transform: translate(-50%, -50%);
+        position: relative;
         font-size: 28px;
         font-family: "VT323", monospace, sans-serif;
-        color: #888;
+        color: #ffffff;
         background: none;
         border: none;
         text-align: center;
@@ -299,13 +300,17 @@
         -moz-osx-font-smoothing: grayscale;
         text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
         letter-spacing: 0.5px;
+        margin-bottom: -20px;
+        transform: translateY(-50%);
       }
+
       #upload-hand-btn-img {
-        width: 270px;
-        height: 270px;
+        width: 180px;
+        height: 180px;
         object-fit: contain;
         display: block;
         pointer-events: none;
+        transition: all 0.3s ease;
       }
 
       /* Chatbot Styles */
@@ -974,7 +979,7 @@
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 8px;
         padding: 20px;
-        font-family: 'Overpass Mono', monospace;
+        font-family: "Overpass Mono", monospace;
         color: #fff;
         font-size: 14px;
         transform: translateX(-100%);
@@ -1011,7 +1016,7 @@
         color: #fff;
         font-size: 18px;
         cursor: pointer;
-        font-family: 'VT323', monospace;
+        font-family: "VT323", monospace;
         z-index: 3002;
         opacity: 0;
         transition: opacity 0.3s ease;
@@ -1034,7 +1039,7 @@
 
       .drawer-label {
         font-weight: bold;
-        font-family: 'Overpass Mono', monospace;
+        font-family: "Overpass Mono", monospace;
         font-size: 16px;
         color: rgba(255, 255, 255, 0.9);
         text-transform: uppercase;
@@ -1043,7 +1048,7 @@
 
       .drawer-value {
         font-weight: normal;
-        font-family: 'Overpass Mono', monospace;
+        font-family: "Overpass Mono", monospace;
         font-style: italic;
         font-size: 14px;
         line-height: 1.4;
@@ -1142,9 +1147,57 @@
           padding: 3px 8px;
         }
       }
+
+      /* Galaxy Navigation Button */
+      #galaxy-nav-btn {
+        position: fixed;
+        top: 20px;
+        left: 25px;
+        width: 40px;
+        height: 40px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        padding: 0;
+      }
+
+      #galaxy-nav-btn:hover {
+        transform: scale(1.1);
+      }
+
+      #galaxy-nav-btn:active {
+        transform: scale(0.95);
+      }
+
+      #galaxy-nav-btn img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+      }
+
+      #galaxy-nav-btn:hover img {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
+    <!-- Galaxy Navigation Button -->
+    <button
+      id="galaxy-nav-btn"
+      onclick="window.location.href='../Total_galaxy/total_galaxy_final.html'"
+      title="Go to Total Galaxy"
+    >
+      <img src="../../assets/galaxy_icon.png" alt="Galaxy Icon" />
+    </button>
+
     <div id="black-overlay"></div>
     <div
       id="loading-container"
@@ -1154,6 +1207,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
+        display: block;
       "
     >
       <div class="loading-bar">
@@ -1197,14 +1251,14 @@
     </div>
     <!-- Search Bar (fixed) -->
     <input id="search-bar" type="text" placeholder="I want to see..." />
-    <!-- Upload Hand Button (fixed, with image and overlaid text) -->
+    <!-- Upload Hand Button -->
     <button id="upload-hand-btn">
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
       <img
         id="upload-hand-btn-img"
-        src="../../UploadButton/BiggerHand.png"
+        src="../../assets/OpenHand.png"
         alt="Upload hand"
       />
-      <div id="upload-hand-btn-text">Upload<br />junk</div>
     </button>
 
     <!-- Chatbot Backdrop -->
@@ -1484,6 +1538,9 @@
 
       async function loadAndCreateImageClusters() {
         try {
+          // Ensure loading screen is visible and update initial progress
+          updateLoadingUI(0);
+
           helixGroup = new THREE.Group();
           scene.add(helixGroup);
 
@@ -1495,11 +1552,15 @@
           const helixGrid = createHelixGrid();
           helixGroup.add(helixGrid);
 
+          updateLoadingUI(5); // 5% for scene setup
+
           const response = await fetch("../../images/images.json");
           if (!response.ok) {
             throw new Error("Failed to load images.json");
           }
           const imageList = await response.json();
+
+          updateLoadingUI(10); // 10% for JSON loaded
 
           const textureLoader = new THREE.TextureLoader();
           let loadedImages = 0;
@@ -1594,7 +1655,11 @@
 
                     clusterContainer.add(sprite);
                     loadedImages++;
-                    updateLoadingUI((loadedImages / totalImages) * 100);
+
+                    // Update progress from 10% to 90% based on image loading
+                    const imageProgress =
+                      10 + (loadedImages / totalImages) * 80;
+                    updateLoadingUI(imageProgress);
                     resolve();
                   },
                   undefined,
@@ -1608,24 +1673,42 @@
             clusterIndex++;
           }
 
+          updateLoadingUI(90); // 90% for all images loaded
+
           // Initial camera position
           camera.position.set(80, 0, 80); // Moved camera further out
           camera.lookAt(0, 0, 0);
 
+          updateLoadingUI(95); // 95% for camera setup
+
+          // Small delay to ensure everything is ready
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          updateLoadingUI(100); // 100% complete
+
           // Show visualization
-          document.getElementById("loading-container").style.display = "none";
-          document.getElementById("visualization").style.display = "block";
-          document.getElementById("black-overlay").style.opacity = "0";
-          setTimeout(() => {
-            document.getElementById("black-overlay").style.display = "none";
-          }, 500);
+          const loadingContainer = document.getElementById("loading-container");
+          const visualization = document.getElementById("visualization");
+          const blackOverlay = document.getElementById("black-overlay");
+
+          if (loadingContainer) loadingContainer.style.display = "none";
+          if (visualization) visualization.style.display = "block";
+          if (blackOverlay) {
+            blackOverlay.style.opacity = "0";
+            setTimeout(() => {
+              blackOverlay.style.display = "none";
+            }, 500);
+          }
 
           isInitialized = true;
           animate();
         } catch (error) {
           console.error("Error in loadAndCreateImageClusters:", error);
-          document.getElementById("loading-text").textContent =
-            "Error loading images. Please refresh the page.";
+          const loadingText = document.getElementById("loading-text");
+          if (loadingText) {
+            loadingText.textContent =
+              "Error loading images. Please refresh the page.";
+          }
         }
       }
 
@@ -1954,7 +2037,7 @@
         });
       }
 
-      function init() {
+      async function init() {
         // Create scene
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x000000);
@@ -2027,21 +2110,21 @@
                     uniform float offset;
                     uniform float darkness;
                     varying vec2 vUv;
-                    
+
                     void main() {
                         vec2 uv = vUv;
                         vec4 color = texture2D(tDiffuse, uv);
-                        
+
                         // Calculate distance from center
                         vec2 center = vec2(0.5, 0.5);
                         float dist = distance(uv, center);
-                        
+
                         // Create vignette effect
                         float vignette = smoothstep(0.8, offset * 0.5, dist * (darkness + offset));
-                        
+
                         // Apply vignette
                         color.rgb *= vignette;
-                        
+
                         gl_FragColor = color;
                     }
                 `,
@@ -2062,8 +2145,8 @@
         // Handle window resize
         window.addEventListener("resize", onWindowResize, false);
 
-        // Load and create image clusters
-        loadAndCreateImageClusters();
+        // Load and create image clusters (this will handle the loading screen)
+        await loadAndCreateImageClusters();
 
         // Initialize cluster interaction after renderer setup
         initClusterInteraction();
@@ -2391,6 +2474,13 @@
           particles.geometry.attributes.position.needsUpdate = true;
         }
 
+        // Animate rings - natural slow rotation when not dragging
+        if (rings && !ringsRotation.isDragging) {
+          // Very slow, natural rotation
+          rings.rotation.x += 0.0005;
+          rings.rotation.y += 0.0008;
+        }
+
         composer.render();
         ringsRenderer.render(ringsScene, ringsCamera);
       }
@@ -2512,7 +2602,7 @@
               // Already on artist page
               break;
             case "eye-rhizome":
-              window.location.href = "../../index.html";
+              window.location.href = "../rhizome/rhizome.html";
               break;
             default:
               // Silently ignore unknown eye IDs
@@ -2523,6 +2613,19 @@
 
       // Initialize the visualization
       async function startVisualization() {
+        // Ensure loading screen is visible from the start
+        const loadingContainer = document.getElementById("loading-container");
+        const blackOverlay = document.getElementById("black-overlay");
+        const visualization = document.getElementById("visualization");
+
+        // Show loading screen and hide visualization
+        if (loadingContainer) loadingContainer.style.display = "block";
+        if (blackOverlay) {
+          blackOverlay.style.display = "block";
+          blackOverlay.style.opacity = "1";
+        }
+        if (visualization) visualization.style.display = "none";
+
         // Hide all UI elements initially
         const floatingEye = document.getElementById("floating-eye");
         const pixelArrowIndicator = document.getElementById(
@@ -2531,27 +2634,17 @@
         const ringsContainer = document.getElementById("rings-container");
         const searchBar = document.getElementById("search-bar");
         const uploadBtn = document.getElementById("upload-hand-btn");
+        const galaxyBtn = document.getElementById("galaxy-nav-btn");
 
         if (floatingEye) floatingEye.style.display = "none";
         if (pixelArrowIndicator) pixelArrowIndicator.style.display = "none";
         if (ringsContainer) ringsContainer.style.display = "none";
         if (searchBar) searchBar.style.display = "none";
         if (uploadBtn) uploadBtn.style.display = "none";
+        if (galaxyBtn) galaxyBtn.style.display = "none";
 
-        document.getElementById("loading-container").style.display = "block";
-        document.getElementById("black-overlay").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "1";
-        document.getElementById("visualization").style.display = "none";
-
+        // Initialize the visualization (this will handle loading screen visibility)
         await init();
-
-        // Hide loading page and show visualization
-        document.getElementById("loading-container").style.display = "none";
-        document.getElementById("visualization").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "0";
-        setTimeout(() => {
-          document.getElementById("black-overlay").style.display = "none";
-        }, 500);
 
         // Start animation
         animate();
@@ -2564,6 +2657,7 @@
           if (ringsContainer) ringsContainer.style.display = "block";
           if (searchBar) searchBar.style.display = "flex";
           if (uploadBtn) uploadBtn.style.display = "flex";
+          if (galaxyBtn) galaxyBtn.style.display = "flex";
 
           // Initialize floating eye
           console.log("About to initialize floating eye...");
@@ -2738,6 +2832,15 @@
         if (progressBar && loadingText) {
           progressBar.style.width = `${progress}%`;
           loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+
+          // Ensure loading screen is visible
+          const loadingContainer = document.getElementById("loading-container");
+          const blackOverlay = document.getElementById("black-overlay");
+          if (loadingContainer) loadingContainer.style.display = "block";
+          if (blackOverlay) {
+            blackOverlay.style.display = "block";
+            blackOverlay.style.opacity = "1";
+          }
         }
       }
 
@@ -2960,6 +3063,18 @@
         const uploadBtn = document.getElementById("upload-hand-btn");
         if (uploadBtn) {
           uploadBtn.addEventListener("click", showChatbot);
+
+          // Add hover functionality for hand image
+          const handImg = document.getElementById("upload-hand-btn-img");
+          if (handImg) {
+            uploadBtn.addEventListener("mouseenter", () => {
+              handImg.src = "../../assets/ClosedHand.png";
+            });
+
+            uploadBtn.addEventListener("mouseleave", () => {
+              handImg.src = "../../assets/OpenHand.png";
+            });
+          }
         }
 
         // Close chatbot with Escape key
@@ -4110,12 +4225,12 @@
                     width: 100%;
                     height: 100%;
                     min-height: 400px;
-                    background: 
+                    background:
                         radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
                         radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-                        linear-gradient(45deg, #1a1a1a 25%, transparent 25%), 
-                        linear-gradient(-45deg, #1a1a1a 25%, transparent 25%), 
-                        linear-gradient(45deg, transparent 75%, #1a1a1a 75%), 
+                        linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+                        linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
                         linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
                     background-size: 100px 100px, 150px 150px, 20px 20px, 20px 20px, 20px 20px, 20px 20px;
                     background-position: 0 0, 0 0, 0 0, 0 10px, 10px -10px, -10px 0px;
@@ -4351,24 +4466,24 @@
 
       // Drawer Modal Functions
       let drawerRaycaster, drawerMouse;
-      
+
       function initDrawerModal() {
         drawerRaycaster = new THREE.Raycaster();
         drawerMouse = new THREE.Vector2();
-        
+
         // Add click event listener to the renderer
-        renderer.domElement.addEventListener('click', onArtworkClick);
+        renderer.domElement.addEventListener("click", onArtworkClick);
       }
-      
+
       function onArtworkClick(event) {
         // Calculate mouse position in normalized device coordinates
         const rect = renderer.domElement.getBoundingClientRect();
         drawerMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         drawerMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-        
+
         // Update the picking ray with the camera and mouse position
         drawerRaycaster.setFromCamera(drawerMouse, camera);
-        
+
         // Get all image sprites from the scene
         const imageSprites = [];
         scene.traverse((object) => {
@@ -4376,33 +4491,37 @@
             imageSprites.push(object);
           }
         });
-        
-        console.log('Found image sprites:', imageSprites.length);
-        
+
+        console.log("Found image sprites:", imageSprites.length);
+
         // Calculate objects intersecting the picking ray
         const intersects = drawerRaycaster.intersectObjects(imageSprites);
-        
-        console.log('Intersects:', intersects.length);
-        
+
+        console.log("Intersects:", intersects.length);
+
         if (intersects.length > 0) {
           const clickedSprite = intersects[0].object;
           const imagePath = clickedSprite.userData.imagePath;
-          
+
           if (imagePath) {
             // Extract real data from the scene
             const clusterGroup = clickedSprite.parent;
-            let signedBy = '-';
-            
+            let signedBy = "-";
+
             // Find the username text sprite in the cluster
             if (clusterGroup && clusterGroup.children) {
               for (const child of clusterGroup.children) {
                 if (child.children && child.children.length > 0) {
                   // Look for text sprite (username) in the cluster container
                   for (const grandChild of child.children) {
-                    if (grandChild.material && grandChild.material.map && grandChild.material.map.image) {
+                    if (
+                      grandChild.material &&
+                      grandChild.material.map &&
+                      grandChild.material.map.image
+                    ) {
                       // This is likely the text sprite with username
                       const canvas = grandChild.material.map.image;
-                      const context = canvas.getContext('2d');
+                      const context = canvas.getContext("2d");
                       // We can't easily extract text from canvas, so we'll use the cluster index
                       const clusterIndex = imageGroups.indexOf(clusterGroup);
                       signedBy = `@User${clusterIndex + 1}`;
@@ -4412,22 +4531,25 @@
                 }
               }
             }
-            
+
             // Create artwork data with available information
             const artworkData = {
-              image: imagePath.split('/').pop(), // Get filename from path
-              title: imagePath.split('/').pop().replace(/\.[^/.]+$/, ""), // Remove file extension
+              image: imagePath.split("/").pop(), // Get filename from path
+              title: imagePath
+                .split("/")
+                .pop()
+                .replace(/\.[^/.]+$/, ""), // Remove file extension
               signedBy: signedBy,
-              zone: '-',
-              exactSpot: '-',
-              date: '-',
-              daytime: '-',
-              rawness: '-',
-              format: imagePath.split('.').pop().toUpperCase(), // File extension as format
-              context: '-',
-              tags: []
+              zone: "-",
+              exactSpot: "-",
+              date: "-",
+              daytime: "-",
+              rawness: "-",
+              format: imagePath.split(".").pop().toUpperCase(), // File extension as format
+              context: "-",
+              tags: [],
             };
-            
+
             // Create or update drawer modal for the clicked artwork
             createDrawerModal(artworkData, clickedSprite);
           }
@@ -4436,131 +4558,137 @@
 
       function createDrawerModal(artworkData, sprite) {
         // Remove existing drawer modal if any
-        const existingModal = document.querySelector('.drawer-backdrop');
+        const existingModal = document.querySelector(".drawer-backdrop");
         if (existingModal) {
           existingModal.remove();
         }
-        
+
         // Create backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = 'drawer-backdrop';
-        
+        const backdrop = document.createElement("div");
+        backdrop.className = "drawer-backdrop";
+
         // Create drawer container
-        const drawerContainer = document.createElement('div');
-        drawerContainer.className = 'drawer-container';
-        
+        const drawerContainer = document.createElement("div");
+        drawerContainer.className = "drawer-container";
+
         // Create close button
-        const closeButton = document.createElement('button');
-        closeButton.className = 'drawer-close';
-        closeButton.innerHTML = '×';
+        const closeButton = document.createElement("button");
+        closeButton.className = "drawer-close";
+        closeButton.innerHTML = "×";
         closeButton.onclick = closeDrawerModal;
-        
+
         // Create artwork section
-        const artworkSection = document.createElement('div');
-        artworkSection.className = 'drawer-artwork';
-        const artworkImg = document.createElement('img');
+        const artworkSection = document.createElement("div");
+        artworkSection.className = "drawer-artwork";
+        const artworkImg = document.createElement("img");
         artworkImg.src = `../../images/${artworkData.image}`;
-        artworkImg.alt = artworkData.title || 'Artwork';
-        artworkImg.onerror = function() {
-          artworkSection.innerHTML = '<div style="color: #666; font-size: 16px;">Image not available</div>';
+        artworkImg.alt = artworkData.title || "Artwork";
+        artworkImg.onerror = function () {
+          artworkSection.innerHTML =
+            '<div style="color: #666; font-size: 16px;">Image not available</div>';
         };
         artworkSection.appendChild(artworkImg);
-        
+
         // Create info section
-        const infoSection = document.createElement('div');
-        infoSection.className = 'drawer-info';
-        
+        const infoSection = document.createElement("div");
+        infoSection.className = "drawer-info";
+
         // Create info content
         infoSection.innerHTML = `
           <div class="drawer-field">
             <div class="drawer-label">Title</div>
-            <div class="drawer-value">${artworkData.title || '-'}</div>
+            <div class="drawer-value">${artworkData.title || "-"}</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Signed by</div>
-            <div class="drawer-value">${artworkData.signedBy || '-'}</div>
+            <div class="drawer-value">${artworkData.signedBy || "-"}</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Zone</div>
-            <div class="drawer-value">${artworkData.zone || '-'}</div>
+            <div class="drawer-value">${artworkData.zone || "-"}</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Exact spot</div>
-            <div class="drawer-value">${artworkData.exactSpot || '-'}</div>
+            <div class="drawer-value">${artworkData.exactSpot || "-"}</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Date stamp</div>
-            <div class="drawer-value">${artworkData.date || '-'}</div>
+            <div class="drawer-value">${artworkData.date || "-"}</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Daytime</div>
-            <div class="drawer-value">${artworkData.daytime || '-'}</div>
+            <div class="drawer-value">${artworkData.daytime || "-"}</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Rawness</div>
-            <div class="drawer-value">${artworkData.rawness !== undefined ? artworkData.rawness : '-'}</div>
+            <div class="drawer-value">${
+              artworkData.rawness !== undefined ? artworkData.rawness : "-"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Format type</div>
-            <div class="drawer-value">${artworkData.format || '-'}</div>
+            <div class="drawer-value">${artworkData.format || "-"}</div>
           </div>
           <div class="drawer-field full-width">
             <div class="drawer-label">Scene/Context</div>
-            <div class="drawer-context">${artworkData.context || '-'}</div>
+            <div class="drawer-context">${artworkData.context || "-"}</div>
           </div>
           <div class="drawer-field full-width">
             <div class="drawer-label">Vibes/Tags</div>
             <div class="drawer-tags">
-              ${artworkData.tags && artworkData.tags.length > 0 
-                ? artworkData.tags.map(tag => `<span class="drawer-tag">${tag}</span>`).join('')
-                : '<span class="drawer-tag">-</span>'
+              ${
+                artworkData.tags && artworkData.tags.length > 0
+                  ? artworkData.tags
+                      .map((tag) => `<span class="drawer-tag">${tag}</span>`)
+                      .join("")
+                  : '<span class="drawer-tag">-</span>'
               }
             </div>
           </div>
         `;
-        
+
         // Assemble the modal
         drawerContainer.appendChild(closeButton);
         drawerContainer.appendChild(artworkSection);
         drawerContainer.appendChild(infoSection);
         backdrop.appendChild(drawerContainer);
         document.body.appendChild(backdrop);
-        
+
         // Add click outside to close
-        backdrop.addEventListener('click', function(e) {
+        backdrop.addEventListener("click", function (e) {
           if (e.target === backdrop) {
             closeDrawerModal();
           }
         });
-        
+
         // Add escape key to close
-        const escapeHandler = function(e) {
-          if (e.key === 'Escape') {
+        const escapeHandler = function (e) {
+          if (e.key === "Escape") {
             closeDrawerModal();
-            document.removeEventListener('keydown', escapeHandler);
+            document.removeEventListener("keydown", escapeHandler);
           }
         };
-        document.addEventListener('keydown', escapeHandler);
-        
+        document.addEventListener("keydown", escapeHandler);
+
         // Animate in
         requestAnimationFrame(() => {
-          backdrop.classList.add('show');
+          backdrop.classList.add("show");
           requestAnimationFrame(() => {
-            drawerContainer.classList.add('show');
+            drawerContainer.classList.add("show");
           });
         });
-        
+
         // Store reference to sprite for potential future use
         backdrop.sprite = sprite;
       }
-      
+
       function closeDrawerModal() {
-        const backdrop = document.querySelector('.drawer-backdrop');
+        const backdrop = document.querySelector(".drawer-backdrop");
         if (backdrop) {
-          const container = backdrop.querySelector('.drawer-container');
-          container.classList.remove('show');
-          backdrop.classList.remove('show');
-          
+          const container = backdrop.querySelector(".drawer-container");
+          container.classList.remove("show");
+          backdrop.classList.remove("show");
+
           // Remove after animation
           setTimeout(() => {
             backdrop.remove();
@@ -4568,9 +4696,21 @@
         }
       }
 
+      // Ensure loading screen is visible immediately
+      document.addEventListener("DOMContentLoaded", function () {
+        const loadingContainer = document.getElementById("loading-container");
+        const blackOverlay = document.getElementById("black-overlay");
+        const visualization = document.getElementById("visualization");
+
+        if (loadingContainer) loadingContainer.style.display = "block";
+        if (blackOverlay) {
+          blackOverlay.style.display = "block";
+          blackOverlay.style.opacity = "1";
+        }
+        if (visualization) visualization.style.display = "none";
+      });
+
       window.addEventListener("load", startVisualization);
     </script>
   </body>
 </html>
-
-
