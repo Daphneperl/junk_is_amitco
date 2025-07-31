@@ -265,8 +265,8 @@
       /* Upload Button Styles */
       #upload-hand-btn {
         position: fixed;
-        right: 2vw;
-        bottom: 2vw;
+        right: -1vw;
+        bottom: -2vw;
         width: 280px;
         height: 280px;
         background: none;
@@ -277,28 +277,27 @@
         align-items: center;
         justify-content: center;
         box-shadow: none;
-        flex-direction: unset;
+        flex-direction: column;
         opacity: 0;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        margin-top: 25px;
       }
 
       #upload-hand-btn.dock-visible {
         opacity: 1;
-        bottom: 2vw;
+        bottom: 0vw;
       }
 
       #upload-hand-btn.dock-hidden {
         opacity: 0;
         bottom: -200px;
       }
+
       #upload-hand-btn-text {
-        position: absolute;
-        left: 30%;
-        top: 55%;
-        transform: translate(-50%, -50%);
+        position: relative;
         font-size: 28px;
         font-family: "VT323", monospace, sans-serif;
-        color: #888;
+        color: #ffffff;
         background: none;
         border: none;
         text-align: center;
@@ -310,13 +309,17 @@
         -moz-osx-font-smoothing: grayscale;
         text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
         letter-spacing: 0.5px;
+        margin-bottom: -20px;
+        transform: translateY(-50%);
       }
+
       #upload-hand-btn-img {
-        width: 270px;
-        height: 270px;
+        width: 180px;
+        height: 180px;
         object-fit: contain;
         display: block;
         pointer-events: none;
+        transition: all 0.3s ease;
       }
 
       /* Chatbot Styles */
@@ -738,9 +741,57 @@
         cursor: pointer;
         font-family: "VT323", monospace;
       }
+
+      /* Galaxy Navigation Button */
+      #galaxy-nav-btn {
+        position: fixed;
+        top: 20px;
+        left: 25px;
+        width: 40px;
+        height: 40px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        padding: 0;
+      }
+
+      #galaxy-nav-btn:hover {
+        transform: scale(1.1);
+      }
+
+      #galaxy-nav-btn:active {
+        transform: scale(0.95);
+      }
+
+      #galaxy-nav-btn img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+      }
+
+      #galaxy-nav-btn:hover img {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
+    <!-- Galaxy Navigation Button -->
+    <button
+      id="galaxy-nav-btn"
+      onclick="window.location.href='../Total_galaxy/total_galaxy_final.html'"
+      title="Go to Total Galaxy"
+    >
+      <img src="../../assets/galaxy_icon.png" alt="Galaxy Icon" />
+    </button>
+
     <div id="black-overlay"></div>
     <div
       id="loading-container"
@@ -795,14 +846,14 @@
     </div>
     <!-- Search Bar (fixed) -->
     <input id="search-bar" type="text" placeholder="I want to see..." />
-    <!-- Upload Hand Button (fixed, with image and overlaid text) -->
+    <!-- Upload Hand Button -->
     <button id="upload-hand-btn">
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
       <img
         id="upload-hand-btn-img"
-        src="../../UploadButton/BiggerHand.png"
+        src="../../assets/OpenHand.png"
         alt="Upload hand"
       />
-      <div id="upload-hand-btn-text">Upload<br />junk</div>
     </button>
 
     <!-- Chatbot Backdrop -->
@@ -1483,7 +1534,7 @@
               window.location.href = "../Artists/Artist.html";
               break;
             case "eye-rhizome":
-              window.location.href = "../../index.html";
+              window.location.href = "../rhizome/rhizome.html";
               break;
             default:
               // Silently ignore unknown eye IDs
@@ -1650,7 +1701,11 @@
       }
 
       // macOS Dock-like functionality
+      let dockInitialized = false;
       function initDockBehavior() {
+        if (dockInitialized) return; // Prevent multiple initializations
+        dockInitialized = true;
+
         const ringsContainer = document.getElementById("rings-container");
         const searchBar = document.getElementById("search-bar");
         const uploadBtn = document.getElementById("upload-hand-btn");
@@ -1668,11 +1723,22 @@
         searchBar.classList.add("dock-hidden");
         uploadBtn.classList.add("dock-hidden");
 
+        // Ensure dock elements are completely hidden during loading
+        ringsContainer.style.display = "none";
+        searchBar.style.display = "none";
+        uploadBtn.style.display = "none";
+
         // Pixel arrow indicator will be shown after visualization loads
 
         function showDock() {
           if (!isDockVisible) {
             isDockVisible = true;
+
+            // Show the dock elements
+            ringsContainer.style.display = "block";
+            searchBar.style.display = "block";
+            uploadBtn.style.display = "block";
+
             ringsContainer.classList.remove("dock-hidden");
             ringsContainer.classList.add("dock-visible");
             searchBar.classList.remove("dock-hidden");
@@ -2370,6 +2436,12 @@
               document.getElementById("black-overlay").style.opacity = "0";
               setTimeout(() => {
                 document.getElementById("black-overlay").style.display = "none";
+
+                // Show galaxy button after loading screen is gone
+                const galaxyBtn = document.getElementById("galaxy-nav-btn");
+                if (galaxyBtn) {
+                  galaxyBtn.style.display = "flex";
+                }
               }, 500);
               animate();
 
@@ -2441,10 +2513,10 @@
             pixelArrowIndicator.classList.add("show");
           }
 
-          // Initialize dock behavior after loading
+          // Initialize dock behavior after loading screen is completely gone
           setTimeout(() => {
             initDockBehavior();
-          }, 100);
+          }, 600);
         });
 
       // Search bar event listeners
@@ -2485,6 +2557,18 @@
         const uploadBtn = document.getElementById("upload-hand-btn");
         if (uploadBtn) {
           uploadBtn.addEventListener("click", showChatbot);
+
+          // Add hover functionality for hand image
+          const handImg = document.getElementById("upload-hand-btn-img");
+          if (handImg) {
+            uploadBtn.addEventListener("mouseenter", () => {
+              handImg.src = "../../assets/ClosedHand.png";
+            });
+
+            uploadBtn.addEventListener("mouseleave", () => {
+              handImg.src = "../../assets/OpenHand.png";
+            });
+          }
         }
 
         // Close chatbot with Escape key
@@ -2505,10 +2589,9 @@
         }
       });
 
-      // Initialize dock behavior when DOM is loaded
+      // Initialize dock behavior when DOM is loaded (but only if not already initialized)
       document.addEventListener("DOMContentLoaded", () => {
-        // Small delay to ensure all elements are properly loaded
-        setTimeout(initDockBehavior, 100);
+        // Don't initialize dock behavior here - it will be initialized after loading screen
       });
     </script>
   </body>
