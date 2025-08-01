@@ -277,7 +277,7 @@
       #upload-hand-btn {
         position: fixed;
         right: 2vw;
-        bottom: 2vw;
+        bottom: 0.5vw;
         width: 280px;
         height: 280px;
         background: none;
@@ -288,9 +288,10 @@
         align-items: center;
         justify-content: center;
         box-shadow: none;
-        flex-direction: unset;
+        flex-direction: column;
         opacity: 0;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        margin-top: 25px;
       }
 
       #upload-hand-btn.dock-visible {
@@ -302,14 +303,12 @@
         opacity: 0;
         bottom: -200px;
       }
+
       #upload-hand-btn-text {
-        position: absolute;
-        left: 30%;
-        top: 55%;
-        transform: translate(-50%, -50%);
+        position: relative;
         font-size: 28px;
         font-family: "VT323", monospace, sans-serif;
-        color: #888;
+        color: #ffffff;
         background: none;
         border: none;
         text-align: center;
@@ -321,13 +320,21 @@
         -moz-osx-font-smoothing: grayscale;
         text-shadow: 0 0 1px rgba(0, 0, 0, 0.1);
         letter-spacing: 0.5px;
+        margin-bottom: -20px;
+        transform: translateY(-50%);
       }
+
       #upload-hand-btn-img {
-        width: 270px;
-        height: 270px;
+        width: 180px;
+        height: 180px;
         object-fit: contain;
         display: block;
         pointer-events: none;
+        transition: all 0.3s ease;
+      }
+
+      #upload-hand-btn:hover #upload-hand-btn-img {
+        content: url('../../assets/ClosedHand.png');
       }
 
       /* Chatbot Styles */
@@ -919,6 +926,268 @@
         margin-bottom: 10px;
         text-align: center;
       }
+
+      /* Mobile responsive */
+      @media (max-width: 768px) {
+        #upload-hand-btn {
+          width: 60px;
+          height: 60px;
+        }
+
+        #upload-hand-btn-text {
+          font-size: 8px;
+        }
+
+        #upload-hand-btn-img {
+          width: 25px;
+          height: 25px;
+        }
+      }
+
+      /* Drawer Modal Styles */
+      .drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 3000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+      }
+
+      .drawer-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .drawer-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        z-index: 3001;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        max-width: 95vw;
+        max-height: 90vh;
+        justify-content: center;
+        position: relative;
+      }
+
+      .drawer-container.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .drawer-artwork {
+        position: relative;
+        width: auto;
+        height: auto;
+        max-width: 45vw;
+        max-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+        z-index: 2;
+        flex-shrink: 0;
+      }
+
+      .drawer-artwork img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 4px;
+        display: block;
+      }
+
+      .drawer-info {
+        position: relative;
+        width: 350px;
+        height: auto;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: 'Overpass Mono', monospace;
+        color: #fff;
+        font-size: 14px;
+        transform: translateX(-100%);
+        transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 1;
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .drawer-container.show .drawer-info {
+        transform: translateX(0);
+      }
+
+      .drawer-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+
+      .drawer-field.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .drawer-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        font-family: 'VT323', monospace;
+        z-index: 3002;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      .drawer-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .drawer-container.show .drawer-close {
+        opacity: 1;
+      }
+
+      .drawer-label {
+        font-weight: bold;
+        font-family: 'Overpass Mono', monospace;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .drawer-value {
+        font-weight: normal;
+        font-family: 'Overpass Mono', monospace;
+        font-style: italic;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .drawer-context {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        padding: 12px;
+        min-height: 80px;
+        font-size: 13px;
+        line-height: 1.5;
+        margin-top: 4px;
+      }
+
+      .drawer-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .drawer-tag {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        padding: 4px 10px;
+        font-size: 11px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+      }
+
+      .drawer-tag:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Mobile responsive for drawer */
+      @media (max-width: 768px) {
+        .drawer-container {
+          flex-direction: column;
+          max-width: 95vw;
+          max-height: 90vh;
+          gap: 15px;
+          padding: 10px;
+        }
+
+        .drawer-artwork {
+          max-width: 100%;
+          max-height: 50vh;
+        }
+
+        .drawer-info {
+          position: relative;
+          width: 100%;
+          height: auto;
+          max-height: 40vh;
+          transform: translateY(-100%);
+          padding: 15px;
+          font-size: 13px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .drawer-container.show .drawer-info {
+          transform: translateY(0);
+        }
+
+        .drawer-field {
+          margin-bottom: 8px;
+        }
+
+        .drawer-label {
+          font-size: 14px;
+        }
+
+        .drawer-value {
+          font-size: 13px;
+          font-weight: normal;
+          font-family: 'Overpass Mono', monospace;
+          font-style: italic;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .drawer-context {
+          font-size: 12px;
+          padding: 10px;
+          min-height: 60px;
+        }
+
+        .drawer-tag {
+          font-size: 10px;
+          padding: 3px 8px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -975,14 +1244,14 @@
     </div>
     <!-- Search Bar (fixed) -->
     <input id="search-bar" type="text" placeholder="I want to see..." />
-    <!-- Upload Hand Button (fixed, with image and overlaid text) -->
+    <!-- Upload Hand Button -->
     <button id="upload-hand-btn">
+      <div id="upload-hand-btn-text">Upload<br />junk</div>
       <img
         id="upload-hand-btn-img"
-        src="../../UploadButton/BiggerHand.png"
+        src="../../assets/OpenHand.png"
         alt="Upload hand"
       />
-      <div id="upload-hand-btn-text">Upload<br />junk</div>
     </button>
 
     <!-- Chatbot Backdrop -->
@@ -1112,6 +1381,8 @@
       let eyeDriftY = 0;
       let eyeDriftSpeed = 0.001; // Very slow drift
       let eyeDriftAmplitude = 15; // Small drift amplitude
+
+
 
       // Load sketchiness scores
       async function loadSketchinessScores() {
@@ -1707,6 +1978,57 @@
             particle.checkHover(scaledMouseX, scaledMouseY);
           });
         });
+        
+              // Add click event listener for drawer modal
+      imageCanvas.addEventListener("click", (e) => {
+        const rect = imageCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const baseDistance = 100;
+        const zoomFactor = baseDistance / camera.position.z;
+        const scaledMouseX = mouseX / zoomFactor;
+        const scaledMouseY = mouseY / zoomFactor;
+        for (const particle of imageParticles) {
+          const aspectRatio = particle.image.naturalWidth / particle.image.naturalHeight;
+          let width, height;
+          if (aspectRatio > 1) {
+            width = particle.currentSize;
+            height = particle.currentSize / aspectRatio;
+          } else {
+            height = particle.currentSize;
+            width = particle.currentSize * aspectRatio;
+          }
+          const halfWidth = width / 2;
+          const halfHeight = height / 2;
+          if (
+            scaledMouseX >= particle.x - halfWidth &&
+            scaledMouseX <= particle.x + halfWidth &&
+            scaledMouseY >= particle.y - halfHeight &&
+            scaledMouseY <= particle.y + halfHeight
+          ) {
+            // Create artwork data for the drawer modal
+            const artworkData = {
+              title: particle.filename,
+              image: particle.filename,
+              score: particle.score,
+              completeness: particle.score,
+              filename: particle.filename,
+              // Add other metadata as needed
+              signedBy: 'Anonymous',
+              zone: 'Completeness View',
+              exactSpot: 'Canvas Position',
+              date: 'Unknown',
+              daytime: 'Unknown',
+              rawness: 'Unknown',
+              format: 'Digital',
+              context: `This artwork has a completeness score of ${particle.score}. The higher the score, the more complete the artwork appears to be.`,
+              tags: ['completeness', 'artwork', 'digital']
+            };
+            createDrawerModal(artworkData, particle);
+            break;
+          }
+        }
+      });
       }
 
       // Rings event handlers
@@ -1994,10 +2316,7 @@
       }
 
       function animateImages() {
-        // Clear canvas completely to show 3D environment behind
         imageCtx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
-
-        // Calculate zoom factor based on camera distance
         const baseDistance = 100;
         const zoomFactor = baseDistance / camera.position.z;
 
@@ -2024,7 +2343,6 @@
 
         // Log loading progress occasionally
         if (Math.random() < 0.01) {
-          // Log ~1% of the time
           console.log(`Loaded: ${loadedCount}/${imageParticles.length} images`);
         }
 
@@ -3284,6 +3602,146 @@
 
       // Start the visualization when the page loads
       window.addEventListener("load", startVisualization);
+
+      // Add Escape key listener for closing focus mode
+      // Drawer Modal Functions
+      function createDrawerModal(artworkData, particle) {
+        // Remove existing drawer modal if any
+        const existingModal = document.querySelector('.drawer-backdrop');
+        if (existingModal) {
+          existingModal.remove();
+        }
+        
+        // Create backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'drawer-backdrop';
+        
+        // Create drawer container
+        const drawerContainer = document.createElement('div');
+        drawerContainer.className = 'drawer-container';
+        
+        // Create close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'drawer-close';
+        closeButton.innerHTML = '×';
+        closeButton.onclick = closeDrawerModal;
+        
+        // Create artwork section
+        const artworkSection = document.createElement('div');
+        artworkSection.className = 'drawer-artwork';
+        const artworkImg = document.createElement('img');
+        artworkImg.src = `../../images/${artworkData.image}`;
+        artworkImg.alt = artworkData.title || 'Artwork';
+        artworkImg.onerror = function() {
+          artworkSection.innerHTML = '<div style="color: #666; font-size: 16px;">Image not available</div>';
+        };
+        artworkSection.appendChild(artworkImg);
+        
+        // Create info section
+        const infoSection = document.createElement('div');
+        infoSection.className = 'drawer-info';
+        
+        // Create info content
+        infoSection.innerHTML = `
+          <div class="drawer-field">
+            <div class="drawer-label">Title</div>
+            <div class="drawer-value">${artworkData.title || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Completeness Score</div>
+            <div class="drawer-value">${artworkData.completeness || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Signed by</div>
+            <div class="drawer-value">${artworkData.signedBy || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Zone</div>
+            <div class="drawer-value">${artworkData.zone || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Exact spot</div>
+            <div class="drawer-value">${artworkData.exactSpot || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Date stamp</div>
+            <div class="drawer-value">${artworkData.date || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Daytime</div>
+            <div class="drawer-value">${artworkData.daytime || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Rawness</div>
+            <div class="drawer-value">${artworkData.rawness || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field">
+            <div class="drawer-label">Format type</div>
+            <div class="drawer-value">${artworkData.format || 'Not specified'}</div>
+          </div>
+          <div class="drawer-field full-width">
+            <div class="drawer-label">Scene/Context</div>
+            <div class="drawer-context">${artworkData.context || 'No context provided'}</div>
+          </div>
+          <div class="drawer-field full-width">
+            <div class="drawer-label">Vibes/Tags</div>
+            <div class="drawer-tags">
+              ${artworkData.tags && artworkData.tags.length > 0 
+                ? artworkData.tags.map(tag => `<span class="drawer-tag">${tag}</span>`).join('')
+                : '<span class="drawer-tag">No tags</span>'
+              }
+            </div>
+          </div>
+        `;
+        
+        // Assemble the modal
+        drawerContainer.appendChild(closeButton);
+        drawerContainer.appendChild(artworkSection);
+        drawerContainer.appendChild(infoSection);
+        backdrop.appendChild(drawerContainer);
+        document.body.appendChild(backdrop);
+        
+        // Add click outside to close
+        backdrop.addEventListener('click', function(e) {
+          if (e.target === backdrop) {
+            closeDrawerModal();
+          }
+        });
+        
+        // Add escape key to close
+        const escapeHandler = function(e) {
+          if (e.key === 'Escape') {
+            closeDrawerModal();
+            document.removeEventListener('keydown', escapeHandler);
+          }
+        };
+        document.addEventListener('keydown', escapeHandler);
+        
+        // Animate in
+        requestAnimationFrame(() => {
+          backdrop.classList.add('show');
+          requestAnimationFrame(() => {
+            drawerContainer.classList.add('show');
+          });
+        });
+        
+        // Store reference to particle for potential future use
+        backdrop.particle = particle;
+      }
+      
+      function closeDrawerModal() {
+        const backdrop = document.querySelector('.drawer-backdrop');
+        if (backdrop) {
+          const container = backdrop.querySelector('.drawer-container');
+          container.classList.remove('show');
+          backdrop.classList.remove('show');
+          
+          // Remove after animation
+          setTimeout(() => {
+            backdrop.remove();
+          }, 400);
+        }
+      }
     </script>
   </body>
 </html>
