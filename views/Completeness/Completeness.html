@@ -1004,11 +1004,9 @@
       }
 
       .drawer-artwork img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
         border-radius: 4px;
         display: block;
+        object-fit: contain;
       }
 
       .drawer-info {
@@ -1785,9 +1783,14 @@
           }
 
           this.size = 80;
-          this.hoverSize = 400;
+          this.hoverSize = 800;
           this.currentSize = this.size;
           this.isHovered = false;
+
+          // Z-position for 3D hover effect
+          this.z = 0; // Base z position
+          this.hoverZ = -50; // Z position when hovered (closer to camera)
+          this.currentZ = this.z;
         }
 
         getType(thresholds) {
@@ -1873,11 +1876,13 @@
               Math.cos(t + this.jitterPhase) * this.jitterAmplitude;
           }
 
-          // Smooth size transition for hover effect
+          // Smooth size and z-position transition for hover effect
           if (this.isHovered) {
             this.currentSize += (this.hoverSize - this.currentSize) * 0.1;
+            this.currentZ += (this.hoverZ - this.currentZ) * 0.1;
           } else {
             this.currentSize += (this.size - this.currentSize) * 0.1;
+            this.currentZ += (this.z - this.currentZ) * 0.1;
           }
         }
 
@@ -1922,10 +1927,13 @@
           ctx.save();
           ctx.globalAlpha = 1.0;
 
-          // Scale position and size based on zoom
+          // Calculate z-based scaling factor (closer to camera = larger)
+          const zScaleFactor = 1 + this.currentZ / 100; // Adjust this formula as needed
+
+          // Scale position and size based on zoom and z-position
           const scaledX = this.x * zoomFactor;
           const scaledY = this.y * zoomFactor;
-          const scaledSize = this.currentSize * zoomFactor;
+          const scaledSize = this.currentSize * zoomFactor * zScaleFactor;
 
           // Calculate aspect ratio to maintain original proportions
           const aspectRatio =
@@ -2076,13 +2084,72 @@
           const zoomFactor = baseDistance / camera.position.z;
           const scaledMouseX = mouseX / zoomFactor;
           const scaledMouseY = mouseY / zoomFactor;
+
+          // First, reset all hover states
           imageParticles.forEach((particle) => {
-            particle.checkHover(scaledMouseX, scaledMouseY);
+            particle.isHovered = false;
           });
+
+          // Find the most prominent image under the cursor (closest to center)
+          let mostProminentParticle = null;
+          let minDistanceToCenter = Infinity;
+
+          imageParticles.forEach((particle) => {
+            const aspectRatio =
+              particle.image.naturalWidth / particle.image.naturalHeight;
+            let width, height;
+            if (aspectRatio > 1) {
+              width = particle.currentSize;
+              height = particle.currentSize / aspectRatio;
+            } else {
+              height = particle.currentSize;
+              width = particle.currentSize * aspectRatio;
+            }
+            const halfWidth = width / 2;
+            const halfHeight = height / 2;
+
+            // Check if mouse is within this particle's bounds
+            if (
+              scaledMouseX >= particle.x - halfWidth &&
+              scaledMouseX <= particle.x + halfWidth &&
+              scaledMouseY >= particle.y - halfHeight &&
+              scaledMouseY <= particle.y + halfHeight
+            ) {
+              // Calculate distance from mouse to particle center
+              const distanceToCenter = Math.sqrt(
+                Math.pow(scaledMouseX - particle.x, 2) +
+                  Math.pow(scaledMouseY - particle.y, 2)
+              );
+
+              // Select the particle whose center is closest to the mouse
+              if (distanceToCenter < minDistanceToCenter) {
+                minDistanceToCenter = distanceToCenter;
+                mostProminentParticle = particle;
+              }
+            }
+          });
+
+          // Only hover the most prominent particle
+          if (mostProminentParticle) {
+            mostProminentParticle.isHovered = true;
+          }
         });
 
         // Add click event listener for drawer modal
         imageCanvas.addEventListener("click", (e) => {
+          // Check if clicking on UI elements first
+          const target = e.target;
+          if (
+            target.closest("#search-bar") ||
+            target.closest("#upload-hand-btn") ||
+            target.closest("#chatbot-container") ||
+            target.closest("#map-popup-overlay") ||
+            target.closest("#floating-eye") ||
+            target.closest("#rings-container")
+          ) {
+            return; // Don't handle clicks on UI elements
+          }
+
           const rect = imageCanvas.getBoundingClientRect();
           const mouseX = e.clientX - rect.left;
           const mouseY = e.clientY - rect.top;
@@ -2090,6 +2157,13 @@
           const zoomFactor = baseDistance / camera.position.z;
           const scaledMouseX = mouseX / zoomFactor;
           const scaledMouseY = mouseY / zoomFactor;
+
+          // Find all particles under cursor and select the most appropriate one
+          let selectedParticle = null;
+          let hoveredParticle = null;
+          let largestParticle = null;
+          let maxSize = 0;
+
           for (const particle of imageParticles) {
             const aspectRatio =
               particle.image.naturalWidth / particle.image.naturalHeight;
@@ -2109,27 +2183,47 @@
               scaledMouseY >= particle.y - halfHeight &&
               scaledMouseY <= particle.y + halfHeight
             ) {
-              // Create artwork data for the drawer modal
-              const artworkData = {
-                title: particle.filename,
-                image: particle.filename,
-                score: particle.score,
-                completeness: particle.score,
-                filename: particle.filename,
-                // Add other metadata as needed
-                signedBy: "Anonymous",
-                zone: "Completeness View",
-                exactSpot: "Canvas Position",
-                date: "Unknown",
-                daytime: "Unknown",
-                rawness: "Unknown",
-                format: "Digital",
-                context: `This artwork has a completeness score of ${particle.score}. The higher the score, the more complete the artwork appears to be.`,
-                tags: ["completeness", "artwork", "digital"],
-              };
-              createDrawerModal(artworkData, particle);
-              break;
+              // Track the largest particle under cursor
+              const area = width * height;
+              if (area > maxSize) {
+                maxSize = area;
+                largestParticle = particle;
+              }
+
+              // Track if any particle is currently hovered
+              if (particle.isHovered) {
+                hoveredParticle = particle;
+              }
             }
+          }
+
+          // Priority: 1) Hovered particle, 2) Largest particle
+          if (hoveredParticle) {
+            selectedParticle = hoveredParticle;
+          } else if (largestParticle) {
+            selectedParticle = largestParticle;
+          }
+
+          if (selectedParticle) {
+            // Create artwork data for the drawer modal
+            const artworkData = {
+              title: selectedParticle.filename,
+              image: selectedParticle.filename,
+              score: selectedParticle.score,
+              completeness: selectedParticle.score,
+              filename: selectedParticle.filename,
+              // Add other metadata as needed
+              signedBy: "Anonymous",
+              zone: "Completeness View",
+              exactSpot: "Canvas Position",
+              date: "Unknown",
+              daytime: "Unknown",
+              rawness: "Unknown",
+              format: "Digital",
+              context: `This artwork has a completeness score of ${selectedParticle.score}. The higher the score, the more complete the artwork appears to be.`,
+              tags: ["completeness", "artwork", "digital"],
+            };
+            createDrawerModal(artworkData, selectedParticle);
           }
         });
       }
@@ -3806,6 +3900,47 @@
         const artworkImg = document.createElement("img");
         artworkImg.src = `../../images/${artworkData.image}`;
         artworkImg.alt = artworkData.title || "Artwork";
+
+        // Handle image loading to ensure proper sizing for elongated images
+        artworkImg.onload = function () {
+          const img = this;
+          const aspectRatio = img.naturalWidth / img.naturalHeight;
+          const isMobile = window.innerWidth <= 768;
+
+          // Adjust max dimensions based on screen size
+          const maxWidth = isMobile
+            ? window.innerWidth * 0.95
+            : window.innerWidth * 0.45;
+          const maxHeight = isMobile
+            ? window.innerHeight * 0.5
+            : window.innerHeight * 0.8;
+
+          let displayWidth, displayHeight;
+
+          if (aspectRatio > 1) {
+            // Landscape image - fit to width
+            displayWidth = Math.min(maxWidth, img.naturalWidth);
+            displayHeight = displayWidth / aspectRatio;
+            if (displayHeight > maxHeight) {
+              displayHeight = maxHeight;
+              displayWidth = displayHeight * aspectRatio;
+            }
+          } else {
+            // Portrait or square image - fit to height first
+            displayHeight = Math.min(maxHeight, img.naturalHeight);
+            displayWidth = displayHeight * aspectRatio;
+            if (displayWidth > maxWidth) {
+              displayWidth = maxWidth;
+              displayHeight = displayWidth / aspectRatio;
+            }
+          }
+
+          img.style.width = displayWidth + "px";
+          img.style.height = displayHeight + "px";
+          img.style.maxWidth = "none";
+          img.style.maxHeight = "none";
+        };
+
         artworkImg.onerror = function () {
           artworkSection.innerHTML =
             '<div style="color: #666; font-size: 16px;">Image not available</div>';
