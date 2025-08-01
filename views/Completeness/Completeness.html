@@ -157,10 +157,11 @@
         left: -10px;
         width: 500px;
         height: 500px;
-        z-index: 2;
+        z-index: 1600;
         pointer-events: auto;
         cursor: grab;
         transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: none;
       }
 
       #rings-container:active {
@@ -201,10 +202,12 @@
         opacity: 0;
         transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         animation: arrow-bounce 2s ease-in-out infinite;
+        display: none;
       }
 
       #pixel-arrow-indicator.show {
         opacity: 0.7;
+        display: block;
       }
 
       #pixel-arrow-indicator img {
@@ -256,8 +259,8 @@
         border: none;
         outline: none;
         padding: 0 32px;
-        z-index: 1000;
-        display: flex;
+        z-index: 1600;
+        display: none;
         align-items: center;
         opacity: 0;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -276,15 +279,16 @@
       /* Upload Button Styles */
       #upload-hand-btn {
         position: fixed;
-        right: 2vw;
-        bottom: 0.5vw;
+
+        right: -1vw;
+        bottom: -2vw;
         width: 280px;
         height: 280px;
         background: none;
         border: none;
         cursor: pointer;
-        z-index: 2100;
-        display: flex;
+        z-index: 1600;
+        display: none;
         align-items: center;
         justify-content: center;
         box-shadow: none;
@@ -296,7 +300,7 @@
 
       #upload-hand-btn.dock-visible {
         opacity: 1;
-        bottom: 2vw;
+        bottom: 0vw;
       }
 
       #upload-hand-btn.dock-hidden {
@@ -331,10 +335,6 @@
         display: block;
         pointer-events: none;
         transition: all 0.3s ease;
-      }
-
-      #upload-hand-btn:hover #upload-hand-btn-img {
-        content: url('../../assets/ClosedHand.png');
       }
 
       /* Chatbot Styles */
@@ -926,7 +926,6 @@
         margin-bottom: 10px;
         text-align: center;
       }
-
       /* Mobile responsive */
       @media (max-width: 768px) {
         #upload-hand-btn {
@@ -1187,10 +1186,86 @@
           font-size: 10px;
           padding: 3px 8px;
         }
+      /* Galaxy Navigation Button */
+      #galaxy-nav-btn {
+        position: fixed;
+        top: 20px;
+        left: 25px;
+        width: 40px;
+        height: 40px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        padding: 0;
+      }
+
+      #galaxy-nav-btn:hover {
+        transform: scale(1.1);
+      }
+
+      #galaxy-nav-btn:active {
+        transform: scale(0.95);
+      }
+
+      #galaxy-nav-btn img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+      }
+
+      #galaxy-nav-btn:hover img {
+        opacity: 1;
+      }
+
+      /* Black Popup Overlay */
+      #black-popup-overlay {
+        position: fixed;
+        bottom: -25vh;
+        left: 0;
+        width: 100vw;
+        height: 50vh;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0) 0%,
+          rgba(0, 0, 0, 0.5) 50%,
+          rgba(0, 0, 0, 1) 100%
+        );
+        z-index: 1500;
+        transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        pointer-events: none;
+        display: none;
+      }
+
+      #black-popup-overlay.dock-visible {
+        bottom: 0;
+      }
+
+      #black-popup-overlay.dock-hidden {
+        bottom: -vh;
       }
     </style>
   </head>
   <body>
+    <!-- Galaxy Navigation Button -->
+    <button
+      id="galaxy-nav-btn"
+      onclick="window.location.href='../Total_galaxy/total_galaxy_final.html'"
+      title="Go to Total Galaxy"
+    >
+      <img src="../../assets/galaxy_icon.png" alt="Galaxy Icon" />
+    </button>
+
+    <!-- Black Popup Overlay -->
+    <div id="black-popup-overlay"></div>
+
     <div id="black-overlay"></div>
     <div
       id="loading-container"
@@ -2149,7 +2224,7 @@
               window.location.href = "../Artists/Artist.html";
               break;
             case "eye-rhizome":
-              window.location.href = "../../index.html";
+              window.location.href = "../rhizome/rhizome.html";
               break;
             default:
               // Silently ignore unknown eye IDs
@@ -2618,6 +2693,9 @@
         const pixelArrowIndicator = document.getElementById(
           "pixel-arrow-indicator"
         );
+        const blackPopupOverlay = document.getElementById(
+          "black-popup-overlay"
+        );
 
         let dockTimeout;
         let isDockVisible = false;
@@ -2628,11 +2706,10 @@
         ringsContainer.classList.add("dock-hidden");
         searchBar.classList.add("dock-hidden");
         uploadBtn.classList.add("dock-hidden");
+        blackPopupOverlay.classList.add("dock-hidden");
 
-        // Show pixel arrow indicator initially since dock is hidden
-        if (pixelArrowIndicator) {
-          pixelArrowIndicator.classList.add("show");
-        }
+        // All UI elements start hidden until loading is complete
+        // They will be shown in the startVisualization function
 
         function showDock() {
           if (!isDockVisible) {
@@ -2643,6 +2720,8 @@
             searchBar.classList.add("dock-visible");
             uploadBtn.classList.remove("dock-hidden");
             uploadBtn.classList.add("dock-visible");
+            blackPopupOverlay.classList.remove("dock-hidden");
+            blackPopupOverlay.classList.add("dock-visible");
 
             // Hide pixel arrow indicator when dock is visible
             if (pixelArrowIndicator) {
@@ -2660,6 +2739,8 @@
             searchBar.classList.add("dock-hidden");
             uploadBtn.classList.remove("dock-visible");
             uploadBtn.classList.add("dock-hidden");
+            blackPopupOverlay.classList.remove("dock-visible");
+            blackPopupOverlay.classList.add("dock-hidden");
 
             // Show pixel arrow indicator when dock is hidden
             if (pixelArrowIndicator) {
@@ -2668,18 +2749,28 @@
           }
         }
 
-        // Mouse move handler for dock behavior
+        // Mouse move handler for dock behavior - only trigger on pixel arrow hover
         document.addEventListener("mousemove", (e) => {
+          const pixelArrow = document.getElementById("pixel-arrow-indicator");
+          if (!pixelArrow) return;
+
+          const arrowRect = pixelArrow.getBoundingClientRect();
+          const mouseX = e.clientX;
           const mouseY = e.clientY;
-          const windowHeight = window.innerHeight;
-          const isInHoverZone = mouseY > windowHeight - hoverZoneHeight;
+
+          // Check if mouse is over the pixel arrow
+          const isOverArrow =
+            mouseX >= arrowRect.left &&
+            mouseX <= arrowRect.right &&
+            mouseY >= arrowRect.top &&
+            mouseY <= arrowRect.bottom;
 
           // Clear existing timeout
           if (dockTimeout) {
             clearTimeout(dockTimeout);
           }
 
-          if (isInHoverZone) {
+          if (isOverArrow) {
             showDock();
           } else {
             // Delay hiding the dock
@@ -2760,12 +2851,55 @@
                 setTimeout(() => {
                   document.getElementById("black-overlay").style.display =
                     "none";
+
+                  // Show UI elements after loading screen is gone
+                  const galaxyBtn = document.getElementById("galaxy-nav-btn");
+                  const pixelArrowIndicator = document.getElementById(
+                    "pixel-arrow-indicator"
+                  );
+                  const ringsContainer =
+                    document.getElementById("rings-container");
+                  const searchBar = document.getElementById("search-bar");
+                  const uploadBtn = document.getElementById("upload-hand-btn");
+                  const blackPopupOverlay = document.getElementById(
+                    "black-popup-overlay"
+                  );
+
+                  if (galaxyBtn) {
+                    galaxyBtn.style.display = "flex";
+                  }
+                  if (pixelArrowIndicator) {
+                    pixelArrowIndicator.style.display = "block";
+                    pixelArrowIndicator.classList.add("show");
+                  }
+                  if (ringsContainer) {
+                    ringsContainer.style.display = "block";
+                  }
+                  if (searchBar) {
+                    searchBar.style.display = "flex";
+                  }
+                  if (uploadBtn) {
+                    uploadBtn.style.display = "flex";
+                  }
+                  if (blackPopupOverlay) {
+                    blackPopupOverlay.style.display = "block";
+                  }
                 }, 500);
 
                 // Initialize floating eye after loading is complete
                 setTimeout(() => {
                   initFloatingEye();
                 }, 100);
+
+                // Initialize dock behavior after loading is complete
+                setTimeout(() => {
+                  initDockBehavior();
+                }, 600);
+
+                // Set up event listeners after loading is complete
+                setTimeout(() => {
+                  setupEventListeners();
+                }, 700);
               });
             });
 
@@ -3536,44 +3670,60 @@
         }
       }
 
-      // Event listeners
-      document.addEventListener("DOMContentLoaded", function () {
+      // Event listeners will be set up after loading is complete
+
+      // Setup event listeners function
+      function setupEventListeners() {
         const searchBar = document.getElementById("search-bar");
         let searchTimeout;
 
-        searchBar.addEventListener("input", (event) => {
-          const query = event.target.value.trim();
-
-          // Clear previous timeout
-          if (searchTimeout) {
-            clearTimeout(searchTimeout);
-          }
-
-          // Set new timeout for search (debounce)
-          if (query.length > 0) {
-            searchTimeout = setTimeout(() => {
-              performSearch(query);
-            }, 500); // Wait 500ms after user stops typing
-          }
-        });
-
-        searchBar.addEventListener("keypress", (event) => {
-          if (event.key === "Enter") {
+        if (searchBar) {
+          searchBar.addEventListener("input", (event) => {
             const query = event.target.value.trim();
-            if (query.length > 0) {
-              // Clear timeout and perform search immediately
-              if (searchTimeout) {
-                clearTimeout(searchTimeout);
-              }
-              performSearch(query);
+
+            // Clear previous timeout
+            if (searchTimeout) {
+              clearTimeout(searchTimeout);
             }
-          }
-        });
+
+            // Set new timeout for search (debounce)
+            if (query.length > 0) {
+              searchTimeout = setTimeout(() => {
+                performSearch(query);
+              }, 500); // Wait 500ms after user stops typing
+            }
+          });
+
+          searchBar.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+              const query = event.target.value.trim();
+              if (query.length > 0) {
+                // Clear timeout and perform search immediately
+                if (searchTimeout) {
+                  clearTimeout(searchTimeout);
+                }
+                performSearch(query);
+              }
+            }
+          });
+        }
 
         // Add click event listener to upload button
         const uploadBtn = document.getElementById("upload-hand-btn");
         if (uploadBtn) {
           uploadBtn.addEventListener("click", showChatbot);
+
+          // Add hover functionality for hand image
+          const handImg = document.getElementById("upload-hand-btn-img");
+          if (handImg) {
+            uploadBtn.addEventListener("mouseenter", () => {
+              handImg.src = "../../assets/ClosedHand.png";
+            });
+
+            uploadBtn.addEventListener("mouseleave", () => {
+              handImg.src = "../../assets/OpenHand.png";
+            });
+          }
         }
 
         // Close chatbot with Escape key
@@ -3592,13 +3742,9 @@
             }
           });
         }
-      });
+      }
 
-      // Initialize dock behavior when DOM is loaded
-      document.addEventListener("DOMContentLoaded", () => {
-        // Small delay to ensure all elements are properly loaded
-        setTimeout(initDockBehavior, 100);
-      });
+      // Dock behavior will be initialized after loading is complete
 
       // Start the visualization when the page loads
       window.addEventListener("load", startVisualization);

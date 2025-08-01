@@ -755,9 +755,57 @@
         margin-bottom: 10px;
         text-align: center;
       }
+
+      /* Galaxy Navigation Button */
+      #galaxy-nav-btn {
+        position: fixed;
+        top: 20px;
+        left: 25px;
+        width: 40px;
+        height: 40px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        padding: 0;
+      }
+
+      #galaxy-nav-btn:hover {
+        transform: scale(1.1);
+      }
+
+      #galaxy-nav-btn:active {
+        transform: scale(0.95);
+      }
+
+      #galaxy-nav-btn img {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+      }
+
+      #galaxy-nav-btn:hover img {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
+    <!-- Galaxy Navigation Button -->
+    <button
+      id="galaxy-nav-btn"
+      onclick="window.location.href='views/Total_galaxy/total_galaxy_final.html'"
+      title="Go to Total Galaxy"
+    >
+      <img src="assets/galaxy_icon.png" alt="Galaxy Icon" />
+    </button>
+
     <div id="black-overlay"></div>
     <div id="loading-container">
       <div class="loading-bar">
@@ -1282,6 +1330,12 @@
             setTimeout(() => {
               document.getElementById("black-overlay").style.display = "none";
 
+              // Show galaxy button after loading screen is gone
+              const galaxyBtn = document.getElementById("galaxy-nav-btn");
+              if (galaxyBtn) {
+                galaxyBtn.style.display = "flex";
+              }
+
               // Show UI elements with fade-in effect
               const uiElements = [
                 document.getElementById("search-bar"),
@@ -1436,6 +1490,18 @@
         const uploadBtn = document.getElementById("upload-hand-btn");
         if (uploadBtn) {
           uploadBtn.addEventListener("click", showChatbot);
+
+          // Add hover functionality for hand image
+          const handImg = document.getElementById("upload-hand-btn-img");
+          if (handImg) {
+            uploadBtn.addEventListener("mouseenter", () => {
+              handImg.src = "assets/ClosedHand.png";
+            });
+
+            uploadBtn.addEventListener("mouseleave", () => {
+              handImg.src = "assets/OpenHand.png";
+            });
+          }
         }
 
         // Close chatbot with Escape key

@@ -34,10 +34,15 @@
 
       #loading-container {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #000000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         z-index: 1001;
       }
 
@@ -53,6 +58,32 @@
         height: 100%;
         background: #ffffff;
         transition: width 0.3s ease;
+      }
+
+      #enter-button {
+        display: none;
+        margin-top: 30px;
+        padding: 15px 40px;
+        font-family: "VT323", monospace;
+        font-size: 24px;
+        background: transparent;
+        color: #ffffff;
+        border: 2px solid #ffffff;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      #enter-button:hover {
+        background: #ffffff;
+        color: #000000;
+        transform: scale(1.05);
+      }
+
+      #enter-button:active {
+        transform: scale(0.95);
       }
     </style>
   </head>
@@ -71,6 +102,7 @@
       >
         LOADING GALAXY... 0%
       </div>
+      <button id="enter-button">ENTER</button>
     </div>
 
     <div id="visualization"></div>
@@ -88,6 +120,7 @@
       let globalRotationGroup; // Container for all content that will rotate
       let viewTitles = {}; // Store title sprites for each view
       let titleFadeInStartTime = 0; // When titles start fading in
+      let visualizationStarted = false; // Track if visualization has been started
       let cameraAnimation = {
         isActive: false,
         startTime: 0,
@@ -129,7 +162,7 @@
 
       // View navigation URLs
       const viewNavigationUrls = {
-        rhizome: "../rhizome/rhizome-with-ui.html",
+        rhizome: "../rhizome/rhizome.html",
         artist: "../Artists/Artist.html",
         "open-question": "../open_question/openQuestion.html",
         "hashtag-gallery": "../hashtag_gallery/hashtag_gallery.html",
@@ -1820,39 +1853,62 @@
           console.log("Starting visualization...");
           await init();
 
-          // Hide loading screen
-          document.getElementById("loading-container").style.display = "none";
+          // Show enter button instead of hiding loading screen
+          const loadingContainer = document.getElementById("loading-container");
+          const loadingBar = document.querySelector(".loading-bar");
+          const loadingText = document.getElementById("loading-text");
+          const enterButton = document.getElementById("enter-button");
 
-          // Start animation
-          animate();
+          // Hide loading elements and show enter button
+          loadingBar.style.display = "none";
+          loadingText.textContent = "GALAXY READY";
+          loadingText.style.color = "#00ff00";
+          enterButton.style.display = "inline-block";
 
-          // Setup resize handler
-          window.addEventListener("resize", onWindowResize, false);
+          // Add click event listener to enter button
+          enterButton.addEventListener("click", async () => {
+            if (visualizationStarted) return; // Prevent multiple clicks
 
-          // Pre-warm the GPU by rendering a few frames
-          for (let i = 0; i < 10; i++) {
-            composer.render();
-            await new Promise((resolve) => setTimeout(resolve, 16)); // ~60fps
-          }
+            visualizationStarted = true;
+            enterButton.disabled = true;
+            enterButton.textContent = "ENTERING...";
 
-          // Start camera animation after 2 seconds
-          setTimeout(() => {
-            // Store current camera state
-            cameraAnimation.startPosition.copy(camera.position);
-            cameraAnimation.startAngle = Math.atan2(
-              camera.position.z,
-              camera.position.x
-            );
-            cameraAnimation.startTime = Date.now();
-            cameraAnimation.isActive = true;
-            console.log(
-              "Starting camera animation: zoom out and orbit leftward"
-            );
-          }, 2000);
+            // Hide loading container
+            loadingContainer.style.display = "none";
 
-          // Note: Controls will be re-enabled automatically when camera animation completes
+            // Start animation
+            animate();
 
-          console.log("Visualization started successfully!");
+            // Setup resize handler
+            window.addEventListener("resize", onWindowResize, false);
+
+            // Pre-warm the GPU by rendering a few frames
+            for (let i = 0; i < 10; i++) {
+              composer.render();
+              await new Promise((resolve) => setTimeout(resolve, 16)); // ~60fps
+            }
+
+            // Start camera animation after 2 seconds
+            setTimeout(() => {
+              // Store current camera state
+              cameraAnimation.startPosition.copy(camera.position);
+              cameraAnimation.startAngle = Math.atan2(
+                camera.position.z,
+                camera.position.x
+              );
+              cameraAnimation.startTime = Date.now();
+              cameraAnimation.isActive = true;
+              console.log(
+                "Starting camera animation: zoom out and orbit leftward"
+              );
+            }, 2000);
+
+            // Note: Controls will be re-enabled automatically when camera animation completes
+
+            console.log("Visualization started successfully!");
+          });
+
+          console.log("Loading complete - waiting for user to click ENTER");
         } catch (error) {
           console.error("Error starting visualization:", error);
           const loadingText = document.getElementById("loading-text");
