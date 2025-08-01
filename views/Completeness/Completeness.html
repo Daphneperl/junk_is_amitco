@@ -1768,6 +1768,18 @@
               window.innerHeight * 0.2,
               window.innerHeight * 0.9
             );
+
+            // Calculate animation timing based on score position
+            // Higher scores (lower end positions) should reach their position first
+            // Lower scores (higher end positions) should reach their position last
+            const scoreProgress =
+              (this.score - thresholds.midLow) /
+              (thresholds.midHigh - thresholds.midLow);
+            const minDuration = 300; // Fastest animation (top scores)
+            const maxDuration = 720; // Slowest animation (bottom scores)
+            this.animationDuration =
+              minDuration + (1 - scoreProgress) * (maxDuration - minDuration);
+            this.transitionDuration = 10; // Much shorter transition to reduce delay
           } else {
             this.anchorY = this.startY; // rough ideas stay up
           }
@@ -1792,13 +1804,29 @@
           if (!this.loaded) return;
 
           if (this.type === "mid") {
-            if (this.transitionFrame < 480) {
-              let progress = this.transitionFrame / 480;
+            if (this.transitionFrame < this.animationDuration) {
+              let progress = this.transitionFrame / this.animationDuration;
               let eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-              this.y = this.lerp(this.startY, this.anchorY, eased);
+
+              // Start jittering during the fall with gradually increasing amplitude
+              let t = Date.now() * 0.001 * this.jitterSpeed + this.offset;
+              let jitterIntensity = Math.max(0, (progress - 0.7) / 0.3); // Start jittering in last 30% of fall
+              let currentJitterAmplitude =
+                this.jitterAmplitude * jitterIntensity;
+
+              // Calculate base falling position
+              let baseY = this.lerp(this.startY, this.anchorY, eased);
+              let baseX = this.anchorX;
+
+              // Add jitter to the falling motion
+              this.y =
+                baseY + Math.sin(t + this.jitterPhase) * currentJitterAmplitude;
+              this.x =
+                baseX + Math.cos(t + this.jitterPhase) * currentJitterAmplitude;
+
               this.transitionFrame++;
             } else {
-              // Jitter for mid (liquid)
+              // Full jitter for mid (liquid)
               let t = Date.now() * 0.001 * this.jitterSpeed + this.offset;
               this.y =
                 this.anchorY +
