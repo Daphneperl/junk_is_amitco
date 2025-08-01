@@ -44,25 +44,22 @@
         justify-content: center;
         align-items: center;
         z-index: 1001;
+        transition: opacity 0.8s ease-out;
       }
 
-      .loading-bar {
-        width: 300px;
-        height: 20px;
-        background: #333;
-        border-radius: 10px;
-        overflow: hidden;
-      }
-
-      .loading-progress {
-        height: 100%;
-        background: #ffffff;
-        transition: width 0.3s ease;
+      .title-gif {
+        width: 1600px;
+        height: auto;
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1001;
+        opacity: 0.8;
       }
 
       #enter-button {
         display: none;
-        margin-top: 30px;
         padding: 15px 40px;
         font-family: "VT323", monospace;
         font-size: 24px;
@@ -71,37 +68,29 @@
         border: 2px solid #ffffff;
         border-radius: 5px;
         cursor: pointer;
-        transition: all 0.3s ease;
         text-transform: uppercase;
         letter-spacing: 2px;
+        position: absolute;
+        bottom: 30%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1002;
+        opacity: 0.8;
       }
 
       #enter-button:hover {
         background: #ffffff;
         color: #000000;
-        transform: scale(1.05);
-      }
-
-      #enter-button:active {
-        transform: scale(0.95);
       }
     </style>
   </head>
   <body>
     <div id="loading-container">
-      <div class="loading-bar">
-        <div
-          id="loading-progress"
-          class="loading-progress"
-          style="width: 0%"
-        ></div>
-      </div>
-      <div
-        id="loading-text"
-        style="color: #ffffff; font-family: monospace; margin-top: 10px"
-      >
-        LOADING GALAXY... 0%
-      </div>
+      <img
+        src="../../assets/Title_Glitch_Transperent_0108.gif"
+        alt="Junk_is"
+        class="title-gif"
+      />
       <button id="enter-button">ENTER</button>
     </div>
 
@@ -385,17 +374,9 @@
         }
       }
 
-      // Update loading UI
+      // Update loading UI (no longer needed since we removed loading text)
       function updateLoadingUI(progress) {
-        const progressBar = document.getElementById("loading-progress");
-        const loadingText = document.getElementById("loading-text");
-
-        if (progressBar && loadingText) {
-          progressBar.style.width = `${progress}%`;
-          loadingText.textContent = `LOADING GALAXY... ${Math.floor(
-            progress
-          )}%`;
-        }
+        // Loading text removed, so this function is now a no-op
       }
 
       // Load artistic analysis data
@@ -1853,16 +1834,11 @@
           console.log("Starting visualization...");
           await init();
 
-          // Show enter button instead of hiding loading screen
+          // Show enter button when loading is complete
           const loadingContainer = document.getElementById("loading-container");
-          const loadingBar = document.querySelector(".loading-bar");
-          const loadingText = document.getElementById("loading-text");
           const enterButton = document.getElementById("enter-button");
 
-          // Hide loading elements and show enter button
-          loadingBar.style.display = "none";
-          loadingText.textContent = "GALAXY READY";
-          loadingText.style.color = "#00ff00";
+          // Show enter button
           enterButton.style.display = "inline-block";
 
           // Add click event listener to enter button
@@ -1871,10 +1847,14 @@
 
             visualizationStarted = true;
             enterButton.disabled = true;
-            enterButton.textContent = "ENTERING...";
 
-            // Hide loading container
-            loadingContainer.style.display = "none";
+            // Fade out loading container
+            loadingContainer.style.opacity = "0";
+
+            // Remove loading container after fade completes
+            setTimeout(() => {
+              loadingContainer.style.display = "none";
+            }, 800);
 
             // Start animation
             animate();
