@@ -1019,7 +1019,7 @@
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 8px;
         padding: 20px;
-        font-family: 'Overpass Mono', monospace;
+        font-family: "Overpass Mono", monospace;
         color: #fff;
         font-size: 14px;
         transform: translateX(-100%);
@@ -1056,7 +1056,7 @@
         color: #fff;
         font-size: 18px;
         cursor: pointer;
-        font-family: 'VT323', monospace;
+        font-family: "VT323", monospace;
         z-index: 3002;
         opacity: 0;
         transition: opacity 0.3s ease;
@@ -1079,7 +1079,7 @@
 
       .drawer-label {
         font-weight: bold;
-        font-family: 'Overpass Mono', monospace;
+        font-family: "Overpass Mono", monospace;
         font-size: 16px;
         color: rgba(255, 255, 255, 0.9);
         text-transform: uppercase;
@@ -1088,7 +1088,7 @@
 
       .drawer-value {
         font-weight: normal;
-        font-family: 'Overpass Mono', monospace;
+        font-family: "Overpass Mono", monospace;
         font-style: italic;
         font-size: 14px;
         line-height: 1.4;
@@ -1171,7 +1171,7 @@
         .drawer-value {
           font-size: 13px;
           font-weight: normal;
-          font-family: 'Overpass Mono', monospace;
+          font-family: "Overpass Mono", monospace;
           font-style: italic;
           color: rgba(255, 255, 255, 0.7);
         }
@@ -1186,6 +1186,7 @@
           font-size: 10px;
           padding: 3px 8px;
         }
+      }
       /* Galaxy Navigation Button */
       #galaxy-nav-btn {
         position: fixed;
@@ -1249,7 +1250,7 @@
       }
 
       #black-popup-overlay.dock-hidden {
-        bottom: -vh;
+        bottom: -25vh;
       }
     </style>
   </head>
@@ -1456,8 +1457,6 @@
       let eyeDriftY = 0;
       let eyeDriftSpeed = 0.001; // Very slow drift
       let eyeDriftAmplitude = 15; // Small drift amplitude
-
-
 
       // Load sketchiness scores
       async function loadSketchinessScores() {
@@ -2053,57 +2052,58 @@
             particle.checkHover(scaledMouseX, scaledMouseY);
           });
         });
-        
-              // Add click event listener for drawer modal
-      imageCanvas.addEventListener("click", (e) => {
-        const rect = imageCanvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const baseDistance = 100;
-        const zoomFactor = baseDistance / camera.position.z;
-        const scaledMouseX = mouseX / zoomFactor;
-        const scaledMouseY = mouseY / zoomFactor;
-        for (const particle of imageParticles) {
-          const aspectRatio = particle.image.naturalWidth / particle.image.naturalHeight;
-          let width, height;
-          if (aspectRatio > 1) {
-            width = particle.currentSize;
-            height = particle.currentSize / aspectRatio;
-          } else {
-            height = particle.currentSize;
-            width = particle.currentSize * aspectRatio;
+
+        // Add click event listener for drawer modal
+        imageCanvas.addEventListener("click", (e) => {
+          const rect = imageCanvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          const baseDistance = 100;
+          const zoomFactor = baseDistance / camera.position.z;
+          const scaledMouseX = mouseX / zoomFactor;
+          const scaledMouseY = mouseY / zoomFactor;
+          for (const particle of imageParticles) {
+            const aspectRatio =
+              particle.image.naturalWidth / particle.image.naturalHeight;
+            let width, height;
+            if (aspectRatio > 1) {
+              width = particle.currentSize;
+              height = particle.currentSize / aspectRatio;
+            } else {
+              height = particle.currentSize;
+              width = particle.currentSize * aspectRatio;
+            }
+            const halfWidth = width / 2;
+            const halfHeight = height / 2;
+            if (
+              scaledMouseX >= particle.x - halfWidth &&
+              scaledMouseX <= particle.x + halfWidth &&
+              scaledMouseY >= particle.y - halfHeight &&
+              scaledMouseY <= particle.y + halfHeight
+            ) {
+              // Create artwork data for the drawer modal
+              const artworkData = {
+                title: particle.filename,
+                image: particle.filename,
+                score: particle.score,
+                completeness: particle.score,
+                filename: particle.filename,
+                // Add other metadata as needed
+                signedBy: "Anonymous",
+                zone: "Completeness View",
+                exactSpot: "Canvas Position",
+                date: "Unknown",
+                daytime: "Unknown",
+                rawness: "Unknown",
+                format: "Digital",
+                context: `This artwork has a completeness score of ${particle.score}. The higher the score, the more complete the artwork appears to be.`,
+                tags: ["completeness", "artwork", "digital"],
+              };
+              createDrawerModal(artworkData, particle);
+              break;
+            }
           }
-          const halfWidth = width / 2;
-          const halfHeight = height / 2;
-          if (
-            scaledMouseX >= particle.x - halfWidth &&
-            scaledMouseX <= particle.x + halfWidth &&
-            scaledMouseY >= particle.y - halfHeight &&
-            scaledMouseY <= particle.y + halfHeight
-          ) {
-            // Create artwork data for the drawer modal
-            const artworkData = {
-              title: particle.filename,
-              image: particle.filename,
-              score: particle.score,
-              completeness: particle.score,
-              filename: particle.filename,
-              // Add other metadata as needed
-              signedBy: 'Anonymous',
-              zone: 'Completeness View',
-              exactSpot: 'Canvas Position',
-              date: 'Unknown',
-              daytime: 'Unknown',
-              rawness: 'Unknown',
-              format: 'Digital',
-              context: `This artwork has a completeness score of ${particle.score}. The higher the score, the more complete the artwork appears to be.`,
-              tags: ['completeness', 'artwork', 'digital']
-            };
-            createDrawerModal(artworkData, particle);
-            break;
-          }
-        }
-      });
+        });
       }
 
       // Rings event handlers
@@ -3753,135 +3753,159 @@
       // Drawer Modal Functions
       function createDrawerModal(artworkData, particle) {
         // Remove existing drawer modal if any
-        const existingModal = document.querySelector('.drawer-backdrop');
+        const existingModal = document.querySelector(".drawer-backdrop");
         if (existingModal) {
           existingModal.remove();
         }
-        
+
         // Create backdrop
-        const backdrop = document.createElement('div');
-        backdrop.className = 'drawer-backdrop';
-        
+        const backdrop = document.createElement("div");
+        backdrop.className = "drawer-backdrop";
+
         // Create drawer container
-        const drawerContainer = document.createElement('div');
-        drawerContainer.className = 'drawer-container';
-        
+        const drawerContainer = document.createElement("div");
+        drawerContainer.className = "drawer-container";
+
         // Create close button
-        const closeButton = document.createElement('button');
-        closeButton.className = 'drawer-close';
-        closeButton.innerHTML = '×';
+        const closeButton = document.createElement("button");
+        closeButton.className = "drawer-close";
+        closeButton.innerHTML = "×";
         closeButton.onclick = closeDrawerModal;
-        
+
         // Create artwork section
-        const artworkSection = document.createElement('div');
-        artworkSection.className = 'drawer-artwork';
-        const artworkImg = document.createElement('img');
+        const artworkSection = document.createElement("div");
+        artworkSection.className = "drawer-artwork";
+        const artworkImg = document.createElement("img");
         artworkImg.src = `../../images/${artworkData.image}`;
-        artworkImg.alt = artworkData.title || 'Artwork';
-        artworkImg.onerror = function() {
-          artworkSection.innerHTML = '<div style="color: #666; font-size: 16px;">Image not available</div>';
+        artworkImg.alt = artworkData.title || "Artwork";
+        artworkImg.onerror = function () {
+          artworkSection.innerHTML =
+            '<div style="color: #666; font-size: 16px;">Image not available</div>';
         };
         artworkSection.appendChild(artworkImg);
-        
+
         // Create info section
-        const infoSection = document.createElement('div');
-        infoSection.className = 'drawer-info';
-        
+        const infoSection = document.createElement("div");
+        infoSection.className = "drawer-info";
+
         // Create info content
         infoSection.innerHTML = `
           <div class="drawer-field">
             <div class="drawer-label">Title</div>
-            <div class="drawer-value">${artworkData.title || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.title || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Completeness Score</div>
-            <div class="drawer-value">${artworkData.completeness || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.completeness || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Signed by</div>
-            <div class="drawer-value">${artworkData.signedBy || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.signedBy || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Zone</div>
-            <div class="drawer-value">${artworkData.zone || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.zone || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Exact spot</div>
-            <div class="drawer-value">${artworkData.exactSpot || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.exactSpot || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Date stamp</div>
-            <div class="drawer-value">${artworkData.date || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.date || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Daytime</div>
-            <div class="drawer-value">${artworkData.daytime || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.daytime || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Rawness</div>
-            <div class="drawer-value">${artworkData.rawness || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.rawness || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field">
             <div class="drawer-label">Format type</div>
-            <div class="drawer-value">${artworkData.format || 'Not specified'}</div>
+            <div class="drawer-value">${
+              artworkData.format || "Not specified"
+            }</div>
           </div>
           <div class="drawer-field full-width">
             <div class="drawer-label">Scene/Context</div>
-            <div class="drawer-context">${artworkData.context || 'No context provided'}</div>
+            <div class="drawer-context">${
+              artworkData.context || "No context provided"
+            }</div>
           </div>
           <div class="drawer-field full-width">
             <div class="drawer-label">Vibes/Tags</div>
             <div class="drawer-tags">
-              ${artworkData.tags && artworkData.tags.length > 0 
-                ? artworkData.tags.map(tag => `<span class="drawer-tag">${tag}</span>`).join('')
-                : '<span class="drawer-tag">No tags</span>'
+              ${
+                artworkData.tags && artworkData.tags.length > 0
+                  ? artworkData.tags
+                      .map((tag) => `<span class="drawer-tag">${tag}</span>`)
+                      .join("")
+                  : '<span class="drawer-tag">No tags</span>'
               }
             </div>
           </div>
         `;
-        
+
         // Assemble the modal
         drawerContainer.appendChild(closeButton);
         drawerContainer.appendChild(artworkSection);
         drawerContainer.appendChild(infoSection);
         backdrop.appendChild(drawerContainer);
         document.body.appendChild(backdrop);
-        
+
         // Add click outside to close
-        backdrop.addEventListener('click', function(e) {
+        backdrop.addEventListener("click", function (e) {
           if (e.target === backdrop) {
             closeDrawerModal();
           }
         });
-        
+
         // Add escape key to close
-        const escapeHandler = function(e) {
-          if (e.key === 'Escape') {
+        const escapeHandler = function (e) {
+          if (e.key === "Escape") {
             closeDrawerModal();
-            document.removeEventListener('keydown', escapeHandler);
+            document.removeEventListener("keydown", escapeHandler);
           }
         };
-        document.addEventListener('keydown', escapeHandler);
-        
+        document.addEventListener("keydown", escapeHandler);
+
         // Animate in
         requestAnimationFrame(() => {
-          backdrop.classList.add('show');
+          backdrop.classList.add("show");
           requestAnimationFrame(() => {
-            drawerContainer.classList.add('show');
+            drawerContainer.classList.add("show");
           });
         });
-        
+
         // Store reference to particle for potential future use
         backdrop.particle = particle;
       }
-      
+
       function closeDrawerModal() {
-        const backdrop = document.querySelector('.drawer-backdrop');
+        const backdrop = document.querySelector(".drawer-backdrop");
         if (backdrop) {
-          const container = backdrop.querySelector('.drawer-container');
-          container.classList.remove('show');
-          backdrop.classList.remove('show');
-          
+          const container = backdrop.querySelector(".drawer-container");
+          container.classList.remove("show");
+          backdrop.classList.remove("show");
+
           // Remove after animation
           setTimeout(() => {
             backdrop.remove();
