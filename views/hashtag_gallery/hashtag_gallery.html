@@ -760,6 +760,188 @@
       #galaxy-nav-btn:hover img {
         opacity: 1;
       }
+
+      /* Drawer Modal Styles */
+      .drawer-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 3000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+      }
+
+      .drawer-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .drawer-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        z-index: 3001;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        max-width: 95vw;
+        max-height: 90vh;
+        justify-content: center;
+        position: relative;
+      }
+
+      .drawer-container.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .drawer-artwork {
+        position: relative;
+        width: auto;
+        height: auto;
+        max-width: 45vw;
+        max-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+        z-index: 2;
+        flex-shrink: 0;
+      }
+
+      .drawer-artwork img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 4px;
+        display: block;
+      }
+
+      .drawer-info {
+        position: relative;
+        width: 350px;
+        height: auto;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: "Overpass Mono", monospace;
+        color: #fff;
+        font-size: 14px;
+        transform: translateX(-100%);
+        transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 1;
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .drawer-container.show .drawer-info {
+        transform: translateX(0);
+      }
+
+      .drawer-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+
+      .drawer-field.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .drawer-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+        z-index: 3002;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      .drawer-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .drawer-container.show .drawer-close {
+        opacity: 1;
+      }
+
+      .drawer-label {
+        font-weight: bold;
+        font-family: "Overpass Mono", monospace;
+        font-size: 16px;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .drawer-value {
+        font-weight: normal;
+        font-family: "Overpass Mono", monospace;
+        font-style: italic;
+        font-size: 14px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .drawer-context {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        padding: 12px;
+        min-height: 80px;
+        font-family: "Overpass Mono", monospace;
+        font-size: 14px;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .drawer-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .drawer-tag {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.8);
+        font-family: "Overpass Mono", monospace;
+      }
     </style>
   </head>
   <body>
@@ -1031,6 +1213,13 @@
         document
           .getElementById("visualization")
           .appendChild(renderer.domElement);
+
+        // Initialize raycaster for image clicks
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+
+        // Add click event listener to renderer
+        renderer.domElement.addEventListener("click", onImageClick);
 
         // Setup post-processing
         composer = new THREE.EffectComposer(renderer);
@@ -1337,6 +1526,11 @@
               const plane = new THREE.Mesh(geometry, material);
               plane.position.set(x, yCenter, zOffset + z);
               plane.lookAt(0, yCenter, 0); // Face the center
+              
+              // Store image data with the mesh for drawer modal
+              plane.userData.imageData = imageList[i];
+              plane.userData.imageUrl = validImages[i].url;
+              
               scene.add(plane);
               scene.userData.imagePlanes.push(plane);
 
@@ -1973,8 +2167,11 @@
           if (progress >= 100) {
             clearInterval(loadingInterval);
 
-            // Load quote connections and initialize
-            loadQuoteConnections().then((quoteData) => {
+            // Load quote connections and artistic analysis data, then initialize
+            Promise.all([
+              loadQuoteConnections(),
+              loadArtisticAnalysisData()
+            ]).then(([quoteData]) => {
               if (quoteData) {
                 // Initialize the scene
                 init();
@@ -2566,6 +2763,227 @@
         setTimeout(() => {
           closeChatbot();
         }, 3000);
+      }
+
+      // Global variable to store artistic analysis data
+      let artisticAnalysisData = {};
+
+      // Load artistic analysis data
+      async function loadArtisticAnalysisData() {
+        try {
+          const response = await fetch("../../image_analysis/artistic_analysis.json");
+          const data = await response.json();
+          
+          // Convert array to object for easier lookup
+          data.forEach(item => {
+            artisticAnalysisData[item.filename] = item;
+          });
+          
+          console.log("Artistic analysis data loaded successfully");
+        } catch (error) {
+          console.error("Error loading artistic analysis data:", error);
+        }
+      }
+
+      // Drawer Modal Functions
+      function createDrawerModal(imageData, mesh) {
+        // Remove existing drawer modal if any
+        const existingModal = document.querySelector(".drawer-backdrop");
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        // Get artistic analysis data for this image
+        const imageAnalysis = artisticAnalysisData[imageData] || {};
+        
+        // Extract image filename without extension for lookup
+        const imageName = imageData.split('.')[0];
+        const analysisData = artisticAnalysisData[imageName] || {};
+
+        // Create backdrop
+        const backdrop = document.createElement("div");
+        backdrop.className = "drawer-backdrop";
+
+        // Create drawer container
+        const drawerContainer = document.createElement("div");
+        drawerContainer.className = "drawer-container";
+
+        // Create close button
+        const closeButton = document.createElement("button");
+        closeButton.className = "drawer-close";
+        closeButton.innerHTML = "×";
+        closeButton.onclick = closeDrawerModal;
+
+        // Create artwork section
+        const artworkSection = document.createElement("div");
+        artworkSection.className = "drawer-artwork";
+        const artworkImg = document.createElement("img");
+        
+        // Try different extensions for the image
+        const extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+        let currentExtensionIndex = 0;
+        
+        function tryLoadImage() {
+          if (currentExtensionIndex >= extensions.length) {
+            artworkSection.innerHTML = '<div style="color: #666; font-size: 16px;">Image not available</div>';
+            return;
+          }
+          
+          const extension = extensions[currentExtensionIndex];
+          const imagePath = `../../images/${imageData}${extension}`;
+          
+          artworkImg.onload = function() {
+            console.log(`Successfully loaded image for drawer: ${imagePath}`);
+          };
+          
+          artworkImg.onerror = function() {
+            console.log(`Failed to load image: ${imagePath}`);
+            currentExtensionIndex++;
+            tryLoadImage();
+          };
+          
+          artworkImg.src = imagePath;
+        }
+        
+        artworkImg.alt = "Artwork";
+        artworkSection.appendChild(artworkImg);
+        tryLoadImage();
+
+        // Create info section
+        const infoSection = document.createElement("div");
+        infoSection.className = "drawer-info";
+
+        // Map data to semantic fields according to user's definitions
+        const title = imageData || "-";
+        const signedBy = "-"; // Creator name - not available in current data
+        const zone = "-"; // Geographic location - not available in current data
+        const exactSpot = currentQuoteData ? currentQuoteData.quote.replace(/_/g, " ") : "-";
+        const dateStamp = "-"; // Time of creation - not available in current data
+        const daytime = "-"; // Level of day - not available in current data
+        const rawness = "-"; // Completeness level % - not available in current data
+        const formatType = "-"; // Artwork format - not available in current data
+        const context = analysisData.description || "-";
+        const tags = analysisData.keywords ? analysisData.keywords.map(k => k.keyword) : [];
+
+        // Create info content with correct semantic mapping
+        infoSection.innerHTML = `
+              <div class="drawer-field">
+                  <div class="drawer-label">Title</div>
+                  <div class="drawer-value">${title}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Signed by</div>
+                  <div class="drawer-value">${signedBy}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Zone</div>
+                  <div class="drawer-value">${zone}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Exact spot</div>
+                  <div class="drawer-value">${exactSpot}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Date stamp</div>
+                  <div class="drawer-value">${dateStamp}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Daytime</div>
+                  <div class="drawer-value">${daytime}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Rawness</div>
+                  <div class="drawer-value">${rawness}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Format type</div>
+                  <div class="drawer-value">${formatType}</div>
+              </div>
+              <div class="drawer-field full-width">
+                  <div class="drawer-label">Scene/Context</div>
+                  <div class="drawer-context">${context}</div>
+              </div>
+              <div class="drawer-field full-width">
+                  <div class="drawer-label">Vibes/Tags</div>
+                  <div class="drawer-tags">
+                      ${tags.length > 0 ? tags.map(tag => `<span class="drawer-tag">${tag}</span>`).join('') : '<span class="drawer-tag">No tags available</span>'}
+                  </div>
+              </div>
+          `;
+
+        // Assemble the modal
+        drawerContainer.appendChild(closeButton);
+        drawerContainer.appendChild(artworkSection);
+        drawerContainer.appendChild(infoSection);
+        backdrop.appendChild(drawerContainer);
+        document.body.appendChild(backdrop);
+
+        // Add click outside to close
+        backdrop.addEventListener("click", function (e) {
+          if (e.target === backdrop) {
+            closeDrawerModal();
+          }
+        });
+
+        // Add escape key to close
+        const escapeHandler = function (e) {
+          if (e.key === "Escape") {
+            closeDrawerModal();
+            document.removeEventListener("keydown", escapeHandler);
+          }
+        };
+        document.addEventListener("keydown", escapeHandler);
+
+        // Animate in
+        requestAnimationFrame(() => {
+          backdrop.classList.add("show");
+          requestAnimationFrame(() => {
+            drawerContainer.classList.add("show");
+          });
+        });
+
+        // Store reference to mesh for potential future use
+        backdrop.mesh = mesh;
+      }
+
+      function closeDrawerModal() {
+        const backdrop = document.querySelector(".drawer-backdrop");
+        if (backdrop) {
+          const container = backdrop.querySelector(".drawer-container");
+          container.classList.remove("show");
+          backdrop.classList.remove("show");
+
+          // Remove after animation
+          setTimeout(() => {
+            backdrop.remove();
+          }, 400);
+        }
+      }
+
+      function onImageClick(event) {
+        // Calculate mouse position in normalized device coordinates
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Raycast
+        raycaster.setFromCamera(mouse, camera);
+        
+        // Get all image planes from the scene
+        const imagePlanes = scene.userData.imagePlanes || [];
+        const intersects = raycaster.intersectObjects(imagePlanes, false);
+
+        if (intersects.length > 0) {
+          const clickedMesh = intersects[0].object;
+          
+          // Get the image data stored with the mesh
+          const imageData = clickedMesh.userData.imageData;
+          
+          if (imageData) {
+            // Create drawer modal with the image data
+            createDrawerModal(imageData, clickedMesh);
+          }
+        }
       }
     </script>
 
