@@ -1897,7 +1897,6 @@
           ringsRotation.isDragging = true;
         }
 
-        if (ringsRotation.isDragging) {
           rings.rotation.y += deltaX * 0.01;
           rings.rotation.x += deltaY * 0.01;
 
@@ -2184,7 +2183,6 @@
               document.getElementById("loading-container").style.display =
                 "none";
               document.getElementById("visualization").style.display = "block";
-              document.getElementById("black-overlay").style.opacity = "0";
               setTimeout(() => {
                 document.getElementById("black-overlay").style.display = "none";
 

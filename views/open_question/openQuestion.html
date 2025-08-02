@@ -1595,7 +1595,6 @@
       // Search bar event listeners
       document.addEventListener("DOMContentLoaded", function () {
         const searchBar = document.getElementById("search-bar");
-        let searchTimeout;
 
         searchBar.addEventListener("keypress", (event) => {
           if (event.key === "Enter") {
@@ -1973,7 +1972,7 @@
         }
       }
 
-      // Get and display the last query from localStorage
+      // Get and display the last query from localStorage (without search)
       function loadLastQuery() {
         const lastQuery = localStorage.getItem("lastSearchQuery");
         if (lastQuery && lastQuery !== "animal") {
@@ -1982,7 +1981,49 @@
             updateCenterWord(lastQuery);
             window.currentSearchQuery = lastQuery;
             console.log("Loaded last query from localStorage:", lastQuery);
+
+            // Populate the search bar so user can see the query
+            const searchBar = document.getElementById("search-bar");
+            if (searchBar) {
+              searchBar.value = lastQuery;
+            }
+
+            console.log("Search bar ready - press Enter to perform search");
           }, 100);
+        }
+      }
+
+      // Perform search without updating localStorage (to avoid infinite loops)
+      async function performSearchFromStorage(query) {
+        console.log("Performing search from storage for:", query);
+
+        try {
+          // Call the server's search endpoint
+          const response = await fetch("http://localhost:8000/search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ query: query }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          console.log("Search result:", result);
+
+          // Update the visualization with new scores
+          await updateVisualizationWithNewScores(result.scores);
+        } catch (error) {
+          console.error("Search failed:", error);
+          // Don't show alert for automatic searches from storage
+          // Just log the error and continue
+          console.log(
+            "Continuing without search update due to error:",
+            error.message
+          );
         }
       }
 
@@ -3300,8 +3341,33 @@
       }
 
       // Initialize the scene
-      createDots().then(() => {
-        // Hide loading screen and show visualization
+      createDots().then(async () => {
+        // Check if this page was loaded from navigation (not refresh)
+        const isFromNavigation = sessionStorage.getItem("fromNavigation");
+        const lastQuery = localStorage.getItem("lastSearchQuery");
+
+        if (
+          isFromNavigation === "true" &&
+          lastQuery &&
+          lastQuery !== "animal"
+        ) {
+          console.log(
+            "Page loaded from navigation, performing search before showing visualization..."
+          );
+
+          // Keep loading screen visible while performing search
+          try {
+            await performSearchFromStorage(lastQuery);
+            console.log("Search completed, now showing visualization");
+          } catch (error) {
+            console.error("Search failed during loading:", error);
+          }
+
+          // Clear the flag to prevent future automatic searches
+          sessionStorage.removeItem("fromNavigation");
+        }
+
+        // Hide loading screen and show visualization (only after search is complete)
         document.getElementById("loading-container").style.display = "none";
         document.getElementById("black-overlay").style.opacity = "0";
         setTimeout(() => {
@@ -3313,7 +3379,7 @@
             galaxyBtn.style.display = "flex";
           }
 
-          // Get and display the last query from localStorage
+          // Get and display the last query from localStorage (without search)
           loadLastQuery();
         }, 500);
 
