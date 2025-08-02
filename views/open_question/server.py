@@ -10,6 +10,8 @@ CORS(app)  # Enable CORS for all routes
 
 # Global variable to store current scores
 current_scores = {}
+# Global variable to store last query
+last_query = "default"
 
 # Global variable for the target word - easily changeable
 TARGET_WORD = "animal"  # Change this to any word you want to search for
@@ -172,7 +174,8 @@ def search():
         print(f"[{datetime.now()}] Received search query: '{query}'")
         
         # Generate new scores based on query
-        global current_scores
+        global current_scores, last_query
+        last_query = query
         current_scores = generate_semantic_scores(query)
         
         # Save scores to JSON file (async to avoid blocking)
@@ -216,6 +219,15 @@ def get_scores():
     except Exception as e:
         print(f"[{datetime.now()}] Error getting scores: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/last-query', methods=['GET'])
+def get_last_query():
+    """Get the last search query"""
+    global last_query
+    return jsonify({
+        'last_query': last_query,
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/health', methods=['GET'])
 def health():

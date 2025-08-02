@@ -4,8 +4,13 @@
     <meta charset="UTF-8" />
     <title>Open question</title>
     <script>
+      // to run the server, run these 2 lines in a seperate terminal:
+      // cd views/open_question
+      // source venv/bin/activate && pip3 install -r requirements.txt && python3 server.py
+
       // Configuration - change this to match your server's TARGET_WORD
-      const TARGET_WORD = "animal";
+
+      const TARGET_WORD = "_____";
 
       // Current search query for tooltip display
       window.currentSearchQuery = TARGET_WORD;
@@ -816,29 +821,7 @@
         bottom: -50vh;
       }
 
-      /* Center Word Display */
-      #center-word {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: #ffffff;
-        font-family: "VT323", monospace;
-        font-size: 48px;
-        font-weight: normal;
-        text-transform: uppercase;
-        text-align: center;
-        z-index: 1000;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        pointer-events: none;
-        letter-spacing: 2px;
-      }
-
-      #center-word.show {
-        opacity: 1;
-      }
+      /* Center Word Display - Now handled as 3D object */
     </style>
   </head>
   <body>
@@ -851,8 +834,7 @@
       <img src="../../assets/galaxy_icon.png" alt="Galaxy Icon" />
     </button>
 
-    <!-- Center Word Display -->
-    <div id="center-word"></div>
+    <!-- Center Word Display - Now handled as 3D object -->
 
     <div id="black-overlay"></div>
 
@@ -900,7 +882,7 @@
     </div>
 
     <!-- Search Bar (fixed) -->
-    <input id="search-bar" type="text" placeholder="I want to see..." />
+    <input id="search-bar" type="text" placeholder="focus 0n..." />
 
     <!-- Upload Hand Button -->
     <button id="upload-hand-btn">
@@ -992,6 +974,9 @@
       let eyeLabelGroups = [];
       let ringsRaycaster, ringsMouse;
 
+      // 3D center word object
+      let centerWordObject = null;
+
       // Questions for chatbot
       const questions = [
         {
@@ -1077,6 +1062,48 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setClearColor(0x111111);
       document.body.appendChild(renderer.domElement);
+
+      // Function to create 3D text
+      function create3DText(text) {
+        // Create canvas for text
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 128;
+        const ctx = canvas.getContext("2d");
+
+        // Set text style to match the original CSS
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "48px VT323, monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // Add text shadow effect
+        ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+
+        // Draw text
+        ctx.fillText(text.toUpperCase(), canvas.width / 2, canvas.height / 2);
+
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+
+        // Create sprite material
+        const material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0,
+        });
+
+        // Create sprite
+        const sprite = new THREE.Sprite(material);
+        sprite.scale.set(8, 2, 1); // Adjust scale as needed
+        sprite.position.set(0, 0, -5); // Position behind images
+
+        return sprite;
+      }
 
       // Create noise texture for background
       const canvas = document.createElement("canvas");
@@ -1305,6 +1332,49 @@
           imageFiles.sort((a, b) => imageScores[b] - imageScores[a]);
           imageFiles = imageFiles.slice(0, totalDots);
 
+          // Shuffle images within each score group to randomize their layer assignments
+          const shuffledImageFiles = [];
+          let currentScore = null;
+          let currentGroup = [];
+
+          for (let i = 0; i < imageFiles.length; i++) {
+            const score = imageScores[imageFiles[i]];
+            if (score !== currentScore) {
+              // Shuffle the previous group and add to result
+              if (currentGroup.length > 0) {
+                // Fisher-Yates shuffle
+                for (let j = currentGroup.length - 1; j > 0; j--) {
+                  const k = Math.floor(Math.random() * (j + 1));
+                  [currentGroup[j], currentGroup[k]] = [
+                    currentGroup[k],
+                    currentGroup[j],
+                  ];
+                }
+                shuffledImageFiles.push(...currentGroup);
+              }
+              // Start new group
+              currentScore = score;
+              currentGroup = [imageFiles[i]];
+            } else {
+              // Add to current group
+              currentGroup.push(imageFiles[i]);
+            }
+          }
+          // Don't forget to shuffle and add the last group
+          if (currentGroup.length > 0) {
+            for (let j = currentGroup.length - 1; j > 0; j--) {
+              const k = Math.floor(Math.random() * (j + 1));
+              [currentGroup[j], currentGroup[k]] = [
+                currentGroup[k],
+                currentGroup[j],
+              ];
+            }
+            shuffledImageFiles.push(...currentGroup);
+          }
+
+          // Replace the original array with shuffled version
+          imageFiles = shuffledImageFiles;
+
           // Set totalTextures for loading progress
           totalTextures = imageFiles.length;
 
@@ -1411,8 +1481,19 @@
           const radius = minRadius + t * (maxRadius - minRadius);
           const count = dotsPerLayer[layer];
 
+          // Create array of angles for this layer and shuffle them to randomize positions
+          const angles = [];
           for (let i = 0; i < count; i++) {
-            const angle = (i / count) * 2 * Math.PI;
+            angles.push((i / count) * 2 * Math.PI);
+          }
+          // Shuffle the angles to randomize positions within each layer
+          for (let i = angles.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [angles[i], angles[j]] = [angles[j], angles[i]];
+          }
+
+          for (let i = 0; i < count; i++) {
+            const angle = angles[i];
 
             // Use consistent spacing for all layers
             const layerSpacing = 1.2; // Distance between each layer (increased from 0.8)
@@ -1857,6 +1938,8 @@
 
         // Update the current search query for tooltip display
         window.currentSearchQuery = query;
+        // Save query to localStorage for persistence
+        localStorage.setItem("lastSearchQuery", query);
         console.log(
           "Updated currentSearchQuery to:",
           window.currentSearchQuery
@@ -1890,17 +1973,36 @@
         }
       }
 
+      // Get and display the last query from localStorage
+      function loadLastQuery() {
+        const lastQuery = localStorage.getItem("lastSearchQuery");
+        if (lastQuery && lastQuery !== "animal") {
+          // Wait a bit for the scene to be ready
+          setTimeout(() => {
+            updateCenterWord(lastQuery);
+            window.currentSearchQuery = lastQuery;
+            console.log("Loaded last query from localStorage:", lastQuery);
+          }, 100);
+        }
+      }
+
       // Update center word display
       function updateCenterWord(word) {
         console.log("updateCenterWord called with:", word);
-        const centerWordElement = document.getElementById("center-word");
-        if (centerWordElement) {
-          centerWordElement.textContent = word.toUpperCase();
-          centerWordElement.classList.add("show");
-          console.log("Center word updated:", word.toUpperCase());
-        } else {
-          console.error("Center word element not found");
+
+        // Remove existing center word object
+        if (centerWordObject) {
+          scene.remove(centerWordObject);
         }
+
+        // Create new 3D text object
+        centerWordObject = create3DText(word);
+        scene.add(centerWordObject);
+
+        // Set opacity
+        centerWordObject.material.opacity = 1;
+
+        console.log("3D center word updated:", word.toUpperCase());
       }
 
       // Update visualization with new scores
@@ -1914,6 +2016,49 @@
         imageFiles = Object.keys(imageScores);
         imageFiles.sort((a, b) => imageScores[b] - imageScores[a]);
         imageFiles = imageFiles.slice(0, totalDots);
+
+        // Shuffle images within each score group to randomize their layer assignments
+        const shuffledImageFiles = [];
+        let currentScore = null;
+        let currentGroup = [];
+
+        for (let i = 0; i < imageFiles.length; i++) {
+          const score = imageScores[imageFiles[i]];
+          if (score !== currentScore) {
+            // Shuffle the previous group and add to result
+            if (currentGroup.length > 0) {
+              // Fisher-Yates shuffle
+              for (let j = currentGroup.length - 1; j > 0; j--) {
+                const k = Math.floor(Math.random() * (j + 1));
+                [currentGroup[j], currentGroup[k]] = [
+                  currentGroup[k],
+                  currentGroup[j],
+                ];
+              }
+              shuffledImageFiles.push(...currentGroup);
+            }
+            // Start new group
+            currentScore = score;
+            currentGroup = [imageFiles[i]];
+          } else {
+            // Add to current group
+            currentGroup.push(imageFiles[i]);
+          }
+        }
+        // Don't forget to shuffle and add the last group
+        if (currentGroup.length > 0) {
+          for (let j = currentGroup.length - 1; j > 0; j--) {
+            const k = Math.floor(Math.random() * (j + 1));
+            [currentGroup[j], currentGroup[k]] = [
+              currentGroup[k],
+              currentGroup[j],
+            ];
+          }
+          shuffledImageFiles.push(...currentGroup);
+        }
+
+        // Replace the original array with shuffled version
+        imageFiles = shuffledImageFiles;
 
         // Update totalTextures to match new image count
         totalTextures = imageFiles.length;
@@ -1934,8 +2079,19 @@
           const radius = minRadius + t * (maxRadius - minRadius);
           const count = dotsPerLayer[layer];
 
+          // Create array of angles for this layer and shuffle them to randomize positions
+          const angles = [];
           for (let i = 0; i < count; i++) {
-            const angle = (i / count) * 2 * Math.PI;
+            angles.push((i / count) * 2 * Math.PI);
+          }
+          // Shuffle the angles to randomize positions within each layer
+          for (let i = angles.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [angles[i], angles[j]] = [angles[j], angles[i]];
+          }
+
+          for (let i = 0; i < count; i++) {
+            const angle = angles[i];
 
             // Use consistent spacing for all layers
             const layerSpacing = 1.2;
@@ -3157,10 +3313,8 @@
             galaxyBtn.style.display = "flex";
           }
 
-          // Show initial center word if there's a default query
-          if (TARGET_WORD) {
-            updateCenterWord(TARGET_WORD);
-          }
+          // Get and display the last query from localStorage
+          loadLastQuery();
         }, 500);
 
         // Initialize floating eye
