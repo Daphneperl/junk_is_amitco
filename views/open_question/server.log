@@ -1,0 +1,59 @@
+[2025-08-02 13:26:35.178210] Server starting...
+[2025-08-02 13:26:35.178220] Generated 457 initial scores
+[2025-08-02 13:26:35.178221] Server running on http://localhost:8000
+ * Serving Flask app 'server'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8000
+ * Running on http://192.168.97.0:8000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [02/Aug/2025 13:26:39] "GET /health HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:26:41] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:26:58] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:01] "OPTIONS /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:01] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:02] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:02] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:03] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:03] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:03] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:03] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:03] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:28:27] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:14] "OPTIONS /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:14] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:15] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:16] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:16] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:23] "OPTIONS /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:23] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:23] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:24] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:24] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:24] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:25] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:25] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:25] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:25] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:26] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:26] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:26] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:33] "OPTIONS /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:33] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:33] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:34] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:34] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:34] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:34] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:45] "OPTIONS /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:45] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:50] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:51] "OPTIONS /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:51] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:52] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:52] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:52] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:29:53] "POST /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:30:36] "OPTIONS /search HTTP/1.1" 200 -
+127.0.0.1 - - [02/Aug/2025 13:30:36] "POST /search HTTP/1.1" 200 -

@@ -13,12 +13,14 @@ This system provides an interactive search interface for the 3D image visualizat
 ## Quick Start
 
 1. **Start the server:**
+
    ```bash
    cd views/open_question
    python start_server.py
    ```
 
 2. **Open the visualization:**
+
    - Open `openQuestion_with_search.html` in your web browser
    - The server will be running on `http://localhost:8000`
 
@@ -30,17 +32,19 @@ This system provides an interactive search interface for the 3D image visualizat
 ## How It Works
 
 1. **Search Input:** Users type queries in the search bar
-2. **Server Processing:** The Flask server receives the query and generates new random scores for all images
+2. **Server Processing:** The Flask server receives the query and generates semantic similarity scores for all images based on their similarity to the target word using artistic analysis data
 3. **Real-time Update:** The HTML page receives the new scores and reorganizes the 3D visualization
 4. **Visual Feedback:** Status messages and loading indicators show the process
 
 ## API Endpoints
 
 - `POST /search` - Submit a search query
+
   - Body: `{"query": "your search term"}`
   - Returns: Updated scores for all images
 
 - `GET /scores` - Get current scores
+
   - Returns: Current image scores
 
 - `GET /health` - Health check
@@ -57,9 +61,14 @@ This system provides an interactive search interface for the 3D image visualizat
 ## Customization
 
 To modify the scoring algorithm:
-1. Edit the `generate_random_scores()` function in `server.py`
-2. Replace the random scoring with your actual image analysis logic
-3. The system will automatically use your new scoring method
+
+1. **Change the target word**: Edit the `TARGET_WORD` variable at the top of `server.py`
+   ```python
+   TARGET_WORD = "dog"  # Change "cat" to any word you want
+   ```
+2. The system uses semantic similarity based on artistic analysis data (keywords and descriptions)
+3. Images with higher similarity to the target word will appear closer to the center
+4. No need to modify function names or other code - just change the one variable!
 
 ## Troubleshooting
 
@@ -70,6 +79,7 @@ To modify the scoring algorithm:
 ## Development
 
 The system is designed to be easily extensible:
+
 - Add new analysis methods to the server
 - Modify the visualization layout in the HTML
-- Add new search features or filters 
+- Add new search features or filters

@@ -3,6 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <title>Open question</title>
+    <script>
+      // Configuration - change this to match your server's TARGET_WORD
+      const TARGET_WORD = "animal";
+
+      // Current search query for tooltip display
+      window.currentSearchQuery = TARGET_WORD;
+
+      // Server configuration
+      const SERVER_URL = "http://localhost:8000";
+
+      // Performance monitoring
+      let performanceMetrics = {
+        searchStartTime: 0,
+        searchEndTime: 0,
+        imageLoadStartTime: 0,
+        imageLoadEndTime: 0,
+        totalLoadTime: 0,
+      };
+
+      // Function to log performance metrics
+      function logPerformance(operation, duration, details = {}) {
+        console.log(`🚀 ${operation}: ${duration.toFixed(2)}ms`, details);
+      }
+    </script>
     <style>
       @font-face {
         font-family: "Pixel";
@@ -13,6 +37,7 @@
         src: url("../../assets/VT323-Regular.ttf") format("truetype");
         font-weight: normal;
         font-style: normal;
+        font-display: swap;
       }
 
       body {
@@ -59,16 +84,19 @@
 
       #tooltip {
         position: absolute;
-        background: rgba(0, 0, 0, 0.85);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 13px;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: bold;
         pointer-events: none;
         visibility: hidden;
         white-space: nowrap;
         z-index: 10;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        font-family: "VT323", monospace;
       }
 
       /* Floating Eye Styles */
@@ -787,6 +815,30 @@
       #black-popup-overlay.dock-hidden {
         bottom: -50vh;
       }
+
+      /* Center Word Display */
+      #center-word {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ffffff;
+        font-family: "VT323", monospace;
+        font-size: 48px;
+        font-weight: normal;
+        text-transform: uppercase;
+        text-align: center;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+        letter-spacing: 2px;
+      }
+
+      #center-word.show {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
@@ -798,6 +850,9 @@
     >
       <img src="../../assets/galaxy_icon.png" alt="Galaxy Icon" />
     </button>
+
+    <!-- Center Word Display -->
+    <div id="center-word"></div>
 
     <div id="black-overlay"></div>
 
@@ -1215,7 +1270,7 @@
       const minRadius = 0.5; // Increased minimum radius to prevent overlap at center
       const maxRadius = 20;
       const baseImageSize = 0.8;
-      const renderedDots = [];
+      let renderedDots = [];
 
       // Generate dots per layer
       const dotsPerLayer = [];
@@ -1231,7 +1286,7 @@
       const bellSigma = maxRadius * 0.18; // Controls width of the bell (adjust for sharpness)
 
       // Store dot base positions for dynamic Z updates
-      const dotBasePositions = [];
+      let dotBasePositions = [];
 
       // Load image scores from JSON file
       let imageScores = {};
@@ -1240,7 +1295,7 @@
       // Function to load the JSON file and extract image files with scores
       async function loadImageScores() {
         try {
-          const response = await fetch("image_scores_openQ.json");
+          const response = await fetch("image_scores.json");
           imageScores = await response.json();
 
           // Extract image filenames from the JSON keys
@@ -1346,8 +1401,11 @@
           updateLoadingProgress(progress);
         }
 
-        // Now create the dots with loaded textures
+        // Now create the dots with loaded textures, placing highest scores in smallest rings
         let usedImageIndex = 0;
+
+        // Create rings from smallest (highest scores) to largest (lowest scores)
+        // Layer 0 = smallest radius (highest scores), Layer numLayers-1 = largest radius (lowest scores)
         for (let layer = 0; layer < numLayers; layer++) {
           const t = layer / (numLayers - 1);
           const radius = minRadius + t * (maxRadius - minRadius);
@@ -1399,36 +1457,6 @@
             dotBasePositions.push({ x, y });
           }
         }
-
-        // Center dot (highest score)
-        if (usedImageIndex < imageTextures.length) {
-          const centerScore = imageScores[imageFiles[usedImageIndex]] || 1;
-          const { texture: centerTexture, aspectRatio: centerAspectRatio } =
-            imageTextures[usedImageIndex++];
-
-          const centerMaterial = new THREE.SpriteMaterial({
-            map: centerTexture,
-            transparent: true,
-            opacity: 0.9,
-          });
-          const centerSprite = new THREE.Sprite(centerMaterial);
-          // Center dot at the exact center
-          centerSprite.position.set(0, 0, 0);
-
-          // Larger scale for center dot
-          const centerScaleX = baseImageSize * 1.5 * centerAspectRatio;
-          const centerScaleY = baseImageSize * 1.5;
-          centerSprite.scale.set(centerScaleX, centerScaleY, 1);
-
-          scene.add(centerSprite);
-          renderedDots.push({
-            mesh: centerSprite,
-            score: centerScore,
-            originalScale: { x: centerScaleX, y: centerScaleY },
-            texture: centerTexture,
-          });
-          dotBasePositions.push({ x: 0, y: 0 });
-        }
       }
 
       // Raycaster for mouse interaction
@@ -1467,7 +1495,11 @@
             // Show tooltip
             tooltip.style.left = `${event.clientX + 10}px`;
             tooltip.style.top = `${event.clientY + 10}px`;
-            tooltip.textContent = `Score: ${hitDot.score}`;
+            console.log(
+              "Tooltip using currentSearchQuery:",
+              window.currentSearchQuery
+            );
+            tooltip.textContent = `Similarity score: ${hitDot.score}`;
             tooltip.style.visibility = "visible";
           }
         } else {
@@ -1484,30 +1516,10 @@
         const searchBar = document.getElementById("search-bar");
         let searchTimeout;
 
-        searchBar.addEventListener("input", (event) => {
-          const query = event.target.value.trim();
-
-          // Clear previous timeout
-          if (searchTimeout) {
-            clearTimeout(searchTimeout);
-          }
-
-          // Set new timeout for search (debounce)
-          if (query.length > 0) {
-            searchTimeout = setTimeout(() => {
-              performSearch(query);
-            }, 500); // Wait 500ms after user stops typing
-          }
-        });
-
         searchBar.addEventListener("keypress", (event) => {
           if (event.key === "Enter") {
             const query = event.target.value.trim();
             if (query.length > 0) {
-              // Clear timeout and perform search immediately
-              if (searchTimeout) {
-                clearTimeout(searchTimeout);
-              }
               performSearch(query);
             }
           }
@@ -1840,10 +1852,136 @@
       }
 
       // Search functionality
-      function performSearch(query) {
+      async function performSearch(query) {
         console.log("Searching for:", query);
-        // For now, just log the search query
-        alert(`Searching for: ${query}`);
+
+        // Update the current search query for tooltip display
+        window.currentSearchQuery = query;
+        console.log(
+          "Updated currentSearchQuery to:",
+          window.currentSearchQuery
+        );
+
+        // Update center word display
+        updateCenterWord(query);
+
+        try {
+          // Call the server's search endpoint
+          const response = await fetch("http://localhost:8000/search", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ query: query }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          console.log("Search result:", result);
+
+          // Update the visualization with new scores
+          await updateVisualizationWithNewScores(result.scores);
+        } catch (error) {
+          console.error("Search failed:", error);
+          alert(`Search failed: ${error.message}`);
+        }
+      }
+
+      // Update center word display
+      function updateCenterWord(word) {
+        console.log("updateCenterWord called with:", word);
+        const centerWordElement = document.getElementById("center-word");
+        if (centerWordElement) {
+          centerWordElement.textContent = word.toUpperCase();
+          centerWordElement.classList.add("show");
+          console.log("Center word updated:", word.toUpperCase());
+        } else {
+          console.error("Center word element not found");
+        }
+      }
+
+      // Update visualization with new scores
+      async function updateVisualizationWithNewScores(newScores) {
+        console.log("Updating visualization with new scores:", newScores);
+
+        // Update the global imageScores
+        imageScores = newScores;
+
+        // Sort images by new scores (highest first)
+        imageFiles = Object.keys(imageScores);
+        imageFiles.sort((a, b) => imageScores[b] - imageScores[a]);
+        imageFiles = imageFiles.slice(0, totalDots);
+
+        // Update totalTextures to match new image count
+        totalTextures = imageFiles.length;
+
+        // Clear existing dots
+        renderedDots.forEach((dot) => {
+          scene.remove(dot.mesh);
+        });
+        renderedDots = [];
+        dotBasePositions = [];
+
+        // Recreate dots with new scores
+        let usedImageIndex = 0;
+
+        // Create rings from smallest (highest scores) to largest (lowest scores)
+        for (let layer = 0; layer < numLayers; layer++) {
+          const t = layer / (numLayers - 1);
+          const radius = minRadius + t * (maxRadius - minRadius);
+          const count = dotsPerLayer[layer];
+
+          for (let i = 0; i < count; i++) {
+            const angle = (i / count) * 2 * Math.PI;
+
+            // Use consistent spacing for all layers
+            const layerSpacing = 1.2;
+            const firstLayerRadius = 0.8;
+            const currentLayerRadius = firstLayerRadius + layer * layerSpacing;
+
+            x = currentLayerRadius * Math.cos(angle);
+            y = currentLayerRadius * Math.sin(angle);
+
+            const score = imageScores[imageFiles[usedImageIndex]] || 1;
+
+            // Get unique texture for this dot
+            if (usedImageIndex >= imageTextures.length) break;
+            const { texture, aspectRatio } = imageTextures[usedImageIndex++];
+
+            // Initial Z (will be updated dynamically)
+            const z = 0;
+
+            // Create sprite with image texture
+            const material = new THREE.SpriteMaterial({
+              map: texture,
+              transparent: true,
+              opacity: 0.9,
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.position.set(x, y, z);
+
+            // Scale based on aspect ratio to maintain original proportions
+            const scaleX = baseImageSize * aspectRatio;
+            const scaleY = baseImageSize;
+            sprite.scale.set(scaleX, scaleY, 1);
+
+            scene.add(sprite);
+
+            // Store for interaction and dynamic Z
+            renderedDots.push({
+              mesh: sprite,
+              score: score,
+              originalScale: { x: scaleX, y: scaleY },
+              texture: texture,
+            });
+            dotBasePositions.push({ x, y });
+          }
+        }
+
+        console.log("Visualization updated with new scores");
       }
 
       // Chatbot functions
@@ -3017,6 +3155,11 @@
           const galaxyBtn = document.getElementById("galaxy-nav-btn");
           if (galaxyBtn) {
             galaxyBtn.style.display = "flex";
+          }
+
+          // Show initial center word if there's a default query
+          if (TARGET_WORD) {
+            updateCenterWord(TARGET_WORD);
           }
         }, 500);
 
