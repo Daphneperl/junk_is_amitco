@@ -193,6 +193,13 @@
 
       #rings-container.dock-hidden {
         bottom: -400px;
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      #rings-container canvas {
+        opacity: 1 !important;
+        visibility: visible !important;
       }
 
       /* Pixel Arrow Indicator */
@@ -1908,6 +1915,12 @@
             blackPopupOverlay.classList.remove("dock-hidden");
             blackPopupOverlay.classList.add("dock-visible");
 
+            // Ensure the Three.js canvas is visible when dock is shown
+            if (ringsRenderer && ringsRenderer.domElement) {
+              ringsRenderer.domElement.style.opacity = "1";
+              ringsRenderer.domElement.style.visibility = "visible";
+            }
+
             // Hide pixel arrow indicator when dock is visible
             if (pixelArrowIndicator) {
               pixelArrowIndicator.classList.remove("show");
@@ -3175,9 +3188,20 @@
         ringsRenderer.setSize(500, 500);
         ringsRenderer.setClearColor(0x000000, 0);
         ringsRenderer.sortObjects = false; // Disable automatic sorting
-        document
-          .getElementById("rings-container")
-          .appendChild(ringsRenderer.domElement);
+
+        // Ensure rings-container is visible before attaching renderer
+        const ringsContainer = document.getElementById("rings-container");
+        if (ringsContainer) {
+          ringsContainer.style.visibility = "visible";
+          ringsContainer.style.opacity = "1";
+          ringsContainer.style.display = "block";
+        }
+
+        ringsContainer.appendChild(ringsRenderer.domElement);
+
+        // Ensure the Three.js canvas is visible
+        ringsRenderer.domElement.style.opacity = "1";
+        ringsRenderer.domElement.style.visibility = "visible";
 
         // Create and add rings
         rings = createRings();
@@ -3483,9 +3507,6 @@
         initFloatingEye();
         console.log("Floating eye initialization completed");
 
-        // Initialize rings
-        initRings();
-
         // Initialize dock behavior and show UI elements after everything is loaded
         setTimeout(() => {
           initDockBehavior();
@@ -3510,6 +3531,11 @@
           // Show all UI elements after loading is complete
           showAllUIElements();
         }, 100);
+
+        // Initialize rings after UI elements are shown
+        setTimeout(() => {
+          initRings();
+        }, 200);
 
         animate();
       });
