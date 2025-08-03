@@ -1243,7 +1243,7 @@
       let totalImages = 0;
       let loadedImages = 0;
       let entranceAnimationStart = 0;
-      let entranceAnimationDuration = 8000; // 12 seconds for much slower rotation
+      let entranceAnimationDuration = 8000; // 8 seconds for entrance rotation animation
 
       // Separate variables for rings
       let ringsScene, ringsCamera, ringsRenderer;
@@ -1385,197 +1385,38 @@
         return finalSimilarity;
       }
 
-      // Keyword-based clustering with emphasis on top keywords
-      function createStrictSpatialClusters() {
-        // Create keyword-based clusters
-        const keywordClusters = {};
-
-        // Group images by their top keyword
-        artisticData.forEach((imageData, index) => {
-          const topKeyword =
-            imageData.keywords[0]?.keyword.toLowerCase() || "other";
-
-          if (!keywordClusters[topKeyword]) {
-            keywordClusters[topKeyword] = [];
-          }
-          keywordClusters[topKeyword].push({
-            ...imageData,
-            originalIndex: index,
-          });
-        });
-
-        // Convert to cluster format
-        const clusters = [];
-        const clusterPositions = {};
-
-        // Create organic 3D positioning for keyword clusters using force-directed layout
-        const keywordEntries = Object.entries(keywordClusters);
-        const clusterPositions3D = [];
-        const clusterVelocities = new Map();
-        const clusterForces = new Map();
-
-        // Initialize random positions and physics properties
-        keywordEntries.forEach(([keyword, images], index) => {
-          if (images.length === 0) return;
-
-          // Start with random positions
-          const x = (Math.random() - 0.5) * 1000;
-          const y = (Math.random() - 0.5) * 1000;
-          const z = (Math.random() - 0.5) * 1000;
-
-          clusterPositions[keyword] = { x, y, z };
-          clusterPositions3D.push({
-            keyword,
-            position: { x, y, z },
-            index,
-            images,
-          });
-          clusterVelocities.set(keyword, { x: 0, y: 0, z: 0 });
-          clusterForces.set(keyword, { x: 0, y: 0, z: 0 });
-
-          clusters.push({
-            category: keyword,
-            images: images,
-            position: clusterPositions[keyword],
-          });
-        });
-
-        // Force-directed layout simulation
-        const iterations = 50;
-        const repulsionStrength = 2000;
-        const damping = 0.9;
-
-        for (let iter = 0; iter < iterations; iter++) {
-          // Reset forces
-          clusterForces.forEach((force) => {
-            force.x = 0;
-            force.y = 0;
-            force.z = 0;
-          });
-
-          // Calculate repulsion forces between all clusters
-          for (let i = 0; i < clusterPositions3D.length; i++) {
-            for (let j = i + 1; j < clusterPositions3D.length; j++) {
-              const cluster1 = clusterPositions3D[i];
-              const cluster2 = clusterPositions3D[j];
-
-              const dx = cluster2.position.x - cluster1.position.x;
-              const dy = cluster2.position.y - cluster1.position.y;
-              const dz = cluster2.position.z - cluster1.position.z;
-              const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-              if (distance > 0 && distance < 400) {
-                const repulsionForce =
-                  repulsionStrength / (distance * distance);
-                const fx = (dx / distance) * repulsionForce;
-                const fy = (dy / distance) * repulsionForce;
-                const fz = (dz / distance) * repulsionForce;
-
-                clusterForces.get(cluster1.keyword).x -= fx;
-                clusterForces.get(cluster1.keyword).y -= fy;
-                clusterForces.get(cluster1.keyword).z -= fz;
-
-                clusterForces.get(cluster2.keyword).x += fx;
-                clusterForces.get(cluster2.keyword).y += fy;
-                clusterForces.get(cluster2.keyword).z += fz;
-              }
-            }
-          }
-
-          // Apply forces and update positions
-          clusterPositions3D.forEach((cluster) => {
-            const force = clusterForces.get(cluster.keyword);
-            const velocity = clusterVelocities.get(cluster.keyword);
-            const position = cluster.position;
-
-            // Update velocity
-            velocity.x += force.x;
-            velocity.y += force.y;
-            velocity.z += force.z;
-
-            // Apply damping
-            velocity.x *= damping;
-            velocity.y *= damping;
-            velocity.z *= damping;
-
-            // Update position
-            position.x += velocity.x;
-            position.y += velocity.y;
-            position.z += velocity.z;
-
-            // Update cluster position
-            clusterPositions[cluster.keyword] = {
-              x: position.x,
-              y: position.y,
-              z: position.z,
-            };
-          });
-        }
-
-        // Update cluster objects with final positions
-        clusters.forEach((cluster) => {
-          cluster.position = clusterPositions[cluster.category];
-        });
-
-        // Force-directed layout is complete - positions are now organic and non-geometric
-
-        console.log(
-          "Created keyword-based clusters:",
-          clusters.map(
-            (c) =>
-              `${c.category}: ${c.images.length} images at (${c.position.x}, ${c.position.y}, ${c.position.z})`
-          )
-        );
-        return clusters;
-      }
-
-      // Position images within their keyword-based clusters
-      function positionImagesInStrictClusters(clusters) {
+      // Generate random scattered positions for all images
+      function generateScatteredPositions() {
         const imagePositions = new Map();
+        const maxRadius = 500; // Maximum distance from center (reduced from 800)
+        const minRadius = 30; // Minimum distance from center (reduced from 50)
 
-        clusters.forEach((cluster) => {
-          const baseX = cluster.position.x;
-          const baseY = cluster.position.y;
-          const baseZ = cluster.position.z;
-          const clusterRadius = 120; // Much larger radius for better spread
+        artisticData.forEach((imageData, index) => {
+          // Generate random spherical coordinates for even distribution
+          const radius = minRadius + Math.random() * (maxRadius - minRadius);
+          const theta = Math.random() * Math.PI * 2; // Random angle around Y axis
+          const phi = Math.acos(2 * Math.random() - 1); // Random angle from Y axis
 
-          // Position images within this cluster based on keyword similarity
-          cluster.images.forEach((imageData, imageIndex) => {
-            // Use keyword confidence to determine position within cluster
-            const topKeywordConfidence = imageData.keywords[0]?.confidence || 0;
-            const secondKeywordConfidence =
-              imageData.keywords[1]?.confidence || 0;
+          // Convert to Cartesian coordinates
+          const x = radius * Math.sin(phi) * Math.cos(theta);
+          const y = radius * Math.sin(phi) * Math.sin(theta);
+          const z = radius * Math.cos(phi);
 
-            // Create organic position based on keyword characteristics
-            const angle = (imageIndex / cluster.images.length) * Math.PI * 2;
-            const radius = clusterRadius * (0.1 + topKeywordConfidence * 0.4); // Tighter grouping for keyword matches
-
-            // Add organic variation within clusters
-            const organicOffset = 80; // Organic variation within clusters
-            const offsetX = (Math.random() - 0.5) * organicOffset;
-            const offsetY = (Math.random() - 0.5) * organicOffset;
-            const offsetZ = (Math.random() - 0.5) * organicOffset * 0.3; // Less vertical variation
-
-            const x = baseX + radius * Math.cos(angle) + offsetX;
-            const y = baseY + radius * Math.sin(angle) + offsetY;
-            const z = baseZ + offsetZ;
-
-            imagePositions.set(imageData.originalIndex, {
-              x,
-              y,
-              z,
-              category: cluster.category,
-              clusterCenter: { x: baseX, y: baseY, z: baseZ },
-              keywordConfidence: topKeywordConfidence,
-            });
+          imagePositions.set(index, {
+            x,
+            y,
+            z,
+            category: "scattered",
+            clusterCenter: { x: 0, y: 0, z: 0 },
+            keywordConfidence: imageData.keywords[0]?.confidence || 0,
           });
         });
 
         return imagePositions;
       }
 
-      // Find connections only within the same cluster
-      function findIntraClusterConnections(clusters) {
+      // Find connections between all images based on similarity
+      function findAllConnections() {
         const connections = [];
 
         // Initialize empty connections array
@@ -1649,7 +1490,7 @@
         }
       }
 
-      function createImageSprite(texture, index, connections) {
+      function createImageSprite(texture, index, connections, position) {
         if (!texture) {
           // Create a placeholder sprite for missing images
           const canvas = document.createElement("canvas");
@@ -1668,7 +1509,7 @@
         }
 
         const aspectRatio = texture.image.width / texture.image.height;
-        const width = 12; // Smaller base width for less overlap
+        const width = 30; // Even larger base width for better visibility
         const height = width / aspectRatio;
 
         const material = new THREE.SpriteMaterial({
@@ -1679,7 +1520,7 @@
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(width, height, 1);
 
-        // Position based on keyword clusters with emphasis on keywords
+        // Use the provided scattered position
         const imageData = artisticData[index];
         const connectionCount = connections.length;
 
@@ -1690,65 +1531,10 @@
               connections.length
             : 0;
 
-        // Create more spread out positioning
-        const maxRadius = 800; // Much larger radius for more spread
-        const minRadius = 100; // Minimum distance from center to avoid overlap
-
-        // Use simpler, more stable positioning based on index and keywords
-        const baseAngle = (index / totalImages) * Math.PI * 2; // Even distribution around circle
-
-        // Use top keyword to create clusters
-        const topKeyword = imageData.keywords[0]?.keyword || "default";
-        const keywordHash = topKeyword
-          .split("")
-          .reduce((sum, char) => sum + char.charCodeAt(0), 0);
-
-        // Create cluster groups based on keyword hash
-        const clusterGroup = keywordHash % 8; // 8 main cluster groups
-        const clusterAngle = (clusterGroup / 8) * Math.PI * 2;
-
-        // Vibe influence for fine positioning
-        const vibeAngles = {
-          warm: 0,
-          serene: Math.PI / 8,
-          mysterious: Math.PI / 4,
-          neutral: Math.PI / 2,
-          cool: (3 * Math.PI) / 4,
-          melancholic: Math.PI,
-          whimsical: (5 * Math.PI) / 4,
-          dark: (3 * Math.PI) / 2,
-          raw: (7 * Math.PI) / 4,
-        };
-
-        const vibeAngle = vibeAngles[imageData.vibe] || 0;
-
-        // Combine cluster and vibe positioning
-        const theta = clusterAngle + vibeAngle * 0.1; // Vibe adds small variation
-
-        // Use keyword confidence and connections for radius
-        const keywordConfidence = imageData.keywords[0]?.confidence || 0;
-        const connectionFactor = Math.min(1, connectionCount / 5);
-
-        // Simple keyword-based positioning without complex connection analysis
-        const baseRadius = minRadius + (maxRadius - minRadius) * 0.5;
-        const radiusVariation =
-          keywordConfidence * 0.2 + connectionFactor * 0.1;
-        const radius = baseRadius + radiusVariation * 200; // Basic radius calculation
-
-        // Use free-form positioning instead of spherical
-        const baseX = radius * Math.cos(theta);
-        const baseY = radius * Math.sin(theta);
-        const baseZ = (index / totalImages) * 200 - 100; // Spread vertically
-
-        // Add organic variation with larger random offset
-        const randomOffset = 150; // Much larger offset for organic feel
-        const offsetX = (Math.random() - 0.5) * randomOffset;
-        const offsetY = (Math.random() - 0.5) * randomOffset;
-        const offsetZ = (Math.random() - 0.5) * randomOffset * 0.5; // Less vertical variation
-
-        const targetX = baseX + offsetX;
-        const targetY = baseY + offsetY;
-        const targetZ = baseZ + offsetZ;
+        // Set position from the scattered positioning system
+        const targetX = position.x;
+        const targetY = position.y;
+        const targetZ = position.z;
 
         sprite.position.set(targetX, targetY, targetZ);
 
@@ -1762,6 +1548,7 @@
           imageData: imageData,
           index: index,
           avgSimilarity: avgSimilarity,
+          clusterPosition: position, // Store the position data for consistency
         };
 
         return sprite;
@@ -2006,7 +1793,7 @@
         const opacity = minOpacity; // Fixed opacity for clear distinction
 
         // Color based on connection type
-        const color = keywordMatch ? 0x00ff88 : 0xffffff; // Green for keyword matches, white for others
+        const color = 0xffffff; // White for all connections
 
         const material = new THREE.LineBasicMaterial({
           color: color,
@@ -2214,17 +2001,14 @@
         // Load artistic data first
         await loadArtisticData();
 
-        // Create strict spatial clusters
-        const clusters = createStrictSpatialClusters();
+        // Generate scattered positions for all images
+        const imagePositions = generateScatteredPositions();
 
-        // Position images strictly within their cluster regions
-        const imagePositions = positionImagesInStrictClusters(clusters);
-
-        // Find connections only within the same cluster
-        const intraClusterConnections = findIntraClusterConnections(clusters);
+        // Find connections between all images based on similarity
+        const allConnections = findAllConnections();
         console.log(
-          "Found intra-cluster connections:",
-          intraClusterConnections.length
+          "Found connections between all images:",
+          allConnections.length
         );
 
         // Create scene
@@ -2258,19 +2042,45 @@
         // Create particle system
         createParticleSystem();
 
-        // Load and create image sprites
+        // Load and create image sprites (only for connected images)
         const textureResults = await loadImages();
+        const connectedImageIndices = new Set(); // Track which original indices are connected
+
+        // First pass: identify all connected images
         textureResults.forEach((result, index) => {
           if (result.texture) {
-            const clusterPosition = imagePositions.get(index);
-            const sprite = createImageSprite(
-              result.texture,
-              index,
-              intraClusterConnections[index],
-              clusterPosition
+            const connections = allConnections[index];
+            if (connections && connections.length > 0) {
+              connectedImageIndices.add(index);
+              // Also add the target indices of connections
+              connections.forEach((conn) => {
+                connectedImageIndices.add(conn.targetIndex);
+              });
+            }
+          }
+        });
+
+        // Second pass: create sprites only for connected images
+        textureResults.forEach((result, index) => {
+          if (result.texture && connectedImageIndices.has(index)) {
+            const connections = allConnections[index];
+            // Filter connections to only include other connected images
+            const filteredConnections = connections.filter((conn) =>
+              connectedImageIndices.has(conn.targetIndex)
             );
-            imageSprites.push(sprite);
-            scene.add(sprite);
+
+            // Only create sprite if it still has connections after filtering
+            if (filteredConnections.length > 0) {
+              const position = imagePositions.get(index);
+              const sprite = createImageSprite(
+                result.texture,
+                index,
+                filteredConnections,
+                position
+              );
+              imageSprites.push(sprite);
+              scene.add(sprite);
+            }
           }
         });
 
@@ -2568,18 +2378,17 @@
           particles.geometry.attributes.position.needsUpdate = true;
         }
 
-        // Animate images with smooth, stable cluster positioning
+        // Animate images with free floating movement
         imageSprites.forEach((sprite, index) => {
           const floatTime = time * 0.00005 + sprite.userData.timeOffset; // Much slower time
           const connections = sprite.userData.connections;
-          const clusterPosition = sprite.userData.clusterPosition;
 
           // Apply entrance rotation animation - only one direction
           const entranceRotation = entranceEase * Math.PI * 0.5; // 90 degrees (25% turn) in one direction
           const rotationMatrix = new THREE.Matrix4();
           rotationMatrix.makeRotationY(entranceRotation);
 
-          // Get the original position relative to center
+          // Get the original position
           const originalX = sprite.userData.originalX;
           const originalY = sprite.userData.originalY;
           const originalZ = sprite.userData.originalZ;
@@ -2592,48 +2401,18 @@
           );
           rotatedPosition.applyMatrix4(rotationMatrix);
 
-          // Use cluster position as the anchor point
-          let targetX, targetY, targetZ;
+          // Use rotated position as base
+          const targetX = rotatedPosition.x;
+          const targetY = rotatedPosition.y;
+          const targetZ = rotatedPosition.z;
 
-          if (clusterPosition) {
-            // Apply entrance rotation to cluster position
-            const clusterCenter = new THREE.Vector3(
-              clusterPosition.clusterCenter.x,
-              clusterPosition.clusterCenter.y,
-              clusterPosition.clusterCenter.z
-            );
-
-            // Get position relative to cluster center
-            const relativeX = originalX - clusterCenter.x;
-            const relativeY = originalY - clusterCenter.y;
-            const relativeZ = originalZ - clusterCenter.z;
-
-            // Apply rotation to relative position
-            const relativePosition = new THREE.Vector3(
-              relativeX,
-              relativeY,
-              relativeZ
-            );
-            relativePosition.applyMatrix4(rotationMatrix);
-
-            // Add back cluster center
-            targetX = clusterCenter.x + relativePosition.x;
-            targetY = clusterCenter.y + relativePosition.y;
-            targetZ = clusterCenter.z + relativePosition.z;
-          } else {
-            // Use rotated position for non-clustered images
-            targetX = rotatedPosition.x;
-            targetY = rotatedPosition.y;
-            targetZ = rotatedPosition.z;
-          }
-
-          // Very gentle floating movement within cluster bounds
-          const floatRadius = 0.2; // Much smaller radius for stable connections
-          const floatX = Math.sin(floatTime * 0.02) * floatRadius; // Much slower movement
+          // Gentle floating movement
+          const floatRadius = 2; // Slightly larger radius for more visible movement
+          const floatX = Math.sin(floatTime * 0.02) * floatRadius;
           const floatY = Math.cos(floatTime * 0.03) * floatRadius;
           const floatZ = Math.sin(floatTime * 0.015) * floatRadius;
 
-          // Extremely weak connection-based attraction
+          // Weak connection-based attraction
           let connectionForceX = 0,
             connectionForceY = 0,
             connectionForceZ = 0;
@@ -2647,9 +2426,10 @@
               const dz = targetSprite.position.z - sprite.position.z;
               const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-              if (distance > 0) {
+              if (distance > 0 && distance < 200) {
+                // Only attract if within reasonable distance
                 // Very weak attraction
-                const attractionForce = connection.similarity * 0.002; // Even weaker
+                const attractionForce = connection.similarity * 0.001;
                 const weight = connection.similarity;
 
                 connectionForceX += (dx / distance) * attractionForce * weight;
@@ -2667,24 +2447,23 @@
             connectionForceZ /= totalConnectionWeight;
           }
 
-          // Add very gentle jitter for subtle movement while keeping connections stable
-          const jitterTime = time * 0.0005 + sprite.userData.timeOffset; // Much slower for stability
-          const jitterAmplitude = 0.3; // Much smaller amplitude for stable connections
+          // Add gentle jitter for subtle movement
+          const jitterTime = time * 0.0005 + sprite.userData.timeOffset;
+          const jitterAmplitude = 0.5; // Slightly larger amplitude for more visible movement
 
-          // Single gentle sine wave for subtle movement
           const jitterX = Math.sin(jitterTime * 0.7) * jitterAmplitude;
           const jitterY = Math.cos(jitterTime * 0.9) * jitterAmplitude;
           const jitterZ = Math.sin(jitterTime * 0.5) * jitterAmplitude;
 
-          // Add very subtle micro-movements on top of jitter
-          const microMove = 0.01; // Much smaller micro-movements for stability
-          const microTime = time * 0.00001 + sprite.userData.timeOffset; // Much slower
+          // Add subtle micro-movements
+          const microMove = 0.02;
+          const microTime = time * 0.00001 + sprite.userData.timeOffset;
           const microX = Math.sin(microTime * 0.3) * microMove;
           const microY = Math.cos(microTime * 0.4) * microMove;
           const microZ = Math.sin(microTime * 0.25) * microMove;
 
           // Smooth interpolation to target position
-          const lerpFactor = entranceProgress < 1 ? 0.1 : 0.05; // Lower lerp factor for more stable connections
+          const lerpFactor = entranceProgress < 1 ? 0.1 : 0.05; // Higher lerp factor during entrance for smoother animation
           const targetPosX =
             targetX + floatX + connectionForceX + microX + jitterX;
           const targetPosY =
@@ -2696,7 +2475,7 @@
           sprite.position.y += (targetPosY - sprite.position.y) * lerpFactor;
           sprite.position.z += (targetPosZ - sprite.position.z) * lerpFactor;
 
-          // Very gentle repulsion to prevent overlap (only within same cluster)
+          // Gentle repulsion to prevent overlap with any nearby images
           imageSprites.forEach((otherSprite, otherIndex) => {
             if (index !== otherIndex) {
               const dx = sprite.position.x - otherSprite.position.x;
@@ -2704,17 +2483,10 @@
               const dz = sprite.position.z - otherSprite.position.z;
               const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-              // Check if these sprites are in the same cluster
-              const sameCluster =
-                clusterPosition &&
-                otherSprite.userData.clusterPosition &&
-                clusterPosition.category ===
-                  otherSprite.userData.clusterPosition.category;
-
-              // Only apply repulsion within the same cluster, and very gently
-              if (sameCluster && distance < 6) {
-                const repulsionForce = (6 - distance) / 6;
-                const repulsionStrength = 0.001; // Very gentle repulsion
+              // Apply repulsion to any nearby images, not just same cluster
+              if (distance < 8) {
+                const repulsionForce = (8 - distance) / 8;
+                const repulsionStrength = 0.002; // Gentle repulsion
 
                 sprite.position.x += dx * repulsionForce * repulsionStrength;
                 sprite.position.y += dy * repulsionForce * repulsionStrength;
@@ -4562,11 +4334,30 @@
 
         if (intersects.length > 0) {
           const clickedSprite = intersects[0].object;
-          const artworkData = clickedSprite.userData.imageData;
+          const distance = intersects[0].distance;
 
-          if (artworkData) {
-            // Create or update drawer modal for the clicked artwork
-            createDrawerModal(artworkData, clickedSprite);
+          // Get the intersection point in world coordinates
+          const intersectionPoint = intersects[0].point;
+
+          // Calculate distance from intersection point to sprite center
+          const spriteCenter = clickedSprite.position;
+          const distanceToCenter = intersectionPoint.distanceTo(spriteCenter);
+
+          // Get sprite dimensions (approximate based on scale)
+          const spriteWidth = clickedSprite.scale.x;
+          const spriteHeight = clickedSprite.scale.y;
+          const maxDimension = Math.max(spriteWidth, spriteHeight);
+
+          // Only open modal if click is very close to center (within 25% of sprite size)
+          const clickThreshold = maxDimension * 0.25;
+
+          if (distanceToCenter < clickThreshold) {
+            const artworkData = clickedSprite.userData.imageData;
+
+            if (artworkData) {
+              // Create or update drawer modal for the clicked artwork
+              createDrawerModal(artworkData, clickedSprite);
+            }
           }
         }
       }
