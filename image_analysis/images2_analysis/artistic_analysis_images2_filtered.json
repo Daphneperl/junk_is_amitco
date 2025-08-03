@@ -48,8 +48,7 @@
         "confidence": 0.2602
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image1.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image10",
@@ -96,8 +95,7 @@
         "confidence": 0.2523
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image10.jpeg"
+    "vibe": "warm"
   },
   {
     "filename": "image100",
@@ -144,8 +142,7 @@
         "confidence": 0.2548
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image100.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image101",
@@ -200,8 +197,7 @@
         "confidence": 0.262
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image101.png"
+    "vibe": "serene"
   },
   {
     "filename": "image102",
@@ -248,8 +244,7 @@
         "confidence": 0.2576
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image102.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image103",
@@ -292,8 +287,7 @@
         "confidence": 0.2612
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image103.png"
+    "vibe": "warm"
   },
   {
     "filename": "image104",
@@ -344,8 +338,7 @@
         "confidence": 0.268
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image104.png"
+    "vibe": "warm"
   },
   {
     "filename": "image105",
@@ -388,8 +381,7 @@
         "confidence": 0.2606
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image105.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image106",
@@ -440,8 +432,7 @@
         "confidence": 0.2715
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image106.png"
+    "vibe": "cool"
   },
   {
     "filename": "image107",
@@ -484,8 +475,7 @@
         "confidence": 0.2606
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image107.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image108",
@@ -524,8 +514,7 @@
         "confidence": 0.2703
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image108.png"
+    "vibe": "serene"
   },
   {
     "filename": "image109",
@@ -576,8 +565,7 @@
         "confidence": 0.2686
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image109.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image11",
@@ -620,8 +608,7 @@
         "confidence": 0.2576
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image11.jpeg"
+    "vibe": "warm"
   },
   {
     "filename": "image110",
@@ -672,8 +659,7 @@
         "confidence": 0.2734
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image110.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image111",
@@ -716,8 +702,7 @@
         "confidence": 0.2592
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image111.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image112",
@@ -744,8 +729,7 @@
         "confidence": 0.3034
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image112.png"
+    "vibe": "serene"
   },
   {
     "filename": "image113",
@@ -792,8 +776,7 @@
         "confidence": 0.2648
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image113.png"
+    "vibe": "serene"
   },
   {
     "filename": "image114",
@@ -848,8 +831,7 @@
         "confidence": 0.2707
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image114.png"
+    "vibe": "warm"
   },
   {
     "filename": "image115",
@@ -876,8 +858,7 @@
         "confidence": 0.3025
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image115.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image116",
@@ -924,8 +905,7 @@
         "confidence": 0.277
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image116.png"
+    "vibe": "warm"
   },
   {
     "filename": "image117",
@@ -976,8 +956,7 @@
         "confidence": 0.2772
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image117.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image118",
@@ -1016,8 +995,7 @@
         "confidence": 0.2648
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image118.png"
+    "vibe": "warm"
   },
   {
     "filename": "image119",
@@ -1060,8 +1038,7 @@
         "confidence": 0.2544
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image119.png"
+    "vibe": "serene"
   },
   {
     "filename": "image12",
@@ -1104,8 +1081,7 @@
         "confidence": 0.2712
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image12.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image120",
@@ -1160,8 +1136,7 @@
         "confidence": 0.2593
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image120.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image121",
@@ -1200,8 +1175,7 @@
         "confidence": 0.2633
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image121.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image122",
@@ -1244,8 +1218,7 @@
         "confidence": 0.2499
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image122.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image123",
@@ -1296,8 +1269,7 @@
         "confidence": 0.2564
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image123.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image124",
@@ -1340,8 +1312,7 @@
         "confidence": 0.2597
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image124.png"
+    "vibe": "cool"
   },
   {
     "filename": "image125",
@@ -1388,8 +1359,7 @@
         "confidence": 0.2571
       }
     ],
-    "vibe": "raw",
-    "filename_with_extension": "image125.png"
+    "vibe": "raw"
   },
   {
     "filename": "image126",
@@ -1440,8 +1410,7 @@
         "confidence": 0.258
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image126.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image127",
@@ -1492,8 +1461,7 @@
         "confidence": 0.2614
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image127.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image128",
@@ -1536,8 +1504,7 @@
         "confidence": 0.2552
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image128.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image129",
@@ -1576,8 +1543,7 @@
         "confidence": 0.2659
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image129.png"
+    "vibe": "serene"
   },
   {
     "filename": "image13",
@@ -1624,8 +1590,7 @@
         "confidence": 0.2522
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image13.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image130",
@@ -1664,8 +1629,7 @@
         "confidence": 0.2524
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image130.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image131",
@@ -1720,8 +1684,7 @@
         "confidence": 0.263
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image131.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image132",
@@ -1776,8 +1739,7 @@
         "confidence": 0.2567
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image132.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image133",
@@ -1816,8 +1778,7 @@
         "confidence": 0.257
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image133.png"
+    "vibe": "serene"
   },
   {
     "filename": "image134",
@@ -1860,8 +1821,7 @@
         "confidence": 0.2658
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image134.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image135",
@@ -1908,8 +1868,7 @@
         "confidence": 0.2667
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image135.png"
+    "vibe": "warm"
   },
   {
     "filename": "image136",
@@ -1956,8 +1915,7 @@
         "confidence": 0.2833
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image136.png"
+    "vibe": "cool"
   },
   {
     "filename": "image137",
@@ -2004,8 +1962,7 @@
         "confidence": 0.268
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image137.png"
+    "vibe": "warm"
   },
   {
     "filename": "image138",
@@ -2052,8 +2009,7 @@
         "confidence": 0.2647
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image138.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image139",
@@ -2096,8 +2052,7 @@
         "confidence": 0.2445
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image139.png"
+    "vibe": "warm"
   },
   {
     "filename": "image14",
@@ -2136,8 +2091,7 @@
         "confidence": 0.2632
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image14.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image140",
@@ -2180,8 +2134,7 @@
         "confidence": 0.2469
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image140.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image141",
@@ -2232,8 +2185,7 @@
         "confidence": 0.2617
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image141.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image142",
@@ -2288,8 +2240,7 @@
         "confidence": 0.2552
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image142.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image143",
@@ -2344,8 +2295,7 @@
         "confidence": 0.2641
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image143.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image144",
@@ -2388,8 +2338,7 @@
         "confidence": 0.2649
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image144.png"
+    "vibe": "warm"
   },
   {
     "filename": "image145",
@@ -2440,8 +2389,7 @@
         "confidence": 0.258
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image145.gif"
+    "vibe": "dark"
   },
   {
     "filename": "image146",
@@ -2484,8 +2432,7 @@
         "confidence": 0.2661
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image146.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image147",
@@ -2540,8 +2487,7 @@
         "confidence": 0.2679
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image147.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image148",
@@ -2592,8 +2538,7 @@
         "confidence": 0.2545
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image148.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image149",
@@ -2644,8 +2589,7 @@
         "confidence": 0.2523
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image149.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image15",
@@ -2692,8 +2636,7 @@
         "confidence": 0.2583
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image15.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image150",
@@ -2740,8 +2683,7 @@
         "confidence": 0.2632
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image150.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image151",
@@ -2796,8 +2738,7 @@
         "confidence": 0.2329
       }
     ],
-    "vibe": "raw",
-    "filename_with_extension": "image151.jpg"
+    "vibe": "raw"
   },
   {
     "filename": "image152",
@@ -2848,8 +2789,7 @@
         "confidence": 0.2584
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image152.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image153",
@@ -2892,8 +2832,7 @@
         "confidence": 0.2593
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image153.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image154",
@@ -2944,8 +2883,7 @@
         "confidence": 0.2574
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image154.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image155",
@@ -2992,8 +2930,7 @@
         "confidence": 0.268
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image155.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image156",
@@ -3040,8 +2977,7 @@
         "confidence": 0.2505
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image156.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image157",
@@ -3084,8 +3020,7 @@
         "confidence": 0.2507
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image157.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image158",
@@ -3128,8 +3063,7 @@
         "confidence": 0.2625
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image158.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image159",
@@ -3172,8 +3106,7 @@
         "confidence": 0.2585
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image159.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image16",
@@ -3220,8 +3153,7 @@
         "confidence": 0.2577
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image16.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image160",
@@ -3268,8 +3200,7 @@
         "confidence": 0.2544
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image160.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image161",
@@ -3316,8 +3247,7 @@
         "confidence": 0.248
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image161.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image162",
@@ -3368,8 +3298,7 @@
         "confidence": 0.2541
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image162.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image163",
@@ -3412,8 +3341,7 @@
         "confidence": 0.2504
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image163.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image164",
@@ -3456,8 +3384,7 @@
         "confidence": 0.2497
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image164.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image165",
@@ -3512,8 +3439,7 @@
         "confidence": 0.2592
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image165.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image166",
@@ -3560,8 +3486,7 @@
         "confidence": 0.2521
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image166.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image167",
@@ -3616,8 +3541,7 @@
         "confidence": 0.2557
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image167.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image168",
@@ -3668,8 +3592,7 @@
         "confidence": 0.2426
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image168.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image169",
@@ -3708,8 +3631,7 @@
         "confidence": 0.2545
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image169.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image17",
@@ -3756,8 +3678,7 @@
         "confidence": 0.2557
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image17.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image170",
@@ -3796,8 +3717,7 @@
         "confidence": 0.2528
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image170.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image171",
@@ -3844,8 +3764,7 @@
         "confidence": 0.2548
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image171.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image172",
@@ -3896,8 +3815,7 @@
         "confidence": 0.2746
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image172.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image173",
@@ -3944,8 +3862,7 @@
         "confidence": 0.2577
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image173.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image174",
@@ -3988,8 +3905,7 @@
         "confidence": 0.2694
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image174.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image175",
@@ -4020,8 +3936,7 @@
         "confidence": 0.2662
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image175.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image176",
@@ -4068,8 +3983,7 @@
         "confidence": 0.2551
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image176.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image177",
@@ -4112,8 +4026,7 @@
         "confidence": 0.2469
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image177.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image178",
@@ -4164,8 +4077,7 @@
         "confidence": 0.255
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image178.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image179",
@@ -4212,8 +4124,7 @@
         "confidence": 0.2564
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image179.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image18",
@@ -4260,8 +4171,7 @@
         "confidence": 0.2578
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image18.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image180",
@@ -4304,8 +4214,7 @@
         "confidence": 0.2688
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image180.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image181",
@@ -4344,8 +4253,7 @@
         "confidence": 0.2727
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image181.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image182",
@@ -4392,8 +4300,7 @@
         "confidence": 0.2417
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image182.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image183",
@@ -4436,8 +4343,7 @@
         "confidence": 0.2608
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image183.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image184",
@@ -4484,8 +4390,7 @@
         "confidence": 0.2393
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image184.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image185",
@@ -4528,8 +4433,7 @@
         "confidence": 0.2701
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image185.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image186",
@@ -4572,8 +4476,7 @@
         "confidence": 0.2637
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image186.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image187",
@@ -4624,8 +4527,7 @@
         "confidence": 0.257
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image187.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image188",
@@ -4668,8 +4570,7 @@
         "confidence": 0.2597
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image188.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image189",
@@ -4716,8 +4617,7 @@
         "confidence": 0.2662
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image189.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image19",
@@ -4760,8 +4660,7 @@
         "confidence": 0.2674
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image19.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image190",
@@ -4808,8 +4707,7 @@
         "confidence": 0.2626
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image190.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image191",
@@ -4856,8 +4754,7 @@
         "confidence": 0.2435
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image191.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image192",
@@ -4872,8 +4769,7 @@
         "confidence": 0.3017
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image192.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image193",
@@ -4924,8 +4820,7 @@
         "confidence": 0.2492
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image193.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image194",
@@ -4968,8 +4863,7 @@
         "confidence": 0.2523
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image194.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image195",
@@ -5020,8 +4914,7 @@
         "confidence": 0.2514
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image195.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image196",
@@ -5076,8 +4969,7 @@
         "confidence": 0.2411
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image196.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image197",
@@ -5124,8 +5016,7 @@
         "confidence": 0.2551
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image197.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image198",
@@ -5168,8 +5059,7 @@
         "confidence": 0.2601
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image198.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image199",
@@ -5192,8 +5082,7 @@
         "confidence": 0.3004
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image199.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image2",
@@ -5244,8 +5133,7 @@
         "confidence": 0.2444
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image2.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image20",
@@ -5288,8 +5176,7 @@
         "confidence": 0.271
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image20.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image200",
@@ -5336,8 +5223,7 @@
         "confidence": 0.2486
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image200.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image201",
@@ -5376,8 +5262,7 @@
         "confidence": 0.2427
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image201.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image202",
@@ -5424,8 +5309,7 @@
         "confidence": 0.2305
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image202.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image203",
@@ -5464,8 +5348,7 @@
         "confidence": 0.2568
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image203.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image204",
@@ -5512,8 +5395,7 @@
         "confidence": 0.2283
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image204.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image205",
@@ -5552,8 +5434,7 @@
         "confidence": 0.266
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image205.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image206",
@@ -5592,8 +5473,7 @@
         "confidence": 0.2486
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image206.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image207",
@@ -5632,8 +5512,7 @@
         "confidence": 0.2569
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image207.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image208",
@@ -5684,8 +5563,7 @@
         "confidence": 0.2466
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image208.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image209",
@@ -5728,8 +5606,7 @@
         "confidence": 0.2498
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image209.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image21",
@@ -5772,8 +5649,7 @@
         "confidence": 0.2612
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image21.jpeg"
+    "vibe": "cool"
   },
   {
     "filename": "image210",
@@ -5824,8 +5700,7 @@
         "confidence": 0.2517
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image210.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image211",
@@ -5880,8 +5755,7 @@
         "confidence": 0.2578
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image211.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image212",
@@ -5920,8 +5794,7 @@
         "confidence": 0.2716
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image212.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image213",
@@ -5972,8 +5845,7 @@
         "confidence": 0.251
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image213.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image214",
@@ -6020,8 +5892,7 @@
         "confidence": 0.2724
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image214.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image215",
@@ -6064,8 +5935,7 @@
         "confidence": 0.2669
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image215.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image216",
@@ -6120,8 +5990,7 @@
         "confidence": 0.2439
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image216.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image217",
@@ -6160,8 +6029,7 @@
         "confidence": 0.2455
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image217.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image218",
@@ -6208,8 +6076,7 @@
         "confidence": 0.2471
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image218.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image219",
@@ -6252,8 +6119,7 @@
         "confidence": 0.2511
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image219.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image22",
@@ -6292,8 +6158,7 @@
         "confidence": 0.2317
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image22.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image220",
@@ -6332,8 +6197,7 @@
         "confidence": 0.2372
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image220.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image221",
@@ -6376,8 +6240,7 @@
         "confidence": 0.2421
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image221.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image222",
@@ -6424,8 +6287,7 @@
         "confidence": 0.2464
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image222.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image223",
@@ -6480,8 +6342,7 @@
         "confidence": 0.262
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image223.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image224",
@@ -6524,8 +6385,7 @@
         "confidence": 0.2607
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image224.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image225",
@@ -6568,8 +6428,7 @@
         "confidence": 0.2747
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image225.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image226",
@@ -6612,8 +6471,7 @@
         "confidence": 0.2539
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image226.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image227",
@@ -6668,8 +6526,7 @@
         "confidence": 0.2542
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image227.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image228",
@@ -6712,8 +6569,7 @@
         "confidence": 0.2498
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image228.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image229",
@@ -6764,8 +6620,7 @@
         "confidence": 0.2464
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image229.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image23",
@@ -6812,8 +6667,7 @@
         "confidence": 0.2607
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image23.jpeg"
+    "vibe": "warm"
   },
   {
     "filename": "image230",
@@ -6868,8 +6722,7 @@
         "confidence": 0.2574
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image230.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image231",
@@ -6904,8 +6757,7 @@
         "confidence": 0.2449
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image231.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image232",
@@ -6952,8 +6804,7 @@
         "confidence": 0.2621
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image232.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image233",
@@ -6996,8 +6847,7 @@
         "confidence": 0.2692
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image233.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image234",
@@ -7044,8 +6894,7 @@
         "confidence": 0.265
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image234.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image235",
@@ -7088,8 +6937,7 @@
         "confidence": 0.2607
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image235.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image236",
@@ -7140,8 +6988,7 @@
         "confidence": 0.2608
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image236.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image237",
@@ -7168,8 +7015,7 @@
         "confidence": 0.3046
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image237.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image238",
@@ -7220,8 +7066,7 @@
         "confidence": 0.2479
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image238.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image24",
@@ -7264,8 +7109,7 @@
         "confidence": 0.2671
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image24.jpeg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image240",
@@ -7312,8 +7156,7 @@
         "confidence": 0.2502
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image240.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image241",
@@ -7360,8 +7203,7 @@
         "confidence": 0.2651
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image241.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image242",
@@ -7408,8 +7250,7 @@
         "confidence": 0.2645
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image242.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image243",
@@ -7460,8 +7301,7 @@
         "confidence": 0.2534
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image243.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image244",
@@ -7508,8 +7348,7 @@
         "confidence": 0.2676
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image244.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image245",
@@ -7556,8 +7395,7 @@
         "confidence": 0.2403
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image245.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image247",
@@ -7596,8 +7434,7 @@
         "confidence": 0.2654
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image247.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image248",
@@ -7640,8 +7477,7 @@
         "confidence": 0.2445
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image248.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image249",
@@ -7692,8 +7528,7 @@
         "confidence": 0.2584
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image249.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image25",
@@ -7732,8 +7567,7 @@
         "confidence": 0.2653
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image25.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image250",
@@ -7780,8 +7614,7 @@
         "confidence": 0.2447
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image250.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image251",
@@ -7832,8 +7665,7 @@
         "confidence": 0.2591
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image251.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image252",
@@ -7884,8 +7716,7 @@
         "confidence": 0.2516
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image252.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image253",
@@ -7936,8 +7767,7 @@
         "confidence": 0.259
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image253.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image254",
@@ -7992,8 +7822,7 @@
         "confidence": 0.2546
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image254.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image255",
@@ -8040,8 +7869,7 @@
         "confidence": 0.2608
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image255.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image256",
@@ -8092,8 +7920,7 @@
         "confidence": 0.2502
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image256.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image257",
@@ -8144,8 +7971,7 @@
         "confidence": 0.2682
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image257.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image258",
@@ -8188,8 +8014,7 @@
         "confidence": 0.2695
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image258.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image259",
@@ -8244,8 +8069,7 @@
         "confidence": 0.2547
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image259.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image26",
@@ -8296,8 +8120,7 @@
         "confidence": 0.2624
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image26.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image260",
@@ -8344,8 +8167,7 @@
         "confidence": 0.265
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image260.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image261",
@@ -8400,8 +8222,7 @@
         "confidence": 0.2545
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image261.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image262",
@@ -8448,8 +8269,7 @@
         "confidence": 0.2787
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image262.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image263",
@@ -8500,8 +8320,7 @@
         "confidence": 0.2443
       }
     ],
-    "vibe": "ethereal",
-    "filename_with_extension": "image263.jpg"
+    "vibe": "ethereal"
   },
   {
     "filename": "image264",
@@ -8552,8 +8371,7 @@
         "confidence": 0.2516
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image264.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image265",
@@ -8572,8 +8390,7 @@
         "confidence": 0.3114
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image265.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image266",
@@ -8624,8 +8441,7 @@
         "confidence": 0.2625
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image266.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image267",
@@ -8672,8 +8488,7 @@
         "confidence": 0.2777
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image267.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image268",
@@ -8708,8 +8523,7 @@
         "confidence": 0.2625
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image268.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image269",
@@ -8764,8 +8578,7 @@
         "confidence": 0.268
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image269.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image27",
@@ -8808,8 +8621,7 @@
         "confidence": 0.2382
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image27.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image270",
@@ -8856,8 +8668,7 @@
         "confidence": 0.2462
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image270.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image271",
@@ -8908,8 +8719,7 @@
         "confidence": 0.2691
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image271.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image272",
@@ -8956,8 +8766,7 @@
         "confidence": 0.2644
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image272.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image273",
@@ -9008,8 +8817,7 @@
         "confidence": 0.254
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image273.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image274",
@@ -9052,8 +8860,7 @@
         "confidence": 0.2608
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image274.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image275",
@@ -9104,8 +8911,7 @@
         "confidence": 0.2317
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image275.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image276",
@@ -9160,8 +8966,7 @@
         "confidence": 0.2424
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image276.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image277",
@@ -9204,8 +9009,7 @@
         "confidence": 0.2629
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image277.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image278",
@@ -9248,8 +9052,7 @@
         "confidence": 0.2598
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image278.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image279",
@@ -9300,8 +9103,7 @@
         "confidence": 0.2691
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image279.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image28",
@@ -9348,8 +9150,7 @@
         "confidence": 0.272
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image28.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image280",
@@ -9400,8 +9201,7 @@
         "confidence": 0.2537
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image280.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image281",
@@ -9448,8 +9248,7 @@
         "confidence": 0.2659
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image281.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image282",
@@ -9496,8 +9295,7 @@
         "confidence": 0.2503
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image282.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image283",
@@ -9548,8 +9346,7 @@
         "confidence": 0.2531
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image283.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image284",
@@ -9600,8 +9397,7 @@
         "confidence": 0.2672
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image284.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image285",
@@ -9648,8 +9444,7 @@
         "confidence": 0.2817
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image285.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image286",
@@ -9668,8 +9463,7 @@
         "confidence": 0.3088
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image286.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image287",
@@ -9716,8 +9510,7 @@
         "confidence": 0.2648
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image287.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image288",
@@ -9760,8 +9553,7 @@
         "confidence": 0.2581
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image288.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image289",
@@ -9804,8 +9596,7 @@
         "confidence": 0.2698
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image289.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image29",
@@ -9844,8 +9635,7 @@
         "confidence": 0.2523
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image29.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image290",
@@ -9900,8 +9690,7 @@
         "confidence": 0.2434
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image290.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image291",
@@ -9936,8 +9725,7 @@
         "confidence": 0.2683
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image291.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image292",
@@ -9960,8 +9748,7 @@
         "confidence": 0.3015
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image292.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image293",
@@ -10008,8 +9795,7 @@
         "confidence": 0.2399
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image293.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image294",
@@ -10056,8 +9842,7 @@
         "confidence": 0.2575
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image294.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image295",
@@ -10096,8 +9881,7 @@
         "confidence": 0.261
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image295.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image296",
@@ -10140,8 +9924,7 @@
         "confidence": 0.2605
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image296.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image297",
@@ -10184,8 +9967,7 @@
         "confidence": 0.2583
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image297.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image298",
@@ -10200,8 +9982,7 @@
         "confidence": 0.3063
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image298.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image299",
@@ -10240,8 +10021,7 @@
         "confidence": 0.265
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image299.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image3",
@@ -10288,8 +10068,7 @@
         "confidence": 0.2632
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image3.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image30",
@@ -10340,8 +10119,7 @@
         "confidence": 0.2613
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image30.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image300",
@@ -10384,8 +10162,7 @@
         "confidence": 0.2767
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image300.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image301",
@@ -10424,8 +10201,7 @@
         "confidence": 0.2695
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image301.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image302",
@@ -10472,8 +10248,7 @@
         "confidence": 0.2763
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image302.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image303",
@@ -10516,8 +10291,7 @@
         "confidence": 0.2472
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image303.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image304",
@@ -10552,8 +10326,7 @@
         "confidence": 0.2443
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image304.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image305",
@@ -10588,8 +10361,7 @@
         "confidence": 0.2628
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image305.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image306",
@@ -10628,8 +10400,7 @@
         "confidence": 0.2635
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image306.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image307",
@@ -10676,8 +10447,7 @@
         "confidence": 0.2759
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image307.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image308",
@@ -10696,8 +10466,7 @@
         "confidence": 0.3
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image308.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image309",
@@ -10736,8 +10505,7 @@
         "confidence": 0.258
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image309.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image31",
@@ -10788,8 +10556,7 @@
         "confidence": 0.2322
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image31.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image310",
@@ -10828,8 +10595,7 @@
         "confidence": 0.2478
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image310.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image311",
@@ -10872,8 +10638,7 @@
         "confidence": 0.2659
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image311.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image312",
@@ -10916,8 +10681,7 @@
         "confidence": 0.2704
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image312.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image313",
@@ -10956,8 +10720,7 @@
         "confidence": 0.2676
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image313.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image314",
@@ -11000,8 +10763,7 @@
         "confidence": 0.2665
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image314.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image315",
@@ -11040,8 +10802,7 @@
         "confidence": 0.2666
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image315.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image316",
@@ -11076,8 +10837,7 @@
         "confidence": 0.2627
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image316.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image317",
@@ -11120,8 +10880,7 @@
         "confidence": 0.2587
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image317.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image318",
@@ -11164,8 +10923,7 @@
         "confidence": 0.2557
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image318.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image319",
@@ -11212,8 +10970,7 @@
         "confidence": 0.2606
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image319.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image32",
@@ -11260,8 +11017,7 @@
         "confidence": 0.2613
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image32.jpeg"
+    "vibe": "warm"
   },
   {
     "filename": "image320",
@@ -11308,8 +11064,7 @@
         "confidence": 0.2606
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image320.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image321",
@@ -11356,8 +11111,7 @@
         "confidence": 0.2619
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image321.jpeg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image322",
@@ -11404,8 +11158,7 @@
         "confidence": 0.241
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image322.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image323",
@@ -11444,8 +11197,7 @@
         "confidence": 0.2608
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image323.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image324",
@@ -11496,8 +11248,7 @@
         "confidence": 0.2582
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image324.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image325",
@@ -11540,8 +11291,7 @@
         "confidence": 0.2695
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image325.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image326",
@@ -11584,8 +11334,7 @@
         "confidence": 0.2612
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image326.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image327",
@@ -11640,8 +11389,7 @@
         "confidence": 0.2545
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image327.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image328",
@@ -11684,8 +11432,7 @@
         "confidence": 0.2613
       }
     ],
-    "vibe": "chaotic",
-    "filename_with_extension": "image328.png"
+    "vibe": "chaotic"
   },
   {
     "filename": "image329",
@@ -11736,8 +11483,7 @@
         "confidence": 0.2402
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image329.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image33",
@@ -11780,8 +11526,7 @@
         "confidence": 0.251
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image33.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image330",
@@ -11832,8 +11577,7 @@
         "confidence": 0.2489
       }
     ],
-    "vibe": "chaotic",
-    "filename_with_extension": "image330.jpg"
+    "vibe": "chaotic"
   },
   {
     "filename": "image331",
@@ -11880,8 +11624,7 @@
         "confidence": 0.2622
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image331.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image332",
@@ -11932,8 +11675,7 @@
         "confidence": 0.2495
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image332.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image333",
@@ -11976,8 +11718,7 @@
         "confidence": 0.2282
       }
     ],
-    "vibe": "chaotic",
-    "filename_with_extension": "image333.jpg"
+    "vibe": "chaotic"
   },
   {
     "filename": "image334",
@@ -12032,8 +11773,7 @@
         "confidence": 0.2752
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image334.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image336",
@@ -12088,8 +11828,7 @@
         "confidence": 0.2444
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image336.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image337",
@@ -12132,8 +11871,7 @@
         "confidence": 0.2501
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image337.png"
+    "vibe": "serene"
   },
   {
     "filename": "image34",
@@ -12180,8 +11918,7 @@
         "confidence": 0.2537
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image34.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image340",
@@ -12224,8 +11961,7 @@
         "confidence": 0.2603
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image340.png"
+    "vibe": "warm"
   },
   {
     "filename": "image342",
@@ -12272,8 +12008,7 @@
         "confidence": 0.268
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image342.png"
+    "vibe": "serene"
   },
   {
     "filename": "image343",
@@ -12316,8 +12051,7 @@
         "confidence": 0.2564
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image343.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image344",
@@ -12360,8 +12094,7 @@
         "confidence": 0.2737
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image344.png"
+    "vibe": "warm"
   },
   {
     "filename": "image345",
@@ -12404,8 +12137,7 @@
         "confidence": 0.2591
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image345.png"
+    "vibe": "serene"
   },
   {
     "filename": "image346",
@@ -12452,8 +12184,7 @@
         "confidence": 0.2735
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image346.png"
+    "vibe": "serene"
   },
   {
     "filename": "image347",
@@ -12492,8 +12223,7 @@
         "confidence": 0.2649
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image347.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image348",
@@ -12540,8 +12270,7 @@
         "confidence": 0.2745
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image348.png"
+    "vibe": "cool"
   },
   {
     "filename": "image349",
@@ -12588,8 +12317,7 @@
         "confidence": 0.2689
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image349.png"
+    "vibe": "whimsical"
   },
   {
     "filename": "image35",
@@ -12636,8 +12364,7 @@
         "confidence": 0.2589
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image35.jpeg"
+    "vibe": "dark"
   },
   {
     "filename": "image350",
@@ -12680,8 +12407,7 @@
         "confidence": 0.2591
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image350.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image351",
@@ -12724,8 +12450,7 @@
         "confidence": 0.2544
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image351.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image352",
@@ -12768,8 +12493,7 @@
         "confidence": 0.25
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image352.png"
+    "vibe": "serene"
   },
   {
     "filename": "image353",
@@ -12820,8 +12544,7 @@
         "confidence": 0.262
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image353.png"
+    "vibe": "serene"
   },
   {
     "filename": "image354",
@@ -12864,8 +12587,7 @@
         "confidence": 0.2595
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image354.png"
+    "vibe": "warm"
   },
   {
     "filename": "image355",
@@ -12912,8 +12634,7 @@
         "confidence": 0.2425
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image355.png"
+    "vibe": "whimsical"
   },
   {
     "filename": "image356",
@@ -12968,8 +12689,7 @@
         "confidence": 0.2582
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image356.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image357",
@@ -13016,8 +12736,7 @@
         "confidence": 0.2388
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image357.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image358",
@@ -13060,8 +12779,7 @@
         "confidence": 0.2611
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image358.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image359",
@@ -13104,8 +12822,7 @@
         "confidence": 0.2512
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image359.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image36",
@@ -13152,8 +12869,7 @@
         "confidence": 0.262
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image36.png"
+    "vibe": "dark"
   },
   {
     "filename": "image360",
@@ -13204,8 +12920,7 @@
         "confidence": 0.2559
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image360.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image361",
@@ -13256,8 +12971,7 @@
         "confidence": 0.2375
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image361.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image362",
@@ -13308,8 +13022,7 @@
         "confidence": 0.2482
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image362.png"
+    "vibe": "warm"
   },
   {
     "filename": "image363",
@@ -13360,8 +13073,7 @@
         "confidence": 0.2501
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image363.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image364",
@@ -13404,8 +13116,7 @@
         "confidence": 0.2487
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image364.png"
+    "vibe": "warm"
   },
   {
     "filename": "image365",
@@ -13444,8 +13155,7 @@
         "confidence": 0.2434
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image365.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image366",
@@ -13484,8 +13194,7 @@
         "confidence": 0.2633
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image366.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image367",
@@ -13532,8 +13241,7 @@
         "confidence": 0.2552
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image367.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image368",
@@ -13576,8 +13284,7 @@
         "confidence": 0.2702
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image368.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image369",
@@ -13620,8 +13327,7 @@
         "confidence": 0.2637
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image369.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image37",
@@ -13640,8 +13346,7 @@
         "confidence": 0.3106
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image37.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image370",
@@ -13680,8 +13385,7 @@
         "confidence": 0.2699
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image370.png"
+    "vibe": "serene"
   },
   {
     "filename": "image371",
@@ -13732,8 +13436,7 @@
         "confidence": 0.2599
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image371.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image372",
@@ -13776,8 +13479,7 @@
         "confidence": 0.2554
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image372.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image373",
@@ -13820,8 +13522,7 @@
         "confidence": 0.2649
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image373.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image374",
@@ -13868,8 +13569,7 @@
         "confidence": 0.2691
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image374.png"
+    "vibe": "warm"
   },
   {
     "filename": "image375",
@@ -13912,8 +13612,7 @@
         "confidence": 0.2689
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image375.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image376",
@@ -13956,8 +13655,7 @@
         "confidence": 0.2615
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image376.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image377",
@@ -14000,8 +13698,7 @@
         "confidence": 0.2546
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image377.png"
+    "vibe": "serene"
   },
   {
     "filename": "image378",
@@ -14048,8 +13745,7 @@
         "confidence": 0.2622
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image378.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image379",
@@ -14092,8 +13788,7 @@
         "confidence": 0.2442
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image379.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image38",
@@ -14144,8 +13839,7 @@
         "confidence": 0.2466
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image38.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image380",
@@ -14192,8 +13886,7 @@
         "confidence": 0.2438
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image380.png"
+    "vibe": "serene"
   },
   {
     "filename": "image381",
@@ -14248,8 +13941,7 @@
         "confidence": 0.2483
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image381.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image382",
@@ -14292,8 +13984,7 @@
         "confidence": 0.261
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image382.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image383",
@@ -14340,8 +14031,7 @@
         "confidence": 0.2782
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image383.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image384",
@@ -14384,8 +14074,7 @@
         "confidence": 0.2678
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image384.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image385",
@@ -14424,8 +14113,7 @@
         "confidence": 0.2433
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image385.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image386",
@@ -14480,8 +14168,7 @@
         "confidence": 0.2477
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image386.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image387",
@@ -14528,8 +14215,7 @@
         "confidence": 0.2588
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image387.png"
+    "vibe": "dark"
   },
   {
     "filename": "image388",
@@ -14576,8 +14262,7 @@
         "confidence": 0.2729
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image388.png"
+    "vibe": "warm"
   },
   {
     "filename": "image389",
@@ -14628,8 +14313,7 @@
         "confidence": 0.2619
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image389.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image39",
@@ -14680,8 +14364,7 @@
         "confidence": 0.2534
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image39.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image390",
@@ -14728,8 +14411,7 @@
         "confidence": 0.2566
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image390.png"
+    "vibe": "warm"
   },
   {
     "filename": "image391",
@@ -14780,8 +14462,7 @@
         "confidence": 0.2553
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image391.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image392",
@@ -14820,8 +14501,7 @@
         "confidence": 0.2684
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image392.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image393",
@@ -14868,8 +14548,7 @@
         "confidence": 0.2484
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image393.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image394",
@@ -14912,8 +14591,7 @@
         "confidence": 0.2668
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image394.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image395",
@@ -14956,8 +14634,7 @@
         "confidence": 0.2635
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image395.png"
+    "vibe": "cool"
   },
   {
     "filename": "image396",
@@ -15000,8 +14677,7 @@
         "confidence": 0.2595
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image396.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image397",
@@ -15028,8 +14704,7 @@
         "confidence": 0.2482
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image397.png"
+    "vibe": "serene"
   },
   {
     "filename": "image398",
@@ -15068,8 +14743,7 @@
         "confidence": 0.2737
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image398.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image399",
@@ -15108,8 +14782,7 @@
         "confidence": 0.2476
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image399.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image4",
@@ -15148,8 +14821,7 @@
         "confidence": 0.2561
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image4.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image40",
@@ -15196,8 +14868,7 @@
         "confidence": 0.2698
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image40.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image400",
@@ -15240,8 +14911,7 @@
         "confidence": 0.2318
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image400.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image401",
@@ -15276,8 +14946,7 @@
         "confidence": 0.2469
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image401.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image402",
@@ -15316,8 +14985,7 @@
         "confidence": 0.2499
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image402.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image403",
@@ -15356,8 +15024,7 @@
         "confidence": 0.2543
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image403.png"
+    "vibe": "serene"
   },
   {
     "filename": "image404",
@@ -15404,8 +15071,7 @@
         "confidence": 0.2561
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image404.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image405",
@@ -15448,8 +15114,7 @@
         "confidence": 0.2548
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image405.png"
+    "vibe": "serene"
   },
   {
     "filename": "image406",
@@ -15496,8 +15161,7 @@
         "confidence": 0.2502
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image406.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image407",
@@ -15532,8 +15196,7 @@
         "confidence": 0.244
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image407.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image408",
@@ -15580,8 +15243,7 @@
         "confidence": 0.2451
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image408.png"
+    "vibe": "serene"
   },
   {
     "filename": "image409",
@@ -15636,8 +15298,7 @@
         "confidence": 0.2695
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image409.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image41",
@@ -15680,8 +15341,7 @@
         "confidence": 0.2512
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image41.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image410",
@@ -15728,8 +15388,7 @@
         "confidence": 0.2693
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image410.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image411",
@@ -15772,8 +15431,7 @@
         "confidence": 0.2708
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image411.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image412",
@@ -15824,8 +15482,7 @@
         "confidence": 0.2668
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image412.png"
+    "vibe": "warm"
   },
   {
     "filename": "image413",
@@ -15848,8 +15505,7 @@
         "confidence": 0.3
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image413.png"
+    "vibe": "serene"
   },
   {
     "filename": "image414",
@@ -15896,8 +15552,7 @@
         "confidence": 0.2536
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image414.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image415",
@@ -15940,8 +15595,7 @@
         "confidence": 0.2438
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image415.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image416",
@@ -15984,8 +15638,7 @@
         "confidence": 0.2617
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image416.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image417",
@@ -16032,8 +15685,7 @@
         "confidence": 0.2756
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image417.png"
+    "vibe": "warm"
   },
   {
     "filename": "image418",
@@ -16076,8 +15728,7 @@
         "confidence": 0.261
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image418.png"
+    "vibe": "serene"
   },
   {
     "filename": "image419",
@@ -16124,8 +15775,7 @@
         "confidence": 0.2754
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image419.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image420",
@@ -16172,8 +15822,7 @@
         "confidence": 0.2628
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image420.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image421",
@@ -16216,8 +15865,7 @@
         "confidence": 0.2484
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image421.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image422",
@@ -16260,8 +15908,7 @@
         "confidence": 0.253
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image422.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image423",
@@ -16296,8 +15943,7 @@
         "confidence": 0.2557
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image423.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image424",
@@ -16316,8 +15962,7 @@
         "confidence": 0.3036
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image424.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image425",
@@ -16336,8 +15981,7 @@
         "confidence": 0.3132
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image425.png"
+    "vibe": "serene"
   },
   {
     "filename": "image426",
@@ -16360,8 +16004,7 @@
         "confidence": 0.3053
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image426.png"
+    "vibe": "serene"
   },
   {
     "filename": "image427",
@@ -16404,8 +16047,7 @@
         "confidence": 0.2491
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image427.png"
+    "vibe": "whimsical"
   },
   {
     "filename": "image428",
@@ -16456,8 +16098,7 @@
         "confidence": 0.2755
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image428.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image429",
@@ -16500,8 +16141,7 @@
         "confidence": 0.2734
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image429.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image430",
@@ -16544,8 +16184,7 @@
         "confidence": 0.2638
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image430.png"
+    "vibe": "serene"
   },
   {
     "filename": "image431",
@@ -16588,8 +16227,7 @@
         "confidence": 0.2532
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image431.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image432",
@@ -16636,8 +16274,7 @@
         "confidence": 0.2759
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image432.png"
+    "vibe": "serene"
   },
   {
     "filename": "image433",
@@ -16672,8 +16309,7 @@
         "confidence": 0.2643
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image433.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image434",
@@ -16720,8 +16356,7 @@
         "confidence": 0.2712
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image434.png"
+    "vibe": "serene"
   },
   {
     "filename": "image435",
@@ -16768,8 +16403,7 @@
         "confidence": 0.257
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image435.png"
+    "vibe": "warm"
   },
   {
     "filename": "image436",
@@ -16816,8 +16450,7 @@
         "confidence": 0.2568
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image436.png"
+    "vibe": "serene"
   },
   {
     "filename": "image437",
@@ -16864,8 +16497,7 @@
         "confidence": 0.2743
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image437.png"
+    "vibe": "cool"
   },
   {
     "filename": "image438",
@@ -16912,8 +16544,7 @@
         "confidence": 0.2722
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image438.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image439",
@@ -16960,8 +16591,7 @@
         "confidence": 0.2586
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image439.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image440",
@@ -17012,8 +16642,7 @@
         "confidence": 0.2621
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image440.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image441",
@@ -17060,8 +16689,7 @@
         "confidence": 0.2627
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image441.png"
+    "vibe": "warm"
   },
   {
     "filename": "image442",
@@ -17112,8 +16740,7 @@
         "confidence": 0.2529
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image442.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image443",
@@ -17152,8 +16779,7 @@
         "confidence": 0.2659
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image443.png"
+    "vibe": "cool"
   },
   {
     "filename": "image444",
@@ -17204,8 +16830,7 @@
         "confidence": 0.2546
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image444.png"
+    "vibe": "serene"
   },
   {
     "filename": "image445",
@@ -17244,8 +16869,7 @@
         "confidence": 0.2654
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image445.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image446",
@@ -17296,8 +16920,7 @@
         "confidence": 0.2554
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image446.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image447",
@@ -17344,8 +16967,7 @@
         "confidence": 0.2482
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image447.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image448",
@@ -17400,8 +17022,7 @@
         "confidence": 0.2572
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image448.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image449",
@@ -17444,8 +17065,7 @@
         "confidence": 0.2718
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image449.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image450",
@@ -17480,8 +17100,7 @@
         "confidence": 0.2596
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image450.png"
+    "vibe": "serene"
   },
   {
     "filename": "image451",
@@ -17516,8 +17135,7 @@
         "confidence": 0.2794
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image451.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image452",
@@ -17564,8 +17182,7 @@
         "confidence": 0.2638
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image452.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image453",
@@ -17616,8 +17233,7 @@
         "confidence": 0.2738
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image453.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image454",
@@ -17636,8 +17252,7 @@
         "confidence": 0.3007
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image454.png"
+    "vibe": "serene"
   },
   {
     "filename": "image455",
@@ -17680,8 +17295,7 @@
         "confidence": 0.2607
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image455.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image456",
@@ -17724,8 +17338,7 @@
         "confidence": 0.257
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image456.png"
+    "vibe": "warm"
   },
   {
     "filename": "image457",
@@ -17772,8 +17385,7 @@
         "confidence": 0.2645
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image457.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image458",
@@ -17812,8 +17424,7 @@
         "confidence": 0.2751
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image458.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image459",
@@ -17860,8 +17471,7 @@
         "confidence": 0.2581
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image459.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image460",
@@ -17908,8 +17518,7 @@
         "confidence": 0.2671
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image460.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image461",
@@ -17956,8 +17565,7 @@
         "confidence": 0.2623
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image461.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image462",
@@ -18012,8 +17620,7 @@
         "confidence": 0.2677
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image462.png"
+    "vibe": "serene"
   },
   {
     "filename": "image463",
@@ -18056,8 +17663,7 @@
         "confidence": 0.2516
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image463.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image464",
@@ -18104,8 +17710,7 @@
         "confidence": 0.2519
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image464.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image465",
@@ -18152,8 +17757,7 @@
         "confidence": 0.2574
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image465.png"
+    "vibe": "melancholic"
   },
   {
     "filename": "image466",
@@ -18204,8 +17808,7 @@
         "confidence": 0.2775
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image466.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image467",
@@ -18252,8 +17855,7 @@
         "confidence": 0.2628
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image467.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image468",
@@ -18304,8 +17906,7 @@
         "confidence": 0.2721
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image468.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image470",
@@ -18348,8 +17949,7 @@
         "confidence": 0.2736
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image470.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image471",
@@ -18400,8 +18000,7 @@
         "confidence": 0.2621
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image471.png"
+    "vibe": "warm"
   },
   {
     "filename": "image472",
@@ -18448,8 +18047,7 @@
         "confidence": 0.2746
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image472.png"
+    "vibe": "warm"
   },
   {
     "filename": "image473",
@@ -18496,8 +18094,7 @@
         "confidence": 0.2601
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image473.gif"
+    "vibe": "mysterious"
   },
   {
     "filename": "image474",
@@ -18536,8 +18133,7 @@
         "confidence": 0.2592
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image474.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image475",
@@ -18584,8 +18180,7 @@
         "confidence": 0.2678
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image475.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image476",
@@ -18636,8 +18231,7 @@
         "confidence": 0.2607
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image476.gif"
+    "vibe": "mysterious"
   },
   {
     "filename": "image477",
@@ -18684,8 +18278,7 @@
         "confidence": 0.2563
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image477.gif"
+    "vibe": "neutral"
   },
   {
     "filename": "image478",
@@ -18728,8 +18321,7 @@
         "confidence": 0.2656
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image478.gif"
+    "vibe": "neutral"
   },
   {
     "filename": "image479",
@@ -18776,8 +18368,7 @@
         "confidence": 0.2568
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image479.gif"
+    "vibe": "melancholic"
   },
   {
     "filename": "image480",
@@ -18824,8 +18415,7 @@
         "confidence": 0.2459
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image480.gif"
+    "vibe": "mysterious"
   },
   {
     "filename": "image481",
@@ -18872,8 +18462,7 @@
         "confidence": 0.249
       }
     ],
-    "vibe": "minimal",
-    "filename_with_extension": "image481.gif"
+    "vibe": "minimal"
   },
   {
     "filename": "image482",
@@ -18920,8 +18509,7 @@
         "confidence": 0.27
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image482.gif"
+    "vibe": "melancholic"
   },
   {
     "filename": "image485",
@@ -18964,8 +18552,7 @@
         "confidence": 0.2581
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image485.gif"
+    "vibe": "serene"
   },
   {
     "filename": "image486",
@@ -19012,8 +18599,7 @@
         "confidence": 0.2406
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image486.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image487",
@@ -19064,8 +18650,7 @@
         "confidence": 0.2579
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image487.webp"
+    "vibe": "mysterious"
   },
   {
     "filename": "image488",
@@ -19104,8 +18689,7 @@
         "confidence": 0.2683
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image488.webp"
+    "vibe": "mysterious"
   },
   {
     "filename": "image489",
@@ -19148,8 +18732,7 @@
         "confidence": 0.2671
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image489.webp"
+    "vibe": "serene"
   },
   {
     "filename": "image490",
@@ -19192,8 +18775,7 @@
         "confidence": 0.278
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image490.webp"
+    "vibe": "mysterious"
   },
   {
     "filename": "image491",
@@ -19236,8 +18818,7 @@
         "confidence": 0.2581
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image491.webp"
+    "vibe": "mysterious"
   },
   {
     "filename": "image492",
@@ -19288,8 +18869,7 @@
         "confidence": 0.2641
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image492.webp"
+    "vibe": "mysterious"
   },
   {
     "filename": "image493",
@@ -19332,8 +18912,7 @@
         "confidence": 0.2805
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image493.webp"
+    "vibe": "mysterious"
   },
   {
     "filename": "image494",
@@ -19388,8 +18967,7 @@
         "confidence": 0.2747
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image494.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image495",
@@ -19432,8 +19010,7 @@
         "confidence": 0.2725
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image495.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image496",
@@ -19460,8 +19037,7 @@
         "confidence": 0.3026
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image496.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image497",
@@ -19500,8 +19076,7 @@
         "confidence": 0.2505
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image497.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image498",
@@ -19548,8 +19123,7 @@
         "confidence": 0.2817
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image498.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image499",
@@ -19592,8 +19166,7 @@
         "confidence": 0.2524
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image499.webp"
+    "vibe": "serene"
   },
   {
     "filename": "image5",
@@ -19636,8 +19209,7 @@
         "confidence": 0.2475
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image5.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image500",
@@ -19680,8 +19252,7 @@
         "confidence": 0.2483
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image500.webp"
+    "vibe": "warm"
   },
   {
     "filename": "image501",
@@ -19728,8 +19299,7 @@
         "confidence": 0.2719
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image501.webp"
+    "vibe": "cool"
   },
   {
     "filename": "image502",
@@ -19784,8 +19354,7 @@
         "confidence": 0.2694
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image502.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image503",
@@ -19836,8 +19405,7 @@
         "confidence": 0.2676
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image503.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image504",
@@ -19884,8 +19452,7 @@
         "confidence": 0.2834
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image504.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image505",
@@ -19920,8 +19487,7 @@
         "confidence": 0.2684
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image505.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image506",
@@ -19968,8 +19534,7 @@
         "confidence": 0.2717
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image506.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image507",
@@ -20016,8 +19581,7 @@
         "confidence": 0.2687
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image507.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image508",
@@ -20068,8 +19632,7 @@
         "confidence": 0.2631
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image508.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image509",
@@ -20116,8 +19679,7 @@
         "confidence": 0.2731
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image509.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image510",
@@ -20156,8 +19718,7 @@
         "confidence": 0.2583
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image510.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image511",
@@ -20204,8 +19765,7 @@
         "confidence": 0.2555
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image511.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image512",
@@ -20256,8 +19816,7 @@
         "confidence": 0.2434
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image512.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image513",
@@ -20272,8 +19831,7 @@
         "confidence": 0.303
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image513.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image514",
@@ -20324,8 +19882,7 @@
         "confidence": 0.2243
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image514.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image515",
@@ -20368,8 +19925,7 @@
         "confidence": 0.2663
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image515.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image516",
@@ -20416,8 +19972,7 @@
         "confidence": 0.2596
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image516.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image517",
@@ -20460,8 +20015,7 @@
         "confidence": 0.2598
       }
     ],
-    "vibe": "sharp",
-    "filename_with_extension": "image517.jpg"
+    "vibe": "sharp"
   },
   {
     "filename": "image518",
@@ -20516,8 +20070,7 @@
         "confidence": 0.246
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image518.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image519",
@@ -20568,8 +20121,7 @@
         "confidence": 0.2572
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image519.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image520",
@@ -20620,8 +20172,7 @@
         "confidence": 0.2492
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image520.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image521",
@@ -20664,8 +20215,7 @@
         "confidence": 0.264
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image521.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image522",
@@ -20688,8 +20238,7 @@
         "confidence": 0.3045
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image522.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image523",
@@ -20728,8 +20277,7 @@
         "confidence": 0.269
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image523.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image524",
@@ -20768,8 +20316,7 @@
         "confidence": 0.2612
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image524.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image525",
@@ -20816,8 +20363,7 @@
         "confidence": 0.2752
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image525.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image526",
@@ -20864,8 +20410,7 @@
         "confidence": 0.2507
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image526.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image527",
@@ -20908,8 +20453,7 @@
         "confidence": 0.2579
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image527.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image528",
@@ -20952,8 +20496,7 @@
         "confidence": 0.2617
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image528.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image529",
@@ -20992,8 +20535,7 @@
         "confidence": 0.2599
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image529.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image530",
@@ -21040,8 +20582,7 @@
         "confidence": 0.2385
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image530.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image531",
@@ -21096,8 +20637,7 @@
         "confidence": 0.2585
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image531.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image532",
@@ -21136,8 +20676,7 @@
         "confidence": 0.2631
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image532.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image533",
@@ -21184,8 +20723,7 @@
         "confidence": 0.2634
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image533.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image534",
@@ -21232,8 +20770,7 @@
         "confidence": 0.2573
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image534.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image535",
@@ -21276,8 +20813,7 @@
         "confidence": 0.252
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image535.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image536",
@@ -21320,8 +20856,7 @@
         "confidence": 0.2606
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image536.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image537",
@@ -21376,8 +20911,7 @@
         "confidence": 0.2767
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image537.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image538",
@@ -21424,8 +20958,7 @@
         "confidence": 0.2699
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image538.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image539",
@@ -21468,8 +21001,7 @@
         "confidence": 0.2715
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image539.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image54",
@@ -21516,8 +21048,7 @@
         "confidence": 0.2496
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image54.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image540",
@@ -21560,8 +21091,7 @@
         "confidence": 0.2522
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image540.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image541",
@@ -21604,8 +21134,7 @@
         "confidence": 0.2598
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image541.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image542",
@@ -21640,8 +21169,7 @@
         "confidence": 0.2543
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image542.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image543",
@@ -21688,8 +21216,7 @@
         "confidence": 0.2616
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image543.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image544",
@@ -21732,8 +21259,7 @@
         "confidence": 0.2563
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image544.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image545",
@@ -21776,8 +21302,7 @@
         "confidence": 0.2607
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image545.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image546",
@@ -21820,8 +21345,7 @@
         "confidence": 0.2631
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image546.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image547",
@@ -21876,8 +21400,7 @@
         "confidence": 0.2583
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image547.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image548",
@@ -21916,8 +21439,7 @@
         "confidence": 0.2551
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image548.png"
+    "vibe": "warm"
   },
   {
     "filename": "image549",
@@ -21960,8 +21482,7 @@
         "confidence": 0.2469
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image549.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image550",
@@ -21996,8 +21517,7 @@
         "confidence": 0.2604
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image550.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image551",
@@ -22040,8 +21560,7 @@
         "confidence": 0.2518
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image551.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image552",
@@ -22084,8 +21603,7 @@
         "confidence": 0.2688
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image552.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image553",
@@ -22108,8 +21626,7 @@
         "confidence": 0.303
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image553.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image554",
@@ -22160,8 +21677,7 @@
         "confidence": 0.2592
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image554.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image555",
@@ -22204,8 +21720,7 @@
         "confidence": 0.2513
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image555.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image556",
@@ -22248,8 +21763,7 @@
         "confidence": 0.2509
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image556.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image557",
@@ -22288,8 +21802,7 @@
         "confidence": 0.2553
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image557.png"
+    "vibe": "serene"
   },
   {
     "filename": "image558",
@@ -22332,8 +21845,7 @@
         "confidence": 0.2679
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image558.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image559",
@@ -22372,8 +21884,7 @@
         "confidence": 0.2478
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image559.png"
+    "vibe": "serene"
   },
   {
     "filename": "image560",
@@ -22416,8 +21927,7 @@
         "confidence": 0.2587
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image560.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image561",
@@ -22460,8 +21970,7 @@
         "confidence": 0.2655
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image561.png"
+    "vibe": "serene"
   },
   {
     "filename": "image562",
@@ -22488,8 +21997,7 @@
         "confidence": 0.3023
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image562.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image563",
@@ -22532,8 +22040,7 @@
         "confidence": 0.2831
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image563.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image564",
@@ -22576,8 +22083,7 @@
         "confidence": 0.2803
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image564.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image565",
@@ -22628,8 +22134,7 @@
         "confidence": 0.2429
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image565.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image566",
@@ -22648,8 +22153,7 @@
         "confidence": 0.3163
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image566.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image567",
@@ -22696,8 +22200,7 @@
         "confidence": 0.2389
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image567.png"
+    "vibe": "warm"
   },
   {
     "filename": "image568",
@@ -22720,8 +22223,7 @@
         "confidence": 0.3044
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image568.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image569",
@@ -22772,8 +22274,7 @@
         "confidence": 0.2616
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image569.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image57",
@@ -22820,8 +22321,7 @@
         "confidence": 0.242
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image57.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image570",
@@ -22872,8 +22372,7 @@
         "confidence": 0.2583
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image570.jpeg"
+    "vibe": "warm"
   },
   {
     "filename": "image571",
@@ -22924,8 +22423,7 @@
         "confidence": 0.2378
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image571.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image572",
@@ -22972,8 +22470,7 @@
         "confidence": 0.2703
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image572.png"
+    "vibe": "serene"
   },
   {
     "filename": "image573",
@@ -23016,8 +22513,7 @@
         "confidence": 0.2544
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image573.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image574",
@@ -23064,8 +22560,7 @@
         "confidence": 0.2518
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image574.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image575",
@@ -23108,8 +22603,7 @@
         "confidence": 0.2539
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image575.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image576",
@@ -23148,8 +22642,7 @@
         "confidence": 0.2616
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image576.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image577",
@@ -23184,8 +22677,7 @@
         "confidence": 0.2588
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image577.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image578",
@@ -23224,8 +22716,7 @@
         "confidence": 0.2457
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image578.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image579",
@@ -23272,8 +22763,7 @@
         "confidence": 0.2781
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image579.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image58",
@@ -23328,8 +22818,7 @@
         "confidence": 0.2636
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image58.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image580",
@@ -23376,8 +22865,7 @@
         "confidence": 0.2567
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image580.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image581",
@@ -23416,8 +22904,7 @@
         "confidence": 0.2633
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image581.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image582",
@@ -23468,8 +22955,7 @@
         "confidence": 0.2659
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image582.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image583",
@@ -23512,8 +22998,7 @@
         "confidence": 0.2748
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image583.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image584",
@@ -23548,8 +23033,7 @@
         "confidence": 0.2763
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image584.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image585",
@@ -23600,8 +23084,7 @@
         "confidence": 0.2656
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image585.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image586",
@@ -23648,8 +23131,7 @@
         "confidence": 0.2445
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image586.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image587",
@@ -23672,8 +23154,7 @@
         "confidence": 0.3106
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image587.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image588",
@@ -23724,8 +23205,7 @@
         "confidence": 0.2623
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image588.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image589",
@@ -23768,8 +23248,7 @@
         "confidence": 0.2433
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image589.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image59",
@@ -23812,8 +23291,7 @@
         "confidence": 0.2764
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image59.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image590",
@@ -23860,8 +23338,7 @@
         "confidence": 0.2717
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image590.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image591",
@@ -23900,8 +23377,7 @@
         "confidence": 0.2623
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image591.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image592",
@@ -23920,8 +23396,7 @@
         "confidence": 0.3004
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image592.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image593",
@@ -23968,8 +23443,7 @@
         "confidence": 0.2632
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image593.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image594",
@@ -24020,8 +23494,7 @@
         "confidence": 0.2495
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image594.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image595",
@@ -24068,8 +23541,7 @@
         "confidence": 0.2799
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image595.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image596",
@@ -24120,8 +23592,7 @@
         "confidence": 0.2477
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image596.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image597",
@@ -24160,8 +23631,7 @@
         "confidence": 0.2401
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image597.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image598",
@@ -24212,8 +23682,7 @@
         "confidence": 0.2559
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image598.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image599",
@@ -24256,8 +23725,7 @@
         "confidence": 0.2423
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image599.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image6",
@@ -24300,8 +23768,7 @@
         "confidence": 0.2602
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image6.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image600",
@@ -24344,8 +23811,7 @@
         "confidence": 0.2505
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image600.png"
+    "vibe": "serene"
   },
   {
     "filename": "image601",
@@ -24388,8 +23854,7 @@
         "confidence": 0.2549
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image601.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image602",
@@ -24436,8 +23901,7 @@
         "confidence": 0.2596
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image602.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image603",
@@ -24480,8 +23944,7 @@
         "confidence": 0.2694
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image603.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image604",
@@ -24532,8 +23995,7 @@
         "confidence": 0.2681
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image604.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image605",
@@ -24580,8 +24042,7 @@
         "confidence": 0.2494
       }
     ],
-    "vibe": "minimal",
-    "filename_with_extension": "image605.jpg"
+    "vibe": "minimal"
   },
   {
     "filename": "image606",
@@ -24628,8 +24089,7 @@
         "confidence": 0.2467
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image606.png"
+    "vibe": "whimsical"
   },
   {
     "filename": "image607",
@@ -24656,8 +24116,7 @@
         "confidence": 0.3016
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image607.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image608",
@@ -24704,8 +24163,7 @@
         "confidence": 0.2599
       }
     ],
-    "vibe": "minimal",
-    "filename_with_extension": "image608.gif"
+    "vibe": "minimal"
   },
   {
     "filename": "image609",
@@ -24744,8 +24202,7 @@
         "confidence": 0.2669
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image609.png"
+    "vibe": "serene"
   },
   {
     "filename": "image61",
@@ -24788,8 +24245,7 @@
         "confidence": 0.2537
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image61.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image610",
@@ -24836,8 +24292,7 @@
         "confidence": 0.2512
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image610.webp"
+    "vibe": "mysterious"
   },
   {
     "filename": "image611",
@@ -24848,8 +24303,7 @@
         "confidence": 0.3086
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image611.webp"
+    "vibe": "neutral"
   },
   {
     "filename": "image612",
@@ -24900,8 +24354,7 @@
         "confidence": 0.2627
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image612.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image613",
@@ -24948,8 +24401,7 @@
         "confidence": 0.2577
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image613.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image614",
@@ -24996,8 +24448,7 @@
         "confidence": 0.2676
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image614.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image615",
@@ -25012,8 +24463,7 @@
         "confidence": 0.3001
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image615.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image616",
@@ -25056,8 +24506,7 @@
         "confidence": 0.2745
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image616.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image617",
@@ -25104,8 +24553,7 @@
         "confidence": 0.2584
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image617.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image618",
@@ -25148,8 +24596,7 @@
         "confidence": 0.2522
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image618.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image619",
@@ -25192,8 +24639,7 @@
         "confidence": 0.2651
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image619.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image620",
@@ -25240,8 +24686,7 @@
         "confidence": 0.2697
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image620.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image621",
@@ -25284,8 +24729,7 @@
         "confidence": 0.2502
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image621.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image622",
@@ -25328,8 +24772,7 @@
         "confidence": 0.273
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image622.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image623",
@@ -25376,8 +24819,7 @@
         "confidence": 0.2659
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image623.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image624",
@@ -25420,8 +24862,7 @@
         "confidence": 0.2674
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image624.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image625",
@@ -25440,8 +24881,7 @@
         "confidence": 0.3192
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image625.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image626",
@@ -25488,8 +24928,7 @@
         "confidence": 0.2587
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image626.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image627",
@@ -25508,8 +24947,7 @@
         "confidence": 0.3072
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image627.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image628",
@@ -25552,8 +24990,7 @@
         "confidence": 0.2457
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image628.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image629",
@@ -25604,8 +25041,7 @@
         "confidence": 0.2633
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image629.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image630",
@@ -25632,8 +25068,7 @@
         "confidence": 0.3007
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image630.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image631",
@@ -25676,8 +25111,7 @@
         "confidence": 0.2703
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image631.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image632",
@@ -25720,8 +25154,7 @@
         "confidence": 0.2615
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image632.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image633",
@@ -25764,8 +25197,7 @@
         "confidence": 0.26
       }
     ],
-    "vibe": "surreal",
-    "filename_with_extension": "image633.jpg"
+    "vibe": "surreal"
   },
   {
     "filename": "image634",
@@ -25816,8 +25248,7 @@
         "confidence": 0.2532
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image634.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image635",
@@ -25856,8 +25287,7 @@
         "confidence": 0.2817
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image635.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image636",
@@ -25896,8 +25326,7 @@
         "confidence": 0.2697
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image636.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image637",
@@ -25936,8 +25365,7 @@
         "confidence": 0.272
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image637.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image638",
@@ -25984,8 +25412,7 @@
         "confidence": 0.2577
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image638.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image639",
@@ -26028,8 +25455,7 @@
         "confidence": 0.2618
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image639.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image64",
@@ -26076,8 +25502,7 @@
         "confidence": 0.2808
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image64.png"
+    "vibe": "warm"
   },
   {
     "filename": "image640",
@@ -26124,8 +25549,7 @@
         "confidence": 0.254
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image640.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image641",
@@ -26172,8 +25596,7 @@
         "confidence": 0.2505
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image641.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image642",
@@ -26220,8 +25643,7 @@
         "confidence": 0.27
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image642.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image643",
@@ -26268,8 +25690,7 @@
         "confidence": 0.2485
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image643.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image644",
@@ -26316,8 +25737,7 @@
         "confidence": 0.2665
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image644.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image645",
@@ -26356,8 +25776,7 @@
         "confidence": 0.2524
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image645.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image646",
@@ -26372,8 +25791,7 @@
         "confidence": 0.3015
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image646.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image647",
@@ -26392,8 +25810,7 @@
         "confidence": 0.3007
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image647.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image648",
@@ -26432,8 +25849,7 @@
         "confidence": 0.2546
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image648.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image649",
@@ -26484,8 +25900,7 @@
         "confidence": 0.2487
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image649.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image65",
@@ -26520,8 +25935,7 @@
         "confidence": 0.2517
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image65.png"
+    "vibe": "serene"
   },
   {
     "filename": "image650",
@@ -26564,8 +25978,7 @@
         "confidence": 0.2679
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image650.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image651",
@@ -26612,8 +26025,7 @@
         "confidence": 0.2494
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image651.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image652",
@@ -26656,8 +26068,7 @@
         "confidence": 0.2562
       }
     ],
-    "vibe": "ethereal",
-    "filename_with_extension": "image652.jpg"
+    "vibe": "ethereal"
   },
   {
     "filename": "image653",
@@ -26704,8 +26115,7 @@
         "confidence": 0.2627
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image653.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image654",
@@ -26752,8 +26162,7 @@
         "confidence": 0.246
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image654.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image655",
@@ -26800,8 +26209,7 @@
         "confidence": 0.2453
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image655.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image656",
@@ -26852,8 +26260,7 @@
         "confidence": 0.2706
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image656.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image657",
@@ -26896,8 +26303,7 @@
         "confidence": 0.2667
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image657.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image658",
@@ -26940,8 +26346,7 @@
         "confidence": 0.2571
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image658.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image659",
@@ -26988,8 +26393,7 @@
         "confidence": 0.2532
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image659.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image66",
@@ -27036,8 +26440,7 @@
         "confidence": 0.2451
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image66.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image660",
@@ -27080,8 +26483,7 @@
         "confidence": 0.2614
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image660.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image661",
@@ -27128,8 +26530,7 @@
         "confidence": 0.2629
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image661.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image662",
@@ -27180,8 +26581,7 @@
         "confidence": 0.2585
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image662.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image663",
@@ -27224,8 +26624,7 @@
         "confidence": 0.2556
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image663.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image664",
@@ -27268,8 +26667,7 @@
         "confidence": 0.2557
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image664.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image665",
@@ -27316,8 +26714,7 @@
         "confidence": 0.2721
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image665.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image666",
@@ -27336,8 +26733,7 @@
         "confidence": 0.3013
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image666.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image667",
@@ -27356,8 +26752,7 @@
         "confidence": 0.3022
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image667.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image668",
@@ -27384,8 +26779,7 @@
         "confidence": 0.3026
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image668.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image669",
@@ -27432,8 +26826,7 @@
         "confidence": 0.246
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image669.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image67",
@@ -27480,8 +26873,7 @@
         "confidence": 0.26
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image67.jpg"
+    "vibe": "whimsical"
   },
   {
     "filename": "image670",
@@ -27528,8 +26920,7 @@
         "confidence": 0.2708
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image670.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image671",
@@ -27560,8 +26951,7 @@
         "confidence": 0.3119
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image671.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image672",
@@ -27600,8 +26990,7 @@
         "confidence": 0.2722
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image672.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image673",
@@ -27652,8 +27041,7 @@
         "confidence": 0.2569
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image673.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image674",
@@ -27664,8 +27052,7 @@
         "confidence": 0.3074
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image674.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image675",
@@ -27684,8 +27071,7 @@
         "confidence": 0.3013
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image675.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image676",
@@ -27724,8 +27110,7 @@
         "confidence": 0.2598
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image676.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image677",
@@ -27764,8 +27149,7 @@
         "confidence": 0.2575
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image677.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image678",
@@ -27816,8 +27200,7 @@
         "confidence": 0.2597
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image678.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image679",
@@ -27864,8 +27247,7 @@
         "confidence": 0.2628
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image679.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image680",
@@ -27916,8 +27298,7 @@
         "confidence": 0.2553
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image680.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image681",
@@ -27936,8 +27317,7 @@
         "confidence": 0.3095
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image681.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image682",
@@ -27952,8 +27332,7 @@
         "confidence": 0.3033
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image682.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image683",
@@ -28000,8 +27379,7 @@
         "confidence": 0.2619
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image683.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image684",
@@ -28052,8 +27430,7 @@
         "confidence": 0.2468
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image684.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image685",
@@ -28092,8 +27469,7 @@
         "confidence": 0.2575
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image685.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image686",
@@ -28112,8 +27488,7 @@
         "confidence": 0.3049
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image686.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image687",
@@ -28160,8 +27535,7 @@
         "confidence": 0.2625
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image687.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image688",
@@ -28204,8 +27578,7 @@
         "confidence": 0.2508
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image688.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image689",
@@ -28252,8 +27625,7 @@
         "confidence": 0.2569
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image689.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image690",
@@ -28300,8 +27672,7 @@
         "confidence": 0.2626
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image690.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image691",
@@ -28348,8 +27719,7 @@
         "confidence": 0.2692
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image691.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image692",
@@ -28396,8 +27766,7 @@
         "confidence": 0.2655
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image692.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image693",
@@ -28412,8 +27781,7 @@
         "confidence": 0.3166
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image693.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image694",
@@ -28456,8 +27824,7 @@
         "confidence": 0.2619
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image694.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image695",
@@ -28504,8 +27871,7 @@
         "confidence": 0.2496
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image695.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image696",
@@ -28556,8 +27922,7 @@
         "confidence": 0.2568
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image696.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image697",
@@ -28600,8 +27965,7 @@
         "confidence": 0.2678
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image697.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image698",
@@ -28648,8 +28012,7 @@
         "confidence": 0.2558
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image698.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image699",
@@ -28688,8 +28051,7 @@
         "confidence": 0.2638
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image699.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image7",
@@ -28740,8 +28102,7 @@
         "confidence": 0.242
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image7.jpeg"
+    "vibe": "serene"
   },
   {
     "filename": "image700",
@@ -28792,8 +28153,7 @@
         "confidence": 0.2427
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image700.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image701",
@@ -28836,8 +28196,7 @@
         "confidence": 0.2714
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image701.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image702",
@@ -28880,8 +28239,7 @@
         "confidence": 0.2576
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image702.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image703",
@@ -28900,8 +28258,7 @@
         "confidence": 0.3114
       }
     ],
-    "vibe": "dark",
-    "filename_with_extension": "image703.jpg"
+    "vibe": "dark"
   },
   {
     "filename": "image704",
@@ -28944,8 +28301,7 @@
         "confidence": 0.2534
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image704.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image705",
@@ -28988,8 +28344,7 @@
         "confidence": 0.2638
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image705.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image706",
@@ -29008,8 +28363,7 @@
         "confidence": 0.3116
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image706.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image707",
@@ -29028,8 +28382,7 @@
         "confidence": 0.3041
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image707.jpg"
+    "vibe": "neutral"
   },
   {
     "filename": "image708",
@@ -29072,8 +28425,7 @@
         "confidence": 0.265
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image708.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image72",
@@ -29116,8 +28468,7 @@
         "confidence": 0.2459
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image72.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image73",
@@ -29164,8 +28515,7 @@
         "confidence": 0.2444
       }
     ],
-    "vibe": "raw",
-    "filename_with_extension": "image73.jpg"
+    "vibe": "raw"
   },
   {
     "filename": "image74",
@@ -29212,8 +28562,7 @@
         "confidence": 0.2536
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image74.jpg"
+    "vibe": "cool"
   },
   {
     "filename": "image77",
@@ -29264,8 +28613,7 @@
         "confidence": 0.2717
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image77.gif"
+    "vibe": "neutral"
   },
   {
     "filename": "image78",
@@ -29316,8 +28664,7 @@
         "confidence": 0.277
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image78.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image79",
@@ -29372,8 +28719,7 @@
         "confidence": 0.2545
       }
     ],
-    "vibe": "warm",
-    "filename_with_extension": "image79.jpg"
+    "vibe": "warm"
   },
   {
     "filename": "image8",
@@ -29416,8 +28762,7 @@
         "confidence": 0.257
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image8.jpeg"
+    "vibe": "neutral"
   },
   {
     "filename": "image80",
@@ -29464,8 +28809,7 @@
         "confidence": 0.2679
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image80.jpg"
+    "vibe": "mysterious"
   },
   {
     "filename": "image82",
@@ -29504,8 +28848,7 @@
         "confidence": 0.2567
       }
     ],
-    "vibe": "melancholic",
-    "filename_with_extension": "image82.jpg"
+    "vibe": "melancholic"
   },
   {
     "filename": "image86",
@@ -29544,8 +28887,7 @@
         "confidence": 0.2683
       }
     ],
-    "vibe": "intense",
-    "filename_with_extension": "image86.jpg"
+    "vibe": "intense"
   },
   {
     "filename": "image9",
@@ -29584,8 +28926,7 @@
         "confidence": 0.265
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image9.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image92",
@@ -29624,8 +28965,7 @@
         "confidence": 0.2556
       }
     ],
-    "vibe": "serene",
-    "filename_with_extension": "image92.jpg"
+    "vibe": "serene"
   },
   {
     "filename": "image95",
@@ -29668,8 +29008,7 @@
         "confidence": 0.2802
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image95.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image96",
@@ -29716,8 +29055,7 @@
         "confidence": 0.2628
       }
     ],
-    "vibe": "whimsical",
-    "filename_with_extension": "image96.png"
+    "vibe": "whimsical"
   },
   {
     "filename": "image97",
@@ -29764,8 +29102,7 @@
         "confidence": 0.263
       }
     ],
-    "vibe": "neutral",
-    "filename_with_extension": "image97.png"
+    "vibe": "neutral"
   },
   {
     "filename": "image98",
@@ -29808,8 +29145,7 @@
         "confidence": 0.2695
       }
     ],
-    "vibe": "mysterious",
-    "filename_with_extension": "image98.png"
+    "vibe": "mysterious"
   },
   {
     "filename": "image99",
@@ -29856,7 +29192,6 @@
         "confidence": 0.264
       }
     ],
-    "vibe": "cool",
-    "filename_with_extension": "image99.png"
+    "vibe": "cool"
   }
 ]
