@@ -1000,11 +1000,9 @@
       }
 
       .drawer-artwork img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
         border-radius: 4px;
         display: block;
+        /* Remove max-width and max-height constraints - will be set by JavaScript */
       }
 
       .drawer-info {
@@ -1135,6 +1133,7 @@
         .drawer-artwork {
           max-width: 90vw;
           max-height: 50vh;
+          /* Container constraints remain, but image sizing is handled by JavaScript */
         }
 
         .drawer-info {
@@ -1953,12 +1952,12 @@
         console.log("Connection similarity:", similarity);
 
         // Calculate line weight based on similarity
-        const baseWidth = 5; // Heavier base width
-        const maxWidth = 200; // Maximum width for strongest connections
+        const baseWidth = 8; // Increased base width for better visibility
+        const maxWidth = 250; // Increased maximum width for strongest connections
         const lineWidth = baseWidth + similarity * (maxWidth - baseWidth);
 
         // Calculate opacity based on similarity (stronger connections = more opaque)
-        const minOpacity = 0.3;
+        const minOpacity = 0.5; // Increased minimum opacity
         const maxOpacity = 1.0;
         const opacity = minOpacity + similarity * (maxOpacity - minOpacity);
 
@@ -2013,35 +2012,18 @@
             if (targetSprite) {
               const line = createConnectionLine(connection.similarity);
 
-              // Use the exact same rotation logic as the sprites to ensure consistency
-              const entranceRotation = entranceEase * Math.PI * 0.5; // Same rotation as images
-              const rotationMatrix = new THREE.Matrix4();
-              rotationMatrix.makeRotationY(entranceRotation);
-
-              // Get original positions and apply rotation
-              const startOriginalX = sprite.userData.originalX;
-              const startOriginalY = sprite.userData.originalY;
-              const startOriginalZ = sprite.userData.originalZ;
-
-              const endOriginalX = targetSprite.userData.originalX;
-              const endOriginalY = targetSprite.userData.originalY;
-              const endOriginalZ = targetSprite.userData.originalZ;
-
-              // Apply rotation to start position
+              // Use current sprite positions to keep lines connected
               const startPos = new THREE.Vector3(
-                startOriginalX,
-                startOriginalY,
-                startOriginalZ
+                sprite.position.x,
+                sprite.position.y,
+                sprite.position.z
               );
-              startPos.applyMatrix4(rotationMatrix);
 
-              // Apply rotation to end position
               const endPos = new THREE.Vector3(
-                endOriginalX,
-                endOriginalY,
-                endOriginalZ
+                targetSprite.position.x,
+                targetSprite.position.y,
+                targetSprite.position.z
               );
-              endPos.applyMatrix4(rotationMatrix);
 
               const positions = new Float32Array([
                 startPos.x,
@@ -2467,12 +2449,12 @@
         );
         const entranceEase = 0.5 - 0.5 * Math.cos(entranceProgress * Math.PI); // Smooth ease-in-out
 
-        // Update connection lines every frame during entrance animation for perfect sync
+        // Update connection lines to keep them connected to moving sprites
         if (entranceProgress < 1) {
           // Update every single frame during entrance for perfect synchronization
           updateConnectionLines(entranceProgress, entranceEase);
-        } else if (time % 300 === 0) {
-          // Much less frequent updates after entrance
+        } else if (time % 16 === 0) {
+          // Update every 16ms (about 60 FPS) after entrance to keep lines perfectly connected
           updateConnectionLines(1, 1); // Pass 1 for completed animation
         }
 
@@ -2590,10 +2572,10 @@
           }
 
           // Very gentle floating movement within cluster bounds
-          const floatRadius = 0.8; // Reduced radius
-          const floatX = Math.sin(floatTime * 0.05) * floatRadius; // Much slower movement
-          const floatY = Math.cos(floatTime * 0.07) * floatRadius;
-          const floatZ = Math.sin(floatTime * 0.04) * floatRadius;
+          const floatRadius = 0.2; // Much smaller radius for stable connections
+          const floatX = Math.sin(floatTime * 0.02) * floatRadius; // Much slower movement
+          const floatY = Math.cos(floatTime * 0.03) * floatRadius;
+          const floatZ = Math.sin(floatTime * 0.015) * floatRadius;
 
           // Extremely weak connection-based attraction
           let connectionForceX = 0,
@@ -2629,35 +2611,24 @@
             connectionForceZ /= totalConnectionWeight;
           }
 
-          // Add organic jitter with multiple frequency components for natural movement
-          const jitterTime = time * 0.001 + sprite.userData.timeOffset; // Much faster for visible movement
-          const jitterAmplitude = 2.0; // Much larger amplitude for visible jitter
+          // Add very gentle jitter for subtle movement while keeping connections stable
+          const jitterTime = time * 0.0005 + sprite.userData.timeOffset; // Much slower for stability
+          const jitterAmplitude = 0.3; // Much smaller amplitude for stable connections
 
-          // Multiple sine waves at different frequencies for organic movement
-          const jitterX =
-            Math.sin(jitterTime * 0.7) * jitterAmplitude * 0.3 +
-            Math.sin(jitterTime * 1.3) * jitterAmplitude * 0.2 +
-            Math.sin(jitterTime * 2.1) * jitterAmplitude * 0.1;
-
-          const jitterY =
-            Math.cos(jitterTime * 0.9) * jitterAmplitude * 0.3 +
-            Math.cos(jitterTime * 1.7) * jitterAmplitude * 0.2 +
-            Math.cos(jitterTime * 2.5) * jitterAmplitude * 0.1;
-
-          const jitterZ =
-            Math.sin(jitterTime * 0.5) * jitterAmplitude * 0.3 +
-            Math.sin(jitterTime * 1.1) * jitterAmplitude * 0.2 +
-            Math.sin(jitterTime * 1.9) * jitterAmplitude * 0.1;
+          // Single gentle sine wave for subtle movement
+          const jitterX = Math.sin(jitterTime * 0.7) * jitterAmplitude;
+          const jitterY = Math.cos(jitterTime * 0.9) * jitterAmplitude;
+          const jitterZ = Math.sin(jitterTime * 0.5) * jitterAmplitude;
 
           // Add very subtle micro-movements on top of jitter
-          const microMove = 0.05; // Much smaller micro-movements
-          const microTime = time * 0.00002 + sprite.userData.timeOffset; // Much slower
+          const microMove = 0.01; // Much smaller micro-movements for stability
+          const microTime = time * 0.00001 + sprite.userData.timeOffset; // Much slower
           const microX = Math.sin(microTime * 0.3) * microMove;
           const microY = Math.cos(microTime * 0.4) * microMove;
           const microZ = Math.sin(microTime * 0.25) * microMove;
 
           // Smooth interpolation to target position
-          const lerpFactor = entranceProgress < 1 ? 0.1 : 0.15; // Higher lerp factor to show jitter
+          const lerpFactor = entranceProgress < 1 ? 0.1 : 0.05; // Lower lerp factor for more stable connections
           const targetPosX =
             targetX + floatX + connectionForceX + microX + jitterX;
           const targetPosY =
@@ -3068,6 +3039,15 @@
         // Handle window resize
         window.addEventListener("resize", () => {
           // Recalculate hover zone if needed
+
+          // Handle drawer modal image resizing
+          const drawerModal = document.querySelector(".drawer-backdrop");
+          if (drawerModal) {
+            const artworkImg = drawerModal.querySelector(".drawer-artwork img");
+            if (artworkImg && artworkImg.resizeSizing) {
+              artworkImg.resizeSizing();
+            }
+          }
         });
       }
 
@@ -4562,6 +4542,120 @@
         const artworkImg = document.createElement("img");
         artworkImg.src = `../../images/${artworkData.filename}.jpg`;
         artworkImg.alt = artworkData.title || "Artwork";
+
+        // Smart image sizing algorithm
+        artworkImg.onload = function () {
+          const img = this;
+          const container = artworkSection;
+
+          // Get container dimensions (use computed styles for accurate values)
+          const containerStyle = window.getComputedStyle(container);
+          const containerWidth =
+            parseFloat(containerStyle.maxWidth) || container.offsetWidth;
+          const containerHeight =
+            parseFloat(containerStyle.maxHeight) || container.offsetHeight;
+
+          // Get image dimensions
+          const imgWidth = img.naturalWidth;
+          const imgHeight = img.naturalHeight;
+
+          // Calculate aspect ratio
+          const aspectRatio = imgWidth / imgHeight;
+
+          // Determine maximum available dimensions based on viewport
+          const isMobile = window.innerWidth <= 768;
+          let maxWidth, maxHeight;
+
+          if (isMobile) {
+            // Mobile: 95% viewport width, 50% viewport height
+            maxWidth = window.innerWidth * 0.95;
+            maxHeight = window.innerHeight * 0.5;
+          } else {
+            // Desktop: 45% viewport width, 80% viewport height
+            maxWidth = window.innerWidth * 0.45;
+            maxHeight = window.innerHeight * 0.8;
+          }
+
+          // Ensure we don't exceed container constraints
+          maxWidth = Math.min(maxWidth, containerWidth);
+          maxHeight = Math.min(maxHeight, containerHeight);
+
+          let finalWidth, finalHeight;
+
+          // Smart sizing algorithm
+          if (aspectRatio > 1) {
+            // Landscape image (width > height): Start by fitting to maximum width
+            finalWidth = maxWidth;
+            finalHeight = maxWidth / aspectRatio;
+
+            // If calculated height exceeds maximum height, scale down proportionally
+            if (finalHeight > maxHeight) {
+              finalHeight = maxHeight;
+              finalWidth = maxHeight * aspectRatio;
+            }
+          } else {
+            // Portrait/elongated image (height > width): Start by fitting to maximum height
+            finalHeight = maxHeight;
+            finalWidth = maxHeight * aspectRatio;
+
+            // If calculated width exceeds maximum width, scale down proportionally
+            if (finalWidth > maxWidth) {
+              finalWidth = maxWidth;
+              finalHeight = maxWidth / aspectRatio;
+            }
+          }
+
+          // Apply calculated dimensions
+          img.style.width = finalWidth + "px";
+          img.style.height = finalHeight + "px";
+
+          // Store the sizing function for potential resize handling
+          img.resizeSizing = function () {
+            const containerStyle = window.getComputedStyle(container);
+            const containerWidth =
+              parseFloat(containerStyle.maxWidth) || container.offsetWidth;
+            const containerHeight =
+              parseFloat(containerStyle.maxHeight) || container.offsetHeight;
+
+            const isMobile = window.innerWidth <= 768;
+            let maxWidth, maxHeight;
+
+            if (isMobile) {
+              maxWidth = window.innerWidth * 0.95;
+              maxHeight = window.innerHeight * 0.5;
+            } else {
+              maxWidth = window.innerWidth * 0.45;
+              maxHeight = window.innerHeight * 0.8;
+            }
+
+            maxWidth = Math.min(maxWidth, containerWidth);
+            maxHeight = Math.min(maxHeight, containerHeight);
+
+            let finalWidth, finalHeight;
+
+            if (aspectRatio > 1) {
+              finalWidth = maxWidth;
+              finalHeight = maxWidth / aspectRatio;
+
+              if (finalHeight > maxHeight) {
+                finalHeight = maxHeight;
+                finalWidth = maxHeight * aspectRatio;
+              }
+            } else {
+              finalHeight = maxHeight;
+              finalWidth = maxHeight * aspectRatio;
+
+              if (finalWidth > maxWidth) {
+                finalWidth = maxWidth;
+                finalHeight = maxWidth / aspectRatio;
+              }
+            }
+
+            img.style.width = finalWidth + "px";
+            img.style.height = finalHeight + "px";
+          };
+        };
+
         artworkImg.onerror = function () {
           artworkSection.innerHTML =
             '<div style="color: #666; font-size: 16px;">Image not available</div>';
