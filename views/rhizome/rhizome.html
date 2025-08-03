@@ -1408,30 +1408,34 @@
         const clusters = [];
         const clusterPositions = {};
 
-        // Create organic 3D positioning for keyword clusters using force-directed layout
+        // Create organic 3D positioning for keyword clusters
         const keywordEntries = Object.entries(keywordClusters);
         const clusterPositions3D = [];
-        const clusterVelocities = new Map();
-        const clusterForces = new Map();
 
-        // Initialize random positions and physics properties
         keywordEntries.forEach(([keyword, images], index) => {
           if (images.length === 0) return;
 
-          // Start with random positions
-          const x = (Math.random() - 0.5) * 1000;
-          const y = (Math.random() - 0.5) * 1000;
-          const z = (Math.random() - 0.5) * 1000;
+          // Create base position in 3D space
+          const baseRadius = 600;
+          const angle = (index / keywordEntries.length) * Math.PI * 2;
+          const height = (index / keywordEntries.length) * 400 - 200; // Spread vertically
+
+          // Add organic variation based on keyword characteristics
+          const keywordHash = keyword
+            .split("")
+            .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+          const organicOffset = 300; // Large offset for organic feel
+
+          const x =
+            Math.cos(angle) * baseRadius +
+            (Math.random() - 0.5) * organicOffset;
+          const y =
+            Math.sin(angle) * baseRadius +
+            (Math.random() - 0.5) * organicOffset;
+          const z = height + (Math.random() - 0.5) * organicOffset * 0.5;
 
           clusterPositions[keyword] = { x, y, z };
-          clusterPositions3D.push({
-            keyword,
-            position: { x, y, z },
-            index,
-            images,
-          });
-          clusterVelocities.set(keyword, { x: 0, y: 0, z: 0 });
-          clusterForces.set(keyword, { x: 0, y: 0, z: 0 });
+          clusterPositions3D.push({ keyword, position: { x, y, z }, index });
 
           clusters.push({
             category: keyword,
@@ -1440,84 +1444,49 @@
           });
         });
 
-        // Force-directed layout simulation
-        const iterations = 50;
-        const repulsionStrength = 2000;
-        const damping = 0.9;
+        // Adjust positions based on cluster relationships and density
+        clusterPositions3D.forEach((cluster, index) => {
+          const repulsionRadius = 400; // Minimum distance between clusters
+          let adjustedX = cluster.position.x;
+          let adjustedY = cluster.position.y;
+          let adjustedZ = cluster.position.z;
 
-        for (let iter = 0; iter < iterations; iter++) {
-          // Reset forces
-          clusterForces.forEach((force) => {
-            force.x = 0;
-            force.y = 0;
-            force.z = 0;
-          });
+          // Apply repulsion from other clusters
+          clusterPositions3D.forEach((otherCluster, otherIndex) => {
+            if (index === otherIndex) return;
 
-          // Calculate repulsion forces between all clusters
-          for (let i = 0; i < clusterPositions3D.length; i++) {
-            for (let j = i + 1; j < clusterPositions3D.length; j++) {
-              const cluster1 = clusterPositions3D[i];
-              const cluster2 = clusterPositions3D[j];
+            const dx = cluster.position.x - otherCluster.position.x;
+            const dy = cluster.position.y - otherCluster.position.y;
+            const dz = cluster.position.z - otherCluster.position.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-              const dx = cluster2.position.x - cluster1.position.x;
-              const dy = cluster2.position.y - cluster1.position.y;
-              const dz = cluster2.position.z - cluster1.position.z;
-              const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (distance < repulsionRadius) {
+              const force = (repulsionRadius - distance) / repulsionRadius;
+              const pushX = (dx / distance) * force * 50;
+              const pushY = (dy / distance) * force * 50;
+              const pushZ = (dz / distance) * force * 25;
 
-              if (distance > 0 && distance < 400) {
-                const repulsionForce =
-                  repulsionStrength / (distance * distance);
-                const fx = (dx / distance) * repulsionForce;
-                const fy = (dy / distance) * repulsionForce;
-                const fz = (dz / distance) * repulsionForce;
-
-                clusterForces.get(cluster1.keyword).x -= fx;
-                clusterForces.get(cluster1.keyword).y -= fy;
-                clusterForces.get(cluster1.keyword).z -= fz;
-
-                clusterForces.get(cluster2.keyword).x += fx;
-                clusterForces.get(cluster2.keyword).y += fy;
-                clusterForces.get(cluster2.keyword).z += fz;
-              }
+              adjustedX += pushX;
+              adjustedY += pushY;
+              adjustedZ += pushZ;
             }
-          }
-
-          // Apply forces and update positions
-          clusterPositions3D.forEach((cluster) => {
-            const force = clusterForces.get(cluster.keyword);
-            const velocity = clusterVelocities.get(cluster.keyword);
-            const position = cluster.position;
-
-            // Update velocity
-            velocity.x += force.x;
-            velocity.y += force.y;
-            velocity.z += force.z;
-
-            // Apply damping
-            velocity.x *= damping;
-            velocity.y *= damping;
-            velocity.z *= damping;
-
-            // Update position
-            position.x += velocity.x;
-            position.y += velocity.y;
-            position.z += velocity.z;
-
-            // Update cluster position
-            clusterPositions[cluster.keyword] = {
-              x: position.x,
-              y: position.y,
-              z: position.z,
-            };
           });
-        }
 
-        // Update cluster objects with final positions
-        clusters.forEach((cluster) => {
-          cluster.position = clusterPositions[cluster.category];
+          // Update cluster position
+          clusterPositions[cluster.keyword] = {
+            x: adjustedX,
+            y: adjustedY,
+            z: adjustedZ,
+          };
+
+          // Update cluster object
+          const clusterObj = clusters.find(
+            (c) => c.category === cluster.keyword
+          );
+          if (clusterObj) {
+            clusterObj.position = { x: adjustedX, y: adjustedY, z: adjustedZ };
+          }
         });
-
-        // Force-directed layout is complete - positions are now organic and non-geometric
 
         console.log(
           "Created keyword-based clusters:",
