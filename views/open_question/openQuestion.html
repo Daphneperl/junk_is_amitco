@@ -116,7 +116,8 @@
         display: none;
         top: 100px;
         left: 100px;
-        opacity: 0.7;
+        opacity: 0;
+        visibility: hidden;
       }
 
       #floating-eye:hover {
@@ -171,6 +172,8 @@
         pointer-events: auto;
         cursor: grab;
         transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0;
+        visibility: hidden;
       }
 
       #rings-container:active {
@@ -179,6 +182,8 @@
 
       #rings-container.dock-visible {
         bottom: -90px;
+        opacity: 1;
+        visibility: visible;
       }
 
       #rings-container.dock-hidden {
@@ -196,6 +201,7 @@
         z-index: 10000;
         pointer-events: auto;
         opacity: 0;
+        visibility: hidden;
         transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         animation: arrow-bounce 2s ease-in-out infinite;
         cursor: pointer;
@@ -206,6 +212,7 @@
 
       #pixel-arrow-indicator.show {
         opacity: 0.7;
+        visibility: visible;
       }
 
       #pixel-arrow-indicator img {
@@ -263,12 +270,14 @@
         display: flex;
         align-items: center;
         opacity: 0;
+        visibility: hidden;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       }
 
       #search-bar.dock-visible {
         opacity: 1;
         bottom: 3vw;
+        visibility: visible;
       }
 
       #search-bar.dock-hidden {
@@ -293,6 +302,7 @@
         box-shadow: none;
         flex-direction: column;
         opacity: 0;
+        visibility: hidden;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         margin-top: 25px;
       }
@@ -300,6 +310,7 @@
       #upload-hand-btn.dock-visible {
         opacity: 1;
         bottom: 0vw;
+        visibility: visible;
       }
 
       #upload-hand-btn.dock-hidden {
@@ -772,6 +783,8 @@
         justify-content: center;
         transition: all 0.3s ease;
         padding: 0;
+        opacity: 0;
+        visibility: hidden;
       }
 
       #galaxy-nav-btn:hover {
@@ -811,10 +824,14 @@
         transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         pointer-events: none;
         display: block;
+        opacity: 0;
+        visibility: hidden;
       }
 
       #black-popup-overlay.dock-visible {
         bottom: 0;
+        opacity: 1;
+        visibility: visible;
       }
 
       #black-popup-overlay.dock-hidden {
@@ -1811,6 +1828,38 @@
         eye.style.top = finalY + "px";
       }
 
+      // Function to show all UI elements after loading
+      function showAllUIElements() {
+        const ringsContainer = document.getElementById("rings-container");
+        const searchBar = document.getElementById("search-bar");
+        const uploadBtn = document.getElementById("upload-hand-btn");
+        const blackPopupOverlay = document.getElementById(
+          "black-popup-overlay"
+        );
+        const pixelArrowIndicator = document.getElementById(
+          "pixel-arrow-indicator"
+        );
+
+        // Show all UI elements with proper visibility
+        if (ringsContainer) {
+          ringsContainer.style.visibility = "visible";
+        }
+        if (searchBar) {
+          searchBar.style.visibility = "visible";
+        }
+        if (uploadBtn) {
+          uploadBtn.style.visibility = "visible";
+        }
+        if (blackPopupOverlay) {
+          blackPopupOverlay.style.visibility = "visible";
+        }
+        if (pixelArrowIndicator) {
+          pixelArrowIndicator.style.visibility = "visible";
+        }
+
+        console.log("All UI elements are now visible!");
+      }
+
       // macOS Dock-like functionality
       function initDockBehavior() {
         const ringsContainer = document.getElementById("rings-container");
@@ -1833,6 +1882,9 @@
         searchBar.classList.add("dock-hidden");
         uploadBtn.classList.add("dock-hidden");
         blackPopupOverlay.classList.add("dock-hidden");
+
+        // UI elements are already hidden by CSS during loading
+        // They will be shown by showAllUIElements() after loading is complete
 
         // Hide pixel arrow indicator initially - will be shown after loading
         if (pixelArrowIndicator) {
@@ -3377,6 +3429,8 @@
           const galaxyBtn = document.getElementById("galaxy-nav-btn");
           if (galaxyBtn) {
             galaxyBtn.style.display = "flex";
+            galaxyBtn.style.opacity = "1";
+            galaxyBtn.style.visibility = "visible";
           }
 
           // Get and display the last query from localStorage (without search)
@@ -3407,8 +3461,13 @@
           const eye = document.getElementById("floating-eye");
           if (eye) {
             eye.style.display = "block";
+            eye.style.opacity = "0.7";
+            eye.style.visibility = "visible";
             console.log("Floating eye is now visible!");
           }
+
+          // Show all UI elements after loading is complete
+          showAllUIElements();
         }, 100);
 
         animate();
