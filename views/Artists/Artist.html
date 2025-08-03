@@ -1186,6 +1186,261 @@
       #galaxy-nav-btn:hover img {
         opacity: 1;
       }
+
+      /* Cluster Popup Modal Styles */
+      .cluster-popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 5000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .cluster-popup-overlay.show {
+        opacity: 1;
+      }
+
+      .cluster-popup-container {
+        background: #1a1a1a;
+        border: 3px solid #333;
+        border-radius: 0;
+        padding: 0;
+        max-width: 90vw;
+        max-height: 90vh;
+        width: 1200px;
+        height: 800px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        transform: scale(0.8);
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        box-shadow: inset 2px 2px 0px rgba(255, 255, 255, 0.1),
+          inset -2px -2px 0px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.8);
+      }
+
+      .cluster-popup-overlay.show .cluster-popup-container {
+        transform: scale(1);
+      }
+
+      .cluster-popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #333;
+        padding: 8px 12px;
+        border-bottom: 2px solid #555;
+        box-shadow: inset 1px 1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-popup-title {
+        font-family: "VT323", monospace;
+        font-size: 18px;
+        color: #fff;
+        margin: 0;
+        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+      }
+
+      .cluster-popup-close {
+        background: #555;
+        border: 2px outset #777;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+        padding: 4px 8px;
+        width: 24px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.1s ease;
+        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.5),
+          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-popup-close:hover {
+        background: #666;
+        border-color: #888;
+      }
+
+      .cluster-popup-close:active {
+        border-style: inset;
+        box-shadow: inset -1px -1px 0px rgba(0, 0, 0, 0.5),
+          inset 1px 1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-carousel-container {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        background: #000;
+        border: 2px inset #555;
+        margin: 8px;
+        box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.8),
+          inset -2px -2px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-carousel {
+        display: flex;
+        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        height: 100%;
+      }
+
+      .cluster-image-item {
+        min-width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .cluster-image-item img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border: 1px solid #333;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+      }
+
+      .cluster-carousel-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #555;
+        border: 2px outset #777;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.1s ease;
+        z-index: 10;
+        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.5),
+          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-carousel-nav:hover {
+        background: #666;
+        border-color: #888;
+      }
+
+      .cluster-carousel-nav:active {
+        border-style: inset;
+        box-shadow: inset -1px -1px 0px rgba(0, 0, 0, 0.5),
+          inset 1px 1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-carousel-nav.prev {
+        left: 20px;
+      }
+
+      .cluster-carousel-nav.next {
+        right: 20px;
+      }
+
+      .cluster-carousel-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background: #333;
+        border-color: #444;
+      }
+
+      .cluster-carousel-nav:disabled:hover {
+        background: #333;
+        border-color: #444;
+      }
+
+      .cluster-carousel-indicators {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin: 8px;
+        padding: 8px;
+        background: #333;
+        border: 2px inset #555;
+        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.8),
+          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-carousel-indicator {
+        width: 10px;
+        height: 10px;
+        background: #555;
+        border: 1px outset #777;
+        cursor: pointer;
+        transition: all 0.1s ease;
+        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.5),
+          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-carousel-indicator.active {
+        background: #888;
+        border-color: #aaa;
+      }
+
+      .cluster-carousel-indicator:hover {
+        background: #666;
+        border-color: #888;
+      }
+
+      .cluster-info {
+        margin: 8px;
+        padding: 8px 12px;
+        background: #333;
+        border: 2px inset #555;
+        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.8),
+          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
+      }
+
+      .cluster-info-text {
+        font-family: "VT323", monospace;
+        font-size: 12px;
+        color: #ccc;
+        text-align: center;
+        margin: 0;
+        text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+      }
+
+      /* Mobile responsive */
+      @media (max-width: 768px) {
+        .cluster-popup-container {
+          width: 95vw;
+          height: 80vh;
+          padding: 0;
+        }
+
+        .cluster-popup-title {
+          font-size: 16px;
+        }
+
+        .cluster-carousel-nav {
+          width: 35px;
+          height: 35px;
+          font-size: 18px;
+        }
+
+        .cluster-carousel-nav.prev {
+          left: 8px;
+        }
+
+        .cluster-carousel-nav.next {
+          right: 8px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1331,6 +1586,48 @@
       </div>
     </div>
 
+    <!-- Cluster Popup Modal -->
+    <div id="cluster-popup-overlay" class="cluster-popup-overlay">
+      <div class="cluster-popup-container">
+        <div class="cluster-popup-header">
+          <h2 class="cluster-popup-title" id="cluster-popup-title">
+            Cluster View
+          </h2>
+          <button class="cluster-popup-close" onclick="closeClusterPopup()">
+            ×
+          </button>
+        </div>
+        <div class="cluster-carousel-container">
+          <div class="cluster-carousel" id="cluster-carousel">
+            <!-- Images will be dynamically added here -->
+          </div>
+          <button
+            class="cluster-carousel-nav prev"
+            id="cluster-carousel-prev"
+            onclick="navigateClusterCarousel(-1)"
+          >
+            ‹
+          </button>
+          <button
+            class="cluster-carousel-nav next"
+            id="cluster-carousel-next"
+            onclick="navigateClusterCarousel(1)"
+          >
+            ›
+          </button>
+        </div>
+        <div
+          class="cluster-carousel-indicators"
+          id="cluster-carousel-indicators"
+        >
+          <!-- Indicators will be dynamically added here -->
+        </div>
+        <div class="cluster-info">
+          <p class="cluster-info-text" id="cluster-info-text">• • •</p>
+        </div>
+      </div>
+    </div>
+
     <script>
       let scene, camera, renderer, controls;
       let composer;
@@ -1413,6 +1710,14 @@
       let targetClusterPosition = new THREE.Vector3();
       const CLUSTER_TRANSITION_DURATION = 1000; // ms
       let transitionStartTime = 0;
+
+      // Cluster popup variables
+      let clusterPopupData = {
+        images: [],
+        currentIndex: 0,
+        clusterIndex: 0,
+        username: "",
+      };
 
       // Function to position clusters in a helix
       function createHelixPosition(index, totalClusters) {
@@ -1988,51 +2293,436 @@
         }
       }
 
+      // Cluster popup functions
+      function showClusterPopup(cluster, clusterIndex) {
+        // Extract images from the cluster
+        const container = cluster.children[0];
+        const images = [];
+        let username = "";
+
+        if (container) {
+          container.children.forEach((child) => {
+            if (child instanceof THREE.Sprite && child.userData.imagePath) {
+              images.push(child.userData.imagePath);
+            } else if (
+              child.material &&
+              child.material.map &&
+              child.material.map.image
+            ) {
+              // This is the username text sprite
+              const canvas = child.material.map.image;
+              const context = canvas.getContext("2d");
+              // We can't easily extract text from canvas, so we'll use the cluster index
+              username = `@User${clusterIndex + 1}`;
+            }
+          });
+        }
+
+        // Store cluster data
+        clusterPopupData = {
+          images: images,
+          currentIndex: 0,
+          clusterIndex: clusterIndex,
+          username: username,
+        };
+
+        // Update popup title
+        const titleElement = document.getElementById("cluster-popup-title");
+        if (titleElement) {
+          titleElement.textContent = `${username} • ${images.length} images`;
+        }
+
+        // Build carousel
+        buildClusterCarousel();
+
+        // Show popup
+        const popup = document.getElementById("cluster-popup-overlay");
+        if (popup) {
+          popup.style.display = "flex";
+          setTimeout(() => {
+            popup.classList.add("show");
+          }, 10);
+        }
+
+        // Add keyboard navigation
+        document.addEventListener("keydown", handleClusterPopupKeydown);
+
+        // Add click outside to close
+        const popupElement = document.getElementById("cluster-popup-overlay");
+        if (popupElement) {
+          popupElement.addEventListener("click", function (e) {
+            if (e.target === popupElement) {
+              closeClusterPopup();
+            }
+          });
+        }
+      }
+
+      function closeClusterPopup() {
+        const popup = document.getElementById("cluster-popup-overlay");
+        if (popup) {
+          popup.classList.remove("show");
+          setTimeout(() => {
+            popup.style.display = "none";
+          }, 300);
+        }
+
+        // Remove keyboard navigation
+        document.removeEventListener("keydown", handleClusterPopupKeydown);
+      }
+
+      function buildClusterCarousel() {
+        const carousel = document.getElementById("cluster-carousel");
+        const indicators = document.getElementById(
+          "cluster-carousel-indicators"
+        );
+
+        if (!carousel || !indicators) return;
+
+        // Clear existing content
+        carousel.innerHTML = "";
+        indicators.innerHTML = "";
+
+        // Add images to carousel
+        clusterPopupData.images.forEach((imagePath, index) => {
+          const imageItem = document.createElement("div");
+          imageItem.className = "cluster-image-item";
+
+          const img = document.createElement("img");
+          img.src = `../../images/${imagePath}`;
+          img.alt = `Image ${index + 1}`;
+          img.style.cursor = "pointer";
+          img.onerror = function () {
+            imageItem.innerHTML =
+              '<div style="color: #666; font-size: 16px;">Image not available</div>';
+          };
+
+          // Add click handler to show image details
+          img.onclick = function (event) {
+            showImageDetails(imagePath, index, event);
+          };
+
+          imageItem.appendChild(img);
+          carousel.appendChild(imageItem);
+
+          // Add indicator
+          const indicator = document.createElement("div");
+          indicator.className = "cluster-carousel-indicator";
+          if (index === 0) indicator.classList.add("active");
+          indicator.onclick = () => goToClusterImage(index);
+          indicators.appendChild(indicator);
+        });
+
+        // Update navigation buttons
+        updateClusterNavigation();
+      }
+
+      function navigateClusterCarousel(direction) {
+        const newIndex = clusterPopupData.currentIndex + direction;
+        if (newIndex >= 0 && newIndex < clusterPopupData.images.length) {
+          goToClusterImage(newIndex);
+        }
+      }
+
+      function goToClusterImage(index) {
+        if (index < 0 || index >= clusterPopupData.images.length) return;
+
+        clusterPopupData.currentIndex = index;
+
+        // Update carousel position
+        const carousel = document.getElementById("cluster-carousel");
+        if (carousel) {
+          carousel.style.transform = `translateX(-${index * 100}%)`;
+        }
+
+        // Update indicators
+        const indicators = document.querySelectorAll(
+          ".cluster-carousel-indicator"
+        );
+        indicators.forEach((indicator, i) => {
+          indicator.classList.toggle("active", i === index);
+        });
+
+        // Update navigation buttons
+        updateClusterNavigation();
+      }
+
+      function updateClusterNavigation() {
+        const prevBtn = document.getElementById("cluster-carousel-prev");
+        const nextBtn = document.getElementById("cluster-carousel-next");
+
+        if (prevBtn) {
+          prevBtn.disabled = clusterPopupData.currentIndex === 0;
+        }
+        if (nextBtn) {
+          nextBtn.disabled =
+            clusterPopupData.currentIndex ===
+            clusterPopupData.images.length - 1;
+        }
+      }
+
+      function handleClusterPopupKeydown(event) {
+        switch (event.key) {
+          case "ArrowLeft":
+            navigateClusterCarousel(-1);
+            break;
+          case "ArrowRight":
+            navigateClusterCarousel(1);
+            break;
+          case "Escape":
+            closeClusterPopup();
+            break;
+        }
+      }
+
+      function showImageDetails(imagePath, imageIndex, event) {
+        // Remove any existing cluster drawer modal
+        const existingModal = document.querySelector(".cluster-drawer-modal");
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        // Create artwork data for the clicked image
+        const artworkData = {
+          image: imagePath.split("/").pop(), // Get filename from path
+          title: imagePath
+            .split("/")
+            .pop()
+            .replace(/\.[^/.]+$/, ""), // Remove file extension
+          signedBy: clusterPopupData.username,
+          zone: "-",
+          exactSpot: "-",
+          date: "-",
+          daytime: "-",
+          rawness: "-",
+          format: imagePath.split(".").pop().toUpperCase(), // File extension as format
+          context: `Image ${imageIndex + 1} of ${
+            clusterPopupData.images.length
+          } in cluster`,
+          tags: [],
+        };
+
+        // Get cluster popup container
+        const clusterPopup = document.getElementById("cluster-popup-overlay");
+        if (!clusterPopup) return;
+
+        // Calculate position relative to clicked image
+        const clusterRect = clusterPopup.getBoundingClientRect();
+        const clickX = event.clientX - clusterRect.left;
+        const clickY = event.clientY - clusterRect.top;
+
+        // Drawer modal dimensions
+        const drawerWidth = 600;
+        const drawerHeight = 500;
+        const padding = 20;
+
+        // Calculate initial position (20px offset from click)
+        let left = clickX + 20;
+        let top = clickY + 20;
+
+        // Ensure drawer doesn't go outside the cluster popup bounds
+        if (left + drawerWidth > clusterRect.width - padding) {
+          left = clusterRect.width - drawerWidth - padding;
+        }
+        if (top + drawerHeight > clusterRect.height - padding) {
+          top = clusterRect.height - drawerHeight - padding;
+        }
+        if (left < padding) {
+          left = padding;
+        }
+        if (top < padding) {
+          top = padding;
+        }
+
+        // Create the drawer modal
+        const drawerModal = document.createElement("div");
+        drawerModal.className = "cluster-drawer-modal";
+        drawerModal.style.cssText = `
+          position: absolute;
+          left: ${left}px;
+          top: ${top}px;
+          background: #000;
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          border-radius: 8px;
+          padding: 25px;
+          width: 600px;
+          max-height: 500px;
+          overflow-y: auto;
+          z-index: 7000;
+          opacity: 0;
+          transform: scale(0.8);
+          transition: all 0.3s ease;
+          box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        `;
+
+        // Create close button
+        const closeBtn = document.createElement("button");
+        closeBtn.innerHTML = "×";
+        closeBtn.style.cssText = `
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          background: none;
+          border: none;
+          color: #fff;
+          font-size: 24px;
+          cursor: pointer;
+          font-family: "VT323", monospace;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        `;
+        closeBtn.onclick = () => drawerModal.remove();
+
+        // Create content with structured layout
+        const content = document.createElement("div");
+        content.style.cssText = `
+          font-family: "VT323", monospace;
+          color: #fff;
+          font-size: 14px;
+          line-height: 1.6;
+        `;
+
+        // Create two-column layout for top section
+        const topSection = document.createElement("div");
+        topSection.style.cssText = `
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 30px;
+          margin-bottom: 25px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+          padding-bottom: 20px;
+        `;
+
+        // Left column
+        const leftColumn = document.createElement("div");
+        leftColumn.innerHTML = `
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">TITLE</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.title || "Not specified"
+            }</div>
+          </div>
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">ZONE</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.zone || "Not specified"
+            }</div>
+          </div>
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">DATE STAMP</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.date || "Not specified"
+            }</div>
+          </div>
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">RAWNESS</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.rawness || "Not specified"
+            }</div>
+          </div>
+        `;
+
+        // Right column
+        const rightColumn = document.createElement("div");
+        rightColumn.innerHTML = `
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">SIGNED BY</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.signedBy || "Not specified"
+            }</div>
+          </div>
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">EXACT SPOT</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.exactSpot || "Not specified"
+            }</div>
+          </div>
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">DAYTIME</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.daytime || "Not specified"
+            }</div>
+          </div>
+          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
+            <div style="font-weight: bold; margin-bottom: 5px;">FORMAT TYPE</div>
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.format || "Not specified"
+            }</div>
+          </div>
+        `;
+
+        // Scene/Context section
+        const contextSection = document.createElement("div");
+        contextSection.style.cssText = `
+          margin-bottom: 25px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+          padding-bottom: 20px;
+        `;
+        contextSection.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 10px; font-size: 16px;">SCENE/CONTEXT</div>
+          <div style="border: 1px solid rgba(255, 255, 255, 0.3); padding: 15px; min-height: 80px; background: rgba(255, 255, 255, 0.05);">
+            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
+              artworkData.context || "No context provided"
+            }</div>
+          </div>
+        `;
+
+        // Vibes/Tags section
+        const tagsSection = document.createElement("div");
+        tagsSection.innerHTML = `
+          <div style="font-weight: bold; margin-bottom: 10px; font-size: 16px;">VIBES/TAGS</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; padding: 5px 12px; font-size: 12px; color: #fff;">
+              ${
+                artworkData.tags && artworkData.tags.length > 0
+                  ? artworkData.tags[0]
+                  : "No tags"
+              }
+            </span>
+          </div>
+        `;
+
+        // Assemble the content
+        topSection.appendChild(leftColumn);
+        topSection.appendChild(rightColumn);
+        content.appendChild(topSection);
+        content.appendChild(contextSection);
+        content.appendChild(tagsSection);
+
+        // Assemble modal
+        drawerModal.appendChild(closeBtn);
+        drawerModal.appendChild(content);
+        clusterPopup.appendChild(drawerModal);
+
+        // Trigger fade-in animation
+        setTimeout(() => {
+          drawerModal.style.opacity = "1";
+          drawerModal.style.transform = "scale(1)";
+        }, 10);
+
+        // Close on click outside
+        const handleOutsideClick = (e) => {
+          if (!drawerModal.contains(e.target)) {
+            drawerModal.remove();
+            document.removeEventListener("click", handleOutsideClick);
+          }
+        };
+        setTimeout(() => {
+          document.addEventListener("click", handleOutsideClick);
+        }, 100);
+      }
+
       // Add double click handler to renderer
       function initClusterInteraction() {
         const container = renderer.domElement;
 
-        // Add double click handler
-        container.addEventListener("dblclick", (event) => {
-          event.preventDefault();
-
-          // Calculate mouse position in normalized device coordinates (-1 to +1)
-          const mouse = new THREE.Vector2();
-          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-          mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-          // Setup raycaster
-          const raycaster = new THREE.Raycaster();
-          raycaster.setFromCamera(mouse, camera);
-
-          // Check for intersections with cluster sprites
-          const intersects = [];
-          helixGroup.children.forEach((cluster) => {
-            const container = cluster.children[0];
-            if (container) {
-              container.children.forEach((sprite) => {
-                const intersection = raycaster.intersectObject(sprite);
-                if (intersection.length > 0) {
-                  intersects.push({
-                    cluster,
-                    distance: intersection[0].distance,
-                  });
-                }
-              });
-            }
-          });
-
-          // Sort intersections by distance and select the closest
-          if (intersects.length > 0) {
-            intersects.sort((a, b) => a.distance - b.distance);
-            enterClusterMode(intersects[0].cluster);
-          }
-        });
-
         // Add escape key handler
         window.addEventListener("keydown", (event) => {
-          if (event.key === "Escape" && isClusterMode) {
-            exitClusterMode();
+          if (event.key === "Escape") {
+            closeClusterPopup();
           }
         });
       }
@@ -4471,88 +5161,42 @@
         drawerRaycaster = new THREE.Raycaster();
         drawerMouse = new THREE.Vector2();
 
-        // Add click event listener to the renderer
+        // Add click event listener to the renderer for cluster mode
         renderer.domElement.addEventListener("click", onArtworkClick);
       }
 
       function onArtworkClick(event) {
-        // Calculate mouse position in normalized device coordinates
-        const rect = renderer.domElement.getBoundingClientRect();
-        drawerMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        drawerMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        // Calculate mouse position in normalized device coordinates (-1 to +1)
+        const mouse = new THREE.Vector2();
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-        // Update the picking ray with the camera and mouse position
-        drawerRaycaster.setFromCamera(drawerMouse, camera);
+        // Setup raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, camera);
 
-        // Get all image sprites from the scene
-        const imageSprites = [];
-        scene.traverse((object) => {
-          if (object instanceof THREE.Sprite && object.userData.imagePath) {
-            imageSprites.push(object);
+        // Check for intersections with cluster sprites
+        const intersects = [];
+        helixGroup.children.forEach((cluster, clusterIndex) => {
+          const container = cluster.children[0];
+          if (container) {
+            container.children.forEach((sprite) => {
+              const intersection = raycaster.intersectObject(sprite);
+              if (intersection.length > 0) {
+                intersects.push({
+                  cluster,
+                  clusterIndex,
+                  distance: intersection[0].distance,
+                });
+              }
+            });
           }
         });
 
-        console.log("Found image sprites:", imageSprites.length);
-
-        // Calculate objects intersecting the picking ray
-        const intersects = drawerRaycaster.intersectObjects(imageSprites);
-
-        console.log("Intersects:", intersects.length);
-
+        // Sort intersections by distance and select the closest
         if (intersects.length > 0) {
-          const clickedSprite = intersects[0].object;
-          const imagePath = clickedSprite.userData.imagePath;
-
-          if (imagePath) {
-            // Extract real data from the scene
-            const clusterGroup = clickedSprite.parent;
-            let signedBy = "-";
-
-            // Find the username text sprite in the cluster
-            if (clusterGroup && clusterGroup.children) {
-              for (const child of clusterGroup.children) {
-                if (child.children && child.children.length > 0) {
-                  // Look for text sprite (username) in the cluster container
-                  for (const grandChild of child.children) {
-                    if (
-                      grandChild.material &&
-                      grandChild.material.map &&
-                      grandChild.material.map.image
-                    ) {
-                      // This is likely the text sprite with username
-                      const canvas = grandChild.material.map.image;
-                      const context = canvas.getContext("2d");
-                      // We can't easily extract text from canvas, so we'll use the cluster index
-                      const clusterIndex = imageGroups.indexOf(clusterGroup);
-                      signedBy = `@User${clusterIndex + 1}`;
-                      break;
-                    }
-                  }
-                }
-              }
-            }
-
-            // Create artwork data with available information
-            const artworkData = {
-              image: imagePath.split("/").pop(), // Get filename from path
-              title: imagePath
-                .split("/")
-                .pop()
-                .replace(/\.[^/.]+$/, ""), // Remove file extension
-              signedBy: signedBy,
-              zone: "-",
-              exactSpot: "-",
-              date: "-",
-              daytime: "-",
-              rawness: "-",
-              format: imagePath.split(".").pop().toUpperCase(), // File extension as format
-              context: "-",
-              tags: [],
-            };
-
-            // Create or update drawer modal for the clicked artwork
-            createDrawerModal(artworkData, clickedSprite);
-          }
+          intersects.sort((a, b) => a.distance - b.distance);
+          showClusterPopup(intersects[0].cluster, intersects[0].clusterIndex);
         }
       }
 
