@@ -52,6 +52,11 @@
         font-family: Arial, sans-serif;
       }
 
+      /* Hide Three.js canvas initially to prevent flash of incorrect content */
+      canvas {
+        visibility: hidden !important;
+      }
+
       #black-overlay {
         position: fixed;
         top: 0;
@@ -3397,6 +3402,28 @@
         // Check if this page was loaded from navigation (not refresh)
         const isFromNavigation = sessionStorage.getItem("fromNavigation");
         const lastQuery = localStorage.getItem("lastSearchQuery");
+        let searchPerformed = false;
+
+        // Set the correct query immediately at the start to prevent showing old query
+        if (
+          isFromNavigation === "true" &&
+          lastQuery &&
+          lastQuery !== "animal"
+        ) {
+          // Update the current search query immediately
+          window.currentSearchQuery = lastQuery;
+
+          // Update center word display immediately with the correct query
+          updateCenterWord(lastQuery);
+
+          // Populate the search bar with the correct query
+          const searchBar = document.getElementById("search-bar");
+          if (searchBar) {
+            searchBar.value = lastQuery;
+          }
+
+          console.log("Set correct query immediately:", lastQuery);
+        }
 
         if (
           isFromNavigation === "true" &&
@@ -3411,6 +3438,7 @@
           try {
             await performSearchFromStorage(lastQuery);
             console.log("Search completed, now showing visualization");
+            searchPerformed = true;
           } catch (error) {
             console.error("Search failed during loading:", error);
           }
@@ -3419,23 +3447,36 @@
           sessionStorage.removeItem("fromNavigation");
         }
 
-        // Hide loading screen and show visualization (only after search is complete)
+        // Hide loading screen but keep black overlay until everything is ready
         document.getElementById("loading-container").style.display = "none";
-        document.getElementById("black-overlay").style.opacity = "0";
+
+        // Only hide the black overlay after everything is properly set up
         setTimeout(() => {
-          document.getElementById("black-overlay").style.display = "none";
+          // Show the renderer now that everything is ready
+          renderer.domElement.style.setProperty(
+            "visibility",
+            "visible",
+            "important"
+          );
 
-          // Show galaxy button after loading screen is gone
-          const galaxyBtn = document.getElementById("galaxy-nav-btn");
-          if (galaxyBtn) {
-            galaxyBtn.style.display = "flex";
-            galaxyBtn.style.opacity = "1";
-            galaxyBtn.style.visibility = "visible";
-          }
+          document.getElementById("black-overlay").style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("black-overlay").style.display = "none";
 
-          // Get and display the last query from localStorage (without search)
-          loadLastQuery();
-        }, 500);
+            // Show galaxy button after loading screen is gone
+            const galaxyBtn = document.getElementById("galaxy-nav-btn");
+            if (galaxyBtn) {
+              galaxyBtn.style.display = "flex";
+              galaxyBtn.style.opacity = "1";
+              galaxyBtn.style.visibility = "visible";
+            }
+
+            // Only load last query if no search was performed (to prevent double loading)
+            if (!searchPerformed) {
+              loadLastQuery();
+            }
+          }, 500);
+        }, 100);
 
         // Initialize floating eye
         console.log("About to initialize floating eye...");
