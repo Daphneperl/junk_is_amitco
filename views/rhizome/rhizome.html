@@ -1243,7 +1243,7 @@
       let totalImages = 0;
       let loadedImages = 0;
       let entranceAnimationStart = 0;
-      let entranceAnimationDuration = 8000; // 8 seconds for entrance rotation animation
+      let entranceAnimationDuration = 8000; // 12 seconds for much slower rotation
 
       // Separate variables for rings
       let ringsScene, ringsCamera, ringsRenderer;
@@ -1302,7 +1302,7 @@
         }
       }
 
-      // Calculate similarity between two images with emphasis on keywords
+      // Calculate similarity between two images based on keywords
       function calculateSimilarity(image1, image2) {
         if (!image1 || !image2 || !image1.keywords || !image2.keywords) {
           return 0;
@@ -1322,11 +1322,11 @@
 
         if (intersection.size === 0) return 0;
 
-        // Calculate keyword-based similarity (emphasized)
-        let keywordSimilarity = 0;
-        let totalKeywordWeight = 0;
+        // Calculate weighted similarity based on confidence scores
+        let totalWeight = 0;
+        let intersectionWeight = 0;
 
-        // Calculate weights for intersection keywords with emphasis on top keywords
+        // Calculate weights for intersection keywords
         intersection.forEach((keyword) => {
           const conf1 =
             image1.keywords.find((k) => k.keyword.toLowerCase() === keyword)
@@ -1334,89 +1334,223 @@
           const conf2 =
             image2.keywords.find((k) => k.keyword.toLowerCase() === keyword)
               ?.confidence || 0;
-
-          // Emphasize top keywords more strongly
-          const keywordIndex1 = image1.keywords.findIndex(
-            (k) => k.keyword.toLowerCase() === keyword
-          );
-          const keywordIndex2 = image2.keywords.findIndex(
-            (k) => k.keyword.toLowerCase() === keyword
-          );
-
-          // Weight by position (top keywords get higher weight)
-          const positionWeight1 = Math.max(
-            0.5,
-            1 - keywordIndex1 / image1.keywords.length
-          );
-          const positionWeight2 = Math.max(
-            0.5,
-            1 - keywordIndex2 / image2.keywords.length
-          );
-
-          const weightedConf1 = conf1 * positionWeight1;
-          const weightedConf2 = conf2 * positionWeight2;
-
-          keywordSimilarity += (weightedConf1 + weightedConf2) / 2;
+          intersectionWeight += (conf1 + conf2) / 2;
         });
 
         // Calculate total weights for all keywords
-        image1.keywords.forEach((k, index) => {
-          const positionWeight = Math.max(
-            0.5,
-            1 - index / image1.keywords.length
-          );
-          totalKeywordWeight += k.confidence * positionWeight;
-        });
-        image2.keywords.forEach((k, index) => {
-          const positionWeight = Math.max(
-            0.5,
-            1 - index / image2.keywords.length
-          );
-          totalKeywordWeight += k.confidence * positionWeight;
-        });
+        image1.keywords.forEach((k) => (totalWeight += k.confidence));
+        image2.keywords.forEach((k) => (totalWeight += k.confidence));
 
-        // Calculate vibe similarity (secondary)
-        const vibeSimilarity = image1.vibe === image2.vibe ? 0.3 : 0;
-
-        // Combine keyword and vibe similarity (85% keywords, 15% vibe)
-        const keywordScore = keywordSimilarity / (totalKeywordWeight / 2);
-        const finalSimilarity = keywordScore * 0.85 + vibeSimilarity * 0.15;
-
-        return finalSimilarity;
+        // Return weighted similarity score
+        return intersectionWeight / (totalWeight / 2);
       }
 
-      // Generate random scattered positions for all images
-      function generateScatteredPositions() {
-        const imagePositions = new Map();
-        const maxRadius = 500; // Maximum distance from center (reduced from 800)
-        const minRadius = 30; // Minimum distance from center (reduced from 50)
+      // Strict spatial clustering with enforced separation
+      function createStrictSpatialClusters() {
+        // Define semantic categories with their keywords
+        const semanticCategories = {
+          text_documents: [
+            "manuscript",
+            "document",
+            "text",
+            "writing",
+            "letter",
+            "signature",
+            "list",
+            "catalogue",
+            "menu",
+            "notes",
+            "scripts",
+            "correspondence",
+            "point",
+            "word",
+            "boundary",
+            "names",
+            "roster",
+          ],
+          people_faces: [
+            "face",
+            "head",
+            "person",
+            "people",
+            "portrait",
+            "figure",
+            "human",
+          ],
+          nature_landscape: [
+            "landscape",
+            "nature",
+            "tree",
+            "plant",
+            "flower",
+            "sky",
+            "mountain",
+            "water",
+            "ocean",
+            "forest",
+            "animals",
+            "zebra",
+            "center",
+          ],
+          architecture_buildings: [
+            "building",
+            "architecture",
+            "house",
+            "structure",
+            "wall",
+            "door",
+            "window",
+            "room",
+          ],
+          objects_things: [
+            "object",
+            "thing",
+            "item",
+            "tool",
+            "instrument",
+            "device",
+            "machine",
+          ],
+          abstract_patterns: [
+            "pattern",
+            "abstract",
+            "design",
+            "shape",
+            "form",
+            "texture",
+            "color",
+          ],
+          animals_creatures: [
+            "animal",
+            "creature",
+            "bird",
+            "fish",
+            "insect",
+            "mammal",
+          ],
+          food_dining: [
+            "food",
+            "meal",
+            "dish",
+            "plate",
+            "cup",
+            "drink",
+            "wine",
+            "coffee",
+            "pasta",
+          ],
+        };
 
+        // Helper function to get semantic category for an image
+        function getImageCategory(imageData) {
+          const keywordTexts = imageData.keywords.map((k) =>
+            k.keyword.toLowerCase()
+          );
+          const categoryScores = {};
+
+          for (const [category, keywords] of Object.entries(
+            semanticCategories
+          )) {
+            let score = 0;
+            for (const keyword of keywords) {
+              if (keywordTexts.includes(keyword)) {
+                score += 1;
+              }
+            }
+            categoryScores[category] = score;
+          }
+
+          // Return the category with highest score, or 'other' if no clear match
+          const maxScore = Math.max(...Object.values(categoryScores));
+          if (maxScore === 0) return "other";
+
+          for (const [category, score] of Object.entries(categoryScores)) {
+            if (score === maxScore) return category;
+          }
+          return "other";
+        }
+
+        // Group images by semantic category
+        const categoryGroups = {};
         artisticData.forEach((imageData, index) => {
-          // Generate random spherical coordinates for even distribution
-          const radius = minRadius + Math.random() * (maxRadius - minRadius);
-          const theta = Math.random() * Math.PI * 2; // Random angle around Y axis
-          const phi = Math.acos(2 * Math.random() - 1); // Random angle from Y axis
+          const category = getImageCategory(imageData);
+          if (!categoryGroups[category]) {
+            categoryGroups[category] = [];
+          }
+          categoryGroups[category].push({ ...imageData, originalIndex: index });
+        });
 
-          // Convert to Cartesian coordinates
-          const x = radius * Math.sin(phi) * Math.cos(theta);
-          const y = radius * Math.sin(phi) * Math.sin(theta);
-          const z = radius * Math.cos(phi);
+        // Create strict spatial clusters with large separation
+        const clusters = [];
+        const clusterPositions = {
+          text_documents: { x: -400, y: 0, z: 0 },
+          people_faces: { x: 400, y: 0, z: 0 },
+          nature_landscape: { x: 0, y: 400, z: 0 },
+          architecture_buildings: { x: 0, y: -400, z: 0 },
+          objects_things: { x: 0, y: 0, z: 400 },
+          abstract_patterns: { x: 0, y: 0, z: -400 },
+          animals_creatures: { x: -400, y: 400, z: 0 },
+          food_dining: { x: 400, y: -400, z: 0 },
+          other: { x: 0, y: 0, z: 0 },
+        };
 
-          imagePositions.set(index, {
-            x,
-            y,
-            z,
-            category: "scattered",
-            clusterCenter: { x: 0, y: 0, z: 0 },
-            keywordConfidence: imageData.keywords[0]?.confidence || 0,
+        Object.entries(categoryGroups).forEach(([category, images]) => {
+          if (images.length === 0) return;
+
+          clusters.push({
+            category: category,
+            images: images,
+            position: clusterPositions[category] || { x: 0, y: 0, z: 0 },
+          });
+        });
+
+        console.log(
+          "Created strict spatial clusters:",
+          clusters.map(
+            (c) =>
+              `${c.category}: ${c.images.length} images at (${c.position.x}, ${c.position.y}, ${c.position.z})`
+          )
+        );
+        return clusters;
+      }
+
+      // Position images strictly within their cluster regions
+      function positionImagesInStrictClusters(clusters) {
+        const imagePositions = new Map();
+
+        clusters.forEach((cluster) => {
+          const baseX = cluster.position.x;
+          const baseY = cluster.position.y;
+          const baseZ = cluster.position.z;
+          const clusterRadius = 60; // Smaller radius for tighter clusters
+
+          // Position images within this cluster in a more organized way
+          cluster.images.forEach((imageData, imageIndex) => {
+            // Create a spiral pattern within the cluster
+            const angle = (imageIndex / cluster.images.length) * Math.PI * 4; // 2 full rotations
+            const radius =
+              (imageIndex / cluster.images.length) * clusterRadius * 0.8;
+            const height = Math.sin(angle * 2) * clusterRadius * 0.3;
+
+            const x = baseX + radius * Math.cos(angle);
+            const y = baseY + radius * Math.sin(angle);
+            const z = baseZ + height;
+
+            imagePositions.set(imageData.originalIndex, {
+              x,
+              y,
+              z,
+              category: cluster.category,
+              clusterCenter: { x: baseX, y: baseY, z: baseZ },
+            });
           });
         });
 
         return imagePositions;
       }
 
-      // Find connections between all images based on similarity
-      function findAllConnections() {
+      // Find connections only within the same cluster
+      function findIntraClusterConnections(clusters) {
         const connections = [];
 
         // Initialize empty connections array
@@ -1424,42 +1558,40 @@
           connections.push([]);
         }
 
-        // Create connections based on keyword similarity across all images
-        const similarityThreshold = 0.15; // Higher threshold for cleaner connections
+        // Only create connections within the same cluster
+        clusters.forEach((cluster) => {
+          const clusterImages = cluster.images;
+          const similarityThreshold = 0.05; // Lower threshold to see more variation
 
-        // Create connections for all images based on keyword similarity
-        for (let i = 0; i < artisticData.length; i++) {
-          const image1 = artisticData[i];
-          const connectionsForImage = [];
+          for (let i = 0; i < clusterImages.length; i++) {
+            const image1 = clusterImages[i];
+            const connectionsForImage = [];
 
-          for (let j = 0; j < artisticData.length; j++) {
-            if (i === j) continue; // Skip self-connections
+            for (let j = i + 1; j < clusterImages.length; j++) {
+              const image2 = clusterImages[j];
+              const similarity = calculateSimilarity(image1, image2);
 
-            const image2 = artisticData[j];
-            const similarity = calculateSimilarity(image1, image2);
-
-            if (similarity > similarityThreshold) {
-              connectionsForImage.push({
-                targetIndex: j,
-                similarity: similarity,
-              });
+              if (similarity > similarityThreshold) {
+                connectionsForImage.push({
+                  targetIndex: image2.originalIndex,
+                  similarity: similarity,
+                });
+              }
             }
-          }
 
-          // Sort by similarity and keep top connections
-          connectionsForImage.sort((a, b) => b.similarity - a.similarity);
-          connections[i] = connectionsForImage.slice(0, 4); // Fewer connections per image for cleaner look
-        }
+            // Sort by similarity and keep top connections
+            connectionsForImage.sort((a, b) => b.similarity - a.similarity);
+            connections[image1.originalIndex] = connectionsForImage.slice(0, 5); // More connections per image to see variation
+          }
+        });
 
         return connections;
       }
 
       async function loadImages() {
         try {
-          // Use the filenames from artistic data with correct extensions
-          const imageList = artisticData.map(
-            (item) => item.filename_with_extension || `${item.filename}.jpg`
-          );
+          // Use the filenames from artistic data
+          const imageList = artisticData.map((item) => `${item.filename}.jpg`);
           totalImages = imageList.length;
 
           return Promise.all(
@@ -1490,7 +1622,7 @@
         }
       }
 
-      function createImageSprite(texture, index, connections, position) {
+      function createImageSprite(texture, index, connections) {
         if (!texture) {
           // Create a placeholder sprite for missing images
           const canvas = document.createElement("canvas");
@@ -1509,7 +1641,7 @@
         }
 
         const aspectRatio = texture.image.width / texture.image.height;
-        const width = 30; // Even larger base width for better visibility
+        const width = 20; // Much larger base width
         const height = width / aspectRatio;
 
         const material = new THREE.SpriteMaterial({
@@ -1520,21 +1652,56 @@
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(width, height, 1);
 
-        // Use the provided scattered position
+        // Position based on connection strength and keyword clusters
         const imageData = artisticData[index];
         const connectionCount = connections.length;
 
-        // Calculate keyword-based similarity (emphasized)
+        // Calculate average similarity for this image
         const avgSimilarity =
           connections.length > 0
             ? connections.reduce((sum, conn) => sum + conn.similarity, 0) /
               connections.length
             : 0;
 
-        // Set position from the scattered positioning system
-        const targetX = position.x;
-        const targetY = position.y;
-        const targetZ = position.z;
+        // Use connection count and average similarity to determine radius
+        // More connections and higher similarity = closer to center
+        const maxRadius = 350;
+        const minRadius = 0; // Allow images to be at the very center
+        const connectionFactor = Math.min(1, connectionCount / 5); // Normalize to 0-1
+        const similarityFactor = avgSimilarity;
+        const combinedFactor = (connectionFactor + similarityFactor) / 2;
+        const radius =
+          minRadius + (maxRadius - minRadius) * (1 - combinedFactor);
+
+        // Use vibe and keywords to determine angle
+        const vibeAngles = {
+          warm: 0,
+          serene: Math.PI / 3,
+          mysterious: (2 * Math.PI) / 3,
+          neutral: Math.PI,
+          cool: (4 * Math.PI) / 3,
+          energetic: (5 * Math.PI) / 3,
+        };
+
+        const baseAngle = vibeAngles[imageData.vibe] || 0;
+        const keywordHash = imageData.keywords.reduce(
+          (sum, k) => sum + k.keyword.charCodeAt(0),
+          0
+        );
+        const angleOffset = ((keywordHash % 100) / 100) * Math.PI * 0.5;
+
+        const theta = baseAngle + angleOffset;
+        const phi = Math.acos(1 - (2 * (index + 0.5)) / totalImages);
+
+        // Reduce randomness for more predictable clustering
+        const randomOffset = radius * 0.1; // Reduced from 0.2 to 0.1
+        const offsetX = (Math.random() - 0.5) * randomOffset;
+        const offsetY = (Math.random() - 0.5) * randomOffset;
+        const offsetZ = (Math.random() - 0.5) * randomOffset;
+
+        const targetX = radius * Math.sin(phi) * Math.cos(theta) + offsetX;
+        const targetY = radius * Math.sin(phi) * Math.sin(theta) + offsetY;
+        const targetZ = radius * Math.cos(phi) + offsetZ;
 
         sprite.position.set(targetX, targetY, targetZ);
 
@@ -1548,7 +1715,6 @@
           imageData: imageData,
           index: index,
           avgSimilarity: avgSimilarity,
-          clusterPosition: position, // Store the position data for consistency
         };
 
         return sprite;
@@ -1781,22 +1947,25 @@
         );
       }
 
-      function createConnectionLine(similarity, keywordMatch = false) {
-        // Calculate line weight based on similarity (emphasized for keyword connections)
-        const baseWidth = keywordMatch ? 80 : 4; // 10x thicker for keyword matches
-        const maxWidth = keywordMatch ? 1500 : 100; // 10x wider max for keyword connections
+      function createConnectionLine(similarity) {
+        // Debug: Log similarity values to see the range
+        console.log("Connection similarity:", similarity);
+
+        // Calculate line weight based on similarity
+        const baseWidth = 8; // Increased base width for better visibility
+        const maxWidth = 250; // Increased maximum width for strongest connections
         const lineWidth = baseWidth + similarity * (maxWidth - baseWidth);
 
         // Calculate opacity based on similarity (stronger connections = more opaque)
-        const minOpacity = keywordMatch ? 1.0 : 0.5; // Full opacity for keyword matches, reduced for others
-        const maxOpacity = keywordMatch ? 1.0 : 0.5; // Full opacity for keyword matches, reduced for others
-        const opacity = minOpacity; // Fixed opacity for clear distinction
+        const minOpacity = 0.5; // Increased minimum opacity
+        const maxOpacity = 1.0;
+        const opacity = minOpacity + similarity * (maxOpacity - minOpacity);
 
-        // Color based on connection type
-        const color = 0xffffff; // White for all connections
+        console.log("Line width:", lineWidth, "Opacity:", opacity);
 
+        // White color for all edges
         const material = new THREE.LineBasicMaterial({
-          color: color,
+          color: 0xffffff,
           transparent: true,
           opacity: opacity,
           linewidth: lineWidth,
@@ -1822,7 +1991,7 @@
 
         // Limit the number of connections to prevent performance issues
         let connectionCount = 0;
-        const maxConnections = 150; // Reduced limit for cleaner visualization
+        const maxConnections = 300; // Increase limit to see more connections
 
         // Create new lines based on keyword similarity
         for (
@@ -1841,19 +2010,7 @@
             const connection = connections[j];
             const targetSprite = imageSprites[connection.targetIndex];
             if (targetSprite) {
-              // Check if images share top keywords (keyword match)
-              const spriteData = sprite.userData.imageData;
-              const targetData = targetSprite.userData.imageData;
-              const spriteTopKeyword =
-                spriteData.keywords[0]?.keyword.toLowerCase();
-              const targetTopKeyword =
-                targetData.keywords[0]?.keyword.toLowerCase();
-              const keywordMatch = spriteTopKeyword === targetTopKeyword;
-
-              const line = createConnectionLine(
-                connection.similarity,
-                keywordMatch
-              );
+              const line = createConnectionLine(connection.similarity);
 
               // Use current sprite positions to keep lines connected
               const startPos = new THREE.Vector3(
@@ -2001,14 +2158,17 @@
         // Load artistic data first
         await loadArtisticData();
 
-        // Generate scattered positions for all images
-        const imagePositions = generateScatteredPositions();
+        // Create strict spatial clusters
+        const clusters = createStrictSpatialClusters();
 
-        // Find connections between all images based on similarity
-        const allConnections = findAllConnections();
+        // Position images strictly within their cluster regions
+        const imagePositions = positionImagesInStrictClusters(clusters);
+
+        // Find connections only within the same cluster
+        const intraClusterConnections = findIntraClusterConnections(clusters);
         console.log(
-          "Found connections between all images:",
-          allConnections.length
+          "Found intra-cluster connections:",
+          intraClusterConnections.length
         );
 
         // Create scene
@@ -2042,45 +2202,19 @@
         // Create particle system
         createParticleSystem();
 
-        // Load and create image sprites (only for connected images)
+        // Load and create image sprites
         const textureResults = await loadImages();
-        const connectedImageIndices = new Set(); // Track which original indices are connected
-
-        // First pass: identify all connected images
         textureResults.forEach((result, index) => {
           if (result.texture) {
-            const connections = allConnections[index];
-            if (connections && connections.length > 0) {
-              connectedImageIndices.add(index);
-              // Also add the target indices of connections
-              connections.forEach((conn) => {
-                connectedImageIndices.add(conn.targetIndex);
-              });
-            }
-          }
-        });
-
-        // Second pass: create sprites only for connected images
-        textureResults.forEach((result, index) => {
-          if (result.texture && connectedImageIndices.has(index)) {
-            const connections = allConnections[index];
-            // Filter connections to only include other connected images
-            const filteredConnections = connections.filter((conn) =>
-              connectedImageIndices.has(conn.targetIndex)
+            const clusterPosition = imagePositions.get(index);
+            const sprite = createImageSprite(
+              result.texture,
+              index,
+              intraClusterConnections[index],
+              clusterPosition
             );
-
-            // Only create sprite if it still has connections after filtering
-            if (filteredConnections.length > 0) {
-              const position = imagePositions.get(index);
-              const sprite = createImageSprite(
-                result.texture,
-                index,
-                filteredConnections,
-                position
-              );
-              imageSprites.push(sprite);
-              scene.add(sprite);
-            }
+            imageSprites.push(sprite);
+            scene.add(sprite);
           }
         });
 
@@ -2378,17 +2512,18 @@
           particles.geometry.attributes.position.needsUpdate = true;
         }
 
-        // Animate images with free floating movement
+        // Animate images with smooth, stable cluster positioning
         imageSprites.forEach((sprite, index) => {
           const floatTime = time * 0.00005 + sprite.userData.timeOffset; // Much slower time
           const connections = sprite.userData.connections;
+          const clusterPosition = sprite.userData.clusterPosition;
 
           // Apply entrance rotation animation - only one direction
           const entranceRotation = entranceEase * Math.PI * 0.5; // 90 degrees (25% turn) in one direction
           const rotationMatrix = new THREE.Matrix4();
           rotationMatrix.makeRotationY(entranceRotation);
 
-          // Get the original position
+          // Get the original position relative to center
           const originalX = sprite.userData.originalX;
           const originalY = sprite.userData.originalY;
           const originalZ = sprite.userData.originalZ;
@@ -2401,18 +2536,48 @@
           );
           rotatedPosition.applyMatrix4(rotationMatrix);
 
-          // Use rotated position as base
-          const targetX = rotatedPosition.x;
-          const targetY = rotatedPosition.y;
-          const targetZ = rotatedPosition.z;
+          // Use cluster position as the anchor point
+          let targetX, targetY, targetZ;
 
-          // Gentle floating movement
-          const floatRadius = 2; // Slightly larger radius for more visible movement
-          const floatX = Math.sin(floatTime * 0.02) * floatRadius;
+          if (clusterPosition) {
+            // Apply entrance rotation to cluster position
+            const clusterCenter = new THREE.Vector3(
+              clusterPosition.clusterCenter.x,
+              clusterPosition.clusterCenter.y,
+              clusterPosition.clusterCenter.z
+            );
+
+            // Get position relative to cluster center
+            const relativeX = originalX - clusterCenter.x;
+            const relativeY = originalY - clusterCenter.y;
+            const relativeZ = originalZ - clusterCenter.z;
+
+            // Apply rotation to relative position
+            const relativePosition = new THREE.Vector3(
+              relativeX,
+              relativeY,
+              relativeZ
+            );
+            relativePosition.applyMatrix4(rotationMatrix);
+
+            // Add back cluster center
+            targetX = clusterCenter.x + relativePosition.x;
+            targetY = clusterCenter.y + relativePosition.y;
+            targetZ = clusterCenter.z + relativePosition.z;
+          } else {
+            // Use rotated position for non-clustered images
+            targetX = rotatedPosition.x;
+            targetY = rotatedPosition.y;
+            targetZ = rotatedPosition.z;
+          }
+
+          // Very gentle floating movement within cluster bounds
+          const floatRadius = 0.2; // Much smaller radius for stable connections
+          const floatX = Math.sin(floatTime * 0.02) * floatRadius; // Much slower movement
           const floatY = Math.cos(floatTime * 0.03) * floatRadius;
           const floatZ = Math.sin(floatTime * 0.015) * floatRadius;
 
-          // Weak connection-based attraction
+          // Extremely weak connection-based attraction
           let connectionForceX = 0,
             connectionForceY = 0,
             connectionForceZ = 0;
@@ -2426,10 +2591,9 @@
               const dz = targetSprite.position.z - sprite.position.z;
               const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-              if (distance > 0 && distance < 200) {
-                // Only attract if within reasonable distance
+              if (distance > 0) {
                 // Very weak attraction
-                const attractionForce = connection.similarity * 0.001;
+                const attractionForce = connection.similarity * 0.002; // Even weaker
                 const weight = connection.similarity;
 
                 connectionForceX += (dx / distance) * attractionForce * weight;
@@ -2447,23 +2611,24 @@
             connectionForceZ /= totalConnectionWeight;
           }
 
-          // Add gentle jitter for subtle movement
-          const jitterTime = time * 0.0005 + sprite.userData.timeOffset;
-          const jitterAmplitude = 0.5; // Slightly larger amplitude for more visible movement
+          // Add very gentle jitter for subtle movement while keeping connections stable
+          const jitterTime = time * 0.0005 + sprite.userData.timeOffset; // Much slower for stability
+          const jitterAmplitude = 0.3; // Much smaller amplitude for stable connections
 
+          // Single gentle sine wave for subtle movement
           const jitterX = Math.sin(jitterTime * 0.7) * jitterAmplitude;
           const jitterY = Math.cos(jitterTime * 0.9) * jitterAmplitude;
           const jitterZ = Math.sin(jitterTime * 0.5) * jitterAmplitude;
 
-          // Add subtle micro-movements
-          const microMove = 0.02;
-          const microTime = time * 0.00001 + sprite.userData.timeOffset;
+          // Add very subtle micro-movements on top of jitter
+          const microMove = 0.01; // Much smaller micro-movements for stability
+          const microTime = time * 0.00001 + sprite.userData.timeOffset; // Much slower
           const microX = Math.sin(microTime * 0.3) * microMove;
           const microY = Math.cos(microTime * 0.4) * microMove;
           const microZ = Math.sin(microTime * 0.25) * microMove;
 
           // Smooth interpolation to target position
-          const lerpFactor = entranceProgress < 1 ? 0.1 : 0.05; // Higher lerp factor during entrance for smoother animation
+          const lerpFactor = entranceProgress < 1 ? 0.1 : 0.05; // Lower lerp factor for more stable connections
           const targetPosX =
             targetX + floatX + connectionForceX + microX + jitterX;
           const targetPosY =
@@ -2475,7 +2640,7 @@
           sprite.position.y += (targetPosY - sprite.position.y) * lerpFactor;
           sprite.position.z += (targetPosZ - sprite.position.z) * lerpFactor;
 
-          // Gentle repulsion to prevent overlap with any nearby images
+          // Very gentle repulsion to prevent overlap (only within same cluster)
           imageSprites.forEach((otherSprite, otherIndex) => {
             if (index !== otherIndex) {
               const dx = sprite.position.x - otherSprite.position.x;
@@ -2483,10 +2648,17 @@
               const dz = sprite.position.z - otherSprite.position.z;
               const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-              // Apply repulsion to any nearby images, not just same cluster
-              if (distance < 8) {
-                const repulsionForce = (8 - distance) / 8;
-                const repulsionStrength = 0.002; // Gentle repulsion
+              // Check if these sprites are in the same cluster
+              const sameCluster =
+                clusterPosition &&
+                otherSprite.userData.clusterPosition &&
+                clusterPosition.category ===
+                  otherSprite.userData.clusterPosition.category;
+
+              // Only apply repulsion within the same cluster, and very gently
+              if (sameCluster && distance < 6) {
+                const repulsionForce = (6 - distance) / 6;
+                const repulsionStrength = 0.001; // Very gentle repulsion
 
                 sprite.position.x += dx * repulsionForce * repulsionStrength;
                 sprite.position.y += dy * repulsionForce * repulsionStrength;
@@ -4334,30 +4506,11 @@
 
         if (intersects.length > 0) {
           const clickedSprite = intersects[0].object;
-          const distance = intersects[0].distance;
+          const artworkData = clickedSprite.userData.imageData;
 
-          // Get the intersection point in world coordinates
-          const intersectionPoint = intersects[0].point;
-
-          // Calculate distance from intersection point to sprite center
-          const spriteCenter = clickedSprite.position;
-          const distanceToCenter = intersectionPoint.distanceTo(spriteCenter);
-
-          // Get sprite dimensions (approximate based on scale)
-          const spriteWidth = clickedSprite.scale.x;
-          const spriteHeight = clickedSprite.scale.y;
-          const maxDimension = Math.max(spriteWidth, spriteHeight);
-
-          // Only open modal if click is very close to center (within 25% of sprite size)
-          const clickThreshold = maxDimension * 0.25;
-
-          if (distanceToCenter < clickThreshold) {
-            const artworkData = clickedSprite.userData.imageData;
-
-            if (artworkData) {
-              // Create or update drawer modal for the clicked artwork
-              createDrawerModal(artworkData, clickedSprite);
-            }
+          if (artworkData) {
+            // Create or update drawer modal for the clicked artwork
+            createDrawerModal(artworkData, clickedSprite);
           }
         }
       }
@@ -4387,21 +4540,8 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "drawer-artwork";
         const artworkImg = document.createElement("img");
-        artworkImg.src = `../../images/${
-          artworkData.filename_with_extension || artworkData.filename + ".jpg"
-        }`;
-        artworkImg.alt = artworkData.filename || "Artwork";
-
-        // Add error handling for image loading
-        artworkImg.onerror = function () {
-          console.warn(`Failed to load image: ${artworkImg.src}`);
-          this.style.display = "none";
-          const errorDiv = document.createElement("div");
-          errorDiv.style.cssText =
-            "display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 14px;";
-          errorDiv.textContent = "Image not available";
-          artworkSection.appendChild(errorDiv);
-        };
+        artworkImg.src = `../../images/${artworkData.filename}.jpg`;
+        artworkImg.alt = artworkData.title || "Artwork";
 
         // Smart image sizing algorithm
         artworkImg.onload = function () {
@@ -4531,69 +4671,68 @@
               <div class="drawer-field">
                   <div class="drawer-label">Title</div>
                   <div class="drawer-value">${
-                    artworkData.filename || "Not specified"
+                    artworkData.title || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Vibe</div>
+                  <div class="drawer-label">Signed by</div>
                   <div class="drawer-value">${
-                    artworkData.vibe || "Not specified"
+                    artworkData.signedBy || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">File Type</div>
+                  <div class="drawer-label">Zone</div>
                   <div class="drawer-value">${
-                    artworkData.filename_with_extension
-                      ? artworkData.filename_with_extension
-                          .split(".")
-                          .pop()
-                          .toUpperCase()
+                    artworkData.zone || "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Exact spot</div>
+                  <div class="drawer-value">${
+                    artworkData.exactSpot || "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Date stamp</div>
+                  <div class="drawer-value">${
+                    artworkData.date || "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Daytime</div>
+                  <div class="drawer-value">${
+                    artworkData.daytime || "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Rawness</div>
+                  <div class="drawer-value">${
+                    artworkData.rawness !== undefined
+                      ? artworkData.rawness
                       : "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Keywords Count</div>
+                  <div class="drawer-label">Format type</div>
                   <div class="drawer-value">${
-                    artworkData.keywords
-                      ? artworkData.keywords.length
-                      : "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Top Keyword</div>
-                  <div class="drawer-value">${
-                    artworkData.keywords && artworkData.keywords.length > 0
-                      ? artworkData.keywords[0].keyword
-                      : "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Top Confidence</div>
-                  <div class="drawer-value">${
-                    artworkData.keywords && artworkData.keywords.length > 0
-                      ? (artworkData.keywords[0].confidence * 100).toFixed(1) +
-                        "%"
-                      : "Not specified"
+                    artworkData.format || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field full-width">
                   <div class="drawer-label">Scene/Context</div>
                   <div class="drawer-context">${
-                    artworkData.description || "No context provided"
+                    artworkData.context || "No context provided"
                   }</div>
               </div>
               <div class="drawer-field full-width">
                   <div class="drawer-label">Vibes/Tags</div>
                   <div class="drawer-tags">
                       ${
-                        artworkData.keywords && artworkData.keywords.length > 0
-                          ? artworkData.keywords
-                              .slice(0, 5) // Show top 5 keywords
+                        artworkData.tags && artworkData.tags.length > 0
+                          ? artworkData.tags
                               .map(
-                                (kw) =>
-                                  `<span class="drawer-tag">${kw.keyword} (${(
-                                    kw.confidence * 100
-                                  ).toFixed(0)}%)</span>`
+                                (tag) =>
+                                  `<span class="drawer-tag">${tag}</span>`
                               )
                               .join("")
                           : '<span class="drawer-tag">No tags</span>'
