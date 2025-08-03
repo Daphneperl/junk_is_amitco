@@ -1302,7 +1302,7 @@
         }
       }
 
-      // Calculate similarity between two images based on keywords
+      // Calculate similarity between two images with emphasis on keywords
       function calculateSimilarity(image1, image2) {
         if (!image1 || !image2 || !image1.keywords || !image2.keywords) {
           return 0;
@@ -1322,11 +1322,11 @@
 
         if (intersection.size === 0) return 0;
 
-        // Calculate weighted similarity based on confidence scores
-        let totalWeight = 0;
-        let intersectionWeight = 0;
+        // Calculate keyword-based similarity (emphasized)
+        let keywordSimilarity = 0;
+        let totalKeywordWeight = 0;
 
-        // Calculate weights for intersection keywords
+        // Calculate weights for intersection keywords with emphasis on top keywords
         intersection.forEach((keyword) => {
           const conf1 =
             image1.keywords.find((k) => k.keyword.toLowerCase() === keyword)
@@ -1334,178 +1334,162 @@
           const conf2 =
             image2.keywords.find((k) => k.keyword.toLowerCase() === keyword)
               ?.confidence || 0;
-          intersectionWeight += (conf1 + conf2) / 2;
+
+          // Emphasize top keywords more strongly
+          const keywordIndex1 = image1.keywords.findIndex(
+            (k) => k.keyword.toLowerCase() === keyword
+          );
+          const keywordIndex2 = image2.keywords.findIndex(
+            (k) => k.keyword.toLowerCase() === keyword
+          );
+
+          // Weight by position (top keywords get higher weight)
+          const positionWeight1 = Math.max(
+            0.5,
+            1 - keywordIndex1 / image1.keywords.length
+          );
+          const positionWeight2 = Math.max(
+            0.5,
+            1 - keywordIndex2 / image2.keywords.length
+          );
+
+          const weightedConf1 = conf1 * positionWeight1;
+          const weightedConf2 = conf2 * positionWeight2;
+
+          keywordSimilarity += (weightedConf1 + weightedConf2) / 2;
         });
 
         // Calculate total weights for all keywords
-        image1.keywords.forEach((k) => (totalWeight += k.confidence));
-        image2.keywords.forEach((k) => (totalWeight += k.confidence));
-
-        // Return weighted similarity score
-        return intersectionWeight / (totalWeight / 2);
-      }
-
-      // Strict spatial clustering with enforced separation
-      function createStrictSpatialClusters() {
-        // Define semantic categories with their keywords
-        const semanticCategories = {
-          text_documents: [
-            "manuscript",
-            "document",
-            "text",
-            "writing",
-            "letter",
-            "signature",
-            "list",
-            "catalogue",
-            "menu",
-            "notes",
-            "scripts",
-            "correspondence",
-            "point",
-            "word",
-            "boundary",
-            "names",
-            "roster",
-          ],
-          people_faces: [
-            "face",
-            "head",
-            "person",
-            "people",
-            "portrait",
-            "figure",
-            "human",
-          ],
-          nature_landscape: [
-            "landscape",
-            "nature",
-            "tree",
-            "plant",
-            "flower",
-            "sky",
-            "mountain",
-            "water",
-            "ocean",
-            "forest",
-            "animals",
-            "zebra",
-            "center",
-          ],
-          architecture_buildings: [
-            "building",
-            "architecture",
-            "house",
-            "structure",
-            "wall",
-            "door",
-            "window",
-            "room",
-          ],
-          objects_things: [
-            "object",
-            "thing",
-            "item",
-            "tool",
-            "instrument",
-            "device",
-            "machine",
-          ],
-          abstract_patterns: [
-            "pattern",
-            "abstract",
-            "design",
-            "shape",
-            "form",
-            "texture",
-            "color",
-          ],
-          animals_creatures: [
-            "animal",
-            "creature",
-            "bird",
-            "fish",
-            "insect",
-            "mammal",
-          ],
-          food_dining: [
-            "food",
-            "meal",
-            "dish",
-            "plate",
-            "cup",
-            "drink",
-            "wine",
-            "coffee",
-            "pasta",
-          ],
-        };
-
-        // Helper function to get semantic category for an image
-        function getImageCategory(imageData) {
-          const keywordTexts = imageData.keywords.map((k) =>
-            k.keyword.toLowerCase()
+        image1.keywords.forEach((k, index) => {
+          const positionWeight = Math.max(
+            0.5,
+            1 - index / image1.keywords.length
           );
-          const categoryScores = {};
-
-          for (const [category, keywords] of Object.entries(
-            semanticCategories
-          )) {
-            let score = 0;
-            for (const keyword of keywords) {
-              if (keywordTexts.includes(keyword)) {
-                score += 1;
-              }
-            }
-            categoryScores[category] = score;
-          }
-
-          // Return the category with highest score, or 'other' if no clear match
-          const maxScore = Math.max(...Object.values(categoryScores));
-          if (maxScore === 0) return "other";
-
-          for (const [category, score] of Object.entries(categoryScores)) {
-            if (score === maxScore) return category;
-          }
-          return "other";
-        }
-
-        // Group images by semantic category
-        const categoryGroups = {};
-        artisticData.forEach((imageData, index) => {
-          const category = getImageCategory(imageData);
-          if (!categoryGroups[category]) {
-            categoryGroups[category] = [];
-          }
-          categoryGroups[category].push({ ...imageData, originalIndex: index });
+          totalKeywordWeight += k.confidence * positionWeight;
+        });
+        image2.keywords.forEach((k, index) => {
+          const positionWeight = Math.max(
+            0.5,
+            1 - index / image2.keywords.length
+          );
+          totalKeywordWeight += k.confidence * positionWeight;
         });
 
-        // Create strict spatial clusters with large separation
-        const clusters = [];
-        const clusterPositions = {
-          text_documents: { x: -400, y: 0, z: 0 },
-          people_faces: { x: 400, y: 0, z: 0 },
-          nature_landscape: { x: 0, y: 400, z: 0 },
-          architecture_buildings: { x: 0, y: -400, z: 0 },
-          objects_things: { x: 0, y: 0, z: 400 },
-          abstract_patterns: { x: 0, y: 0, z: -400 },
-          animals_creatures: { x: -400, y: 400, z: 0 },
-          food_dining: { x: 400, y: -400, z: 0 },
-          other: { x: 0, y: 0, z: 0 },
-        };
+        // Calculate vibe similarity (secondary)
+        const vibeSimilarity = image1.vibe === image2.vibe ? 0.3 : 0;
 
-        Object.entries(categoryGroups).forEach(([category, images]) => {
-          if (images.length === 0) return;
+        // Combine keyword and vibe similarity (85% keywords, 15% vibe)
+        const keywordScore = keywordSimilarity / (totalKeywordWeight / 2);
+        const finalSimilarity = keywordScore * 0.85 + vibeSimilarity * 0.15;
 
-          clusters.push({
-            category: category,
-            images: images,
-            position: clusterPositions[category] || { x: 0, y: 0, z: 0 },
+        return finalSimilarity;
+      }
+
+      // Keyword-based clustering with emphasis on top keywords
+      function createStrictSpatialClusters() {
+        // Create keyword-based clusters
+        const keywordClusters = {};
+
+        // Group images by their top keyword
+        artisticData.forEach((imageData, index) => {
+          const topKeyword =
+            imageData.keywords[0]?.keyword.toLowerCase() || "other";
+
+          if (!keywordClusters[topKeyword]) {
+            keywordClusters[topKeyword] = [];
+          }
+          keywordClusters[topKeyword].push({
+            ...imageData,
+            originalIndex: index,
           });
         });
 
+        // Convert to cluster format
+        const clusters = [];
+        const clusterPositions = {};
+
+        // Create organic 3D positioning for keyword clusters
+        const keywordEntries = Object.entries(keywordClusters);
+        const clusterPositions3D = [];
+
+        keywordEntries.forEach(([keyword, images], index) => {
+          if (images.length === 0) return;
+
+          // Create base position in 3D space
+          const baseRadius = 600;
+          const angle = (index / keywordEntries.length) * Math.PI * 2;
+          const height = (index / keywordEntries.length) * 400 - 200; // Spread vertically
+
+          // Add organic variation based on keyword characteristics
+          const keywordHash = keyword
+            .split("")
+            .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+          const organicOffset = 300; // Large offset for organic feel
+
+          const x =
+            Math.cos(angle) * baseRadius +
+            (Math.random() - 0.5) * organicOffset;
+          const y =
+            Math.sin(angle) * baseRadius +
+            (Math.random() - 0.5) * organicOffset;
+          const z = height + (Math.random() - 0.5) * organicOffset * 0.5;
+
+          clusterPositions[keyword] = { x, y, z };
+          clusterPositions3D.push({ keyword, position: { x, y, z }, index });
+
+          clusters.push({
+            category: keyword,
+            images: images,
+            position: clusterPositions[keyword],
+          });
+        });
+
+        // Adjust positions based on cluster relationships and density
+        clusterPositions3D.forEach((cluster, index) => {
+          const repulsionRadius = 400; // Minimum distance between clusters
+          let adjustedX = cluster.position.x;
+          let adjustedY = cluster.position.y;
+          let adjustedZ = cluster.position.z;
+
+          // Apply repulsion from other clusters
+          clusterPositions3D.forEach((otherCluster, otherIndex) => {
+            if (index === otherIndex) return;
+
+            const dx = cluster.position.x - otherCluster.position.x;
+            const dy = cluster.position.y - otherCluster.position.y;
+            const dz = cluster.position.z - otherCluster.position.z;
+            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+            if (distance < repulsionRadius) {
+              const force = (repulsionRadius - distance) / repulsionRadius;
+              const pushX = (dx / distance) * force * 50;
+              const pushY = (dy / distance) * force * 50;
+              const pushZ = (dz / distance) * force * 25;
+
+              adjustedX += pushX;
+              adjustedY += pushY;
+              adjustedZ += pushZ;
+            }
+          });
+
+          // Update cluster position
+          clusterPositions[cluster.keyword] = {
+            x: adjustedX,
+            y: adjustedY,
+            z: adjustedZ,
+          };
+
+          // Update cluster object
+          const clusterObj = clusters.find(
+            (c) => c.category === cluster.keyword
+          );
+          if (clusterObj) {
+            clusterObj.position = { x: adjustedX, y: adjustedY, z: adjustedZ };
+          }
+        });
+
         console.log(
-          "Created strict spatial clusters:",
+          "Created keyword-based clusters:",
           clusters.map(
             (c) =>
               `${c.category}: ${c.images.length} images at (${c.position.x}, ${c.position.y}, ${c.position.z})`
@@ -1514,7 +1498,7 @@
         return clusters;
       }
 
-      // Position images strictly within their cluster regions
+      // Position images within their keyword-based clusters
       function positionImagesInStrictClusters(clusters) {
         const imagePositions = new Map();
 
@@ -1522,19 +1506,28 @@
           const baseX = cluster.position.x;
           const baseY = cluster.position.y;
           const baseZ = cluster.position.z;
-          const clusterRadius = 60; // Smaller radius for tighter clusters
+          const clusterRadius = 120; // Much larger radius for better spread
 
-          // Position images within this cluster in a more organized way
+          // Position images within this cluster based on keyword similarity
           cluster.images.forEach((imageData, imageIndex) => {
-            // Create a spiral pattern within the cluster
-            const angle = (imageIndex / cluster.images.length) * Math.PI * 4; // 2 full rotations
-            const radius =
-              (imageIndex / cluster.images.length) * clusterRadius * 0.8;
-            const height = Math.sin(angle * 2) * clusterRadius * 0.3;
+            // Use keyword confidence to determine position within cluster
+            const topKeywordConfidence = imageData.keywords[0]?.confidence || 0;
+            const secondKeywordConfidence =
+              imageData.keywords[1]?.confidence || 0;
 
-            const x = baseX + radius * Math.cos(angle);
-            const y = baseY + radius * Math.sin(angle);
-            const z = baseZ + height;
+            // Create organic position based on keyword characteristics
+            const angle = (imageIndex / cluster.images.length) * Math.PI * 2;
+            const radius = clusterRadius * (0.1 + topKeywordConfidence * 0.4); // Tighter grouping for keyword matches
+
+            // Add organic variation within clusters
+            const organicOffset = 80; // Organic variation within clusters
+            const offsetX = (Math.random() - 0.5) * organicOffset;
+            const offsetY = (Math.random() - 0.5) * organicOffset;
+            const offsetZ = (Math.random() - 0.5) * organicOffset * 0.3; // Less vertical variation
+
+            const x = baseX + radius * Math.cos(angle) + offsetX;
+            const y = baseY + radius * Math.sin(angle) + offsetY;
+            const z = baseZ + offsetZ;
 
             imagePositions.set(imageData.originalIndex, {
               x,
@@ -1542,6 +1535,7 @@
               z,
               category: cluster.category,
               clusterCenter: { x: baseX, y: baseY, z: baseZ },
+              keywordConfidence: topKeywordConfidence,
             });
           });
         });
@@ -1558,40 +1552,42 @@
           connections.push([]);
         }
 
-        // Only create connections within the same cluster
-        clusters.forEach((cluster) => {
-          const clusterImages = cluster.images;
-          const similarityThreshold = 0.05; // Lower threshold to see more variation
+        // Create connections based on keyword similarity across all images
+        const similarityThreshold = 0.15; // Higher threshold for cleaner connections
 
-          for (let i = 0; i < clusterImages.length; i++) {
-            const image1 = clusterImages[i];
-            const connectionsForImage = [];
+        // Create connections for all images based on keyword similarity
+        for (let i = 0; i < artisticData.length; i++) {
+          const image1 = artisticData[i];
+          const connectionsForImage = [];
 
-            for (let j = i + 1; j < clusterImages.length; j++) {
-              const image2 = clusterImages[j];
-              const similarity = calculateSimilarity(image1, image2);
+          for (let j = 0; j < artisticData.length; j++) {
+            if (i === j) continue; // Skip self-connections
 
-              if (similarity > similarityThreshold) {
-                connectionsForImage.push({
-                  targetIndex: image2.originalIndex,
-                  similarity: similarity,
-                });
-              }
+            const image2 = artisticData[j];
+            const similarity = calculateSimilarity(image1, image2);
+
+            if (similarity > similarityThreshold) {
+              connectionsForImage.push({
+                targetIndex: j,
+                similarity: similarity,
+              });
             }
-
-            // Sort by similarity and keep top connections
-            connectionsForImage.sort((a, b) => b.similarity - a.similarity);
-            connections[image1.originalIndex] = connectionsForImage.slice(0, 5); // More connections per image to see variation
           }
-        });
+
+          // Sort by similarity and keep top connections
+          connectionsForImage.sort((a, b) => b.similarity - a.similarity);
+          connections[i] = connectionsForImage.slice(0, 4); // Fewer connections per image for cleaner look
+        }
 
         return connections;
       }
 
       async function loadImages() {
         try {
-          // Use the filenames from artistic data
-          const imageList = artisticData.map((item) => `${item.filename}.jpg`);
+          // Use the filenames from artistic data with correct extensions
+          const imageList = artisticData.map(
+            (item) => item.filename_with_extension || `${item.filename}.jpg`
+          );
           totalImages = imageList.length;
 
           return Promise.all(
@@ -1641,7 +1637,7 @@
         }
 
         const aspectRatio = texture.image.width / texture.image.height;
-        const width = 20; // Much larger base width
+        const width = 12; // Smaller base width for less overlap
         const height = width / aspectRatio;
 
         const material = new THREE.SpriteMaterial({
@@ -1652,56 +1648,76 @@
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(width, height, 1);
 
-        // Position based on connection strength and keyword clusters
+        // Position based on keyword clusters with emphasis on keywords
         const imageData = artisticData[index];
         const connectionCount = connections.length;
 
-        // Calculate average similarity for this image
+        // Calculate keyword-based similarity (emphasized)
         const avgSimilarity =
           connections.length > 0
             ? connections.reduce((sum, conn) => sum + conn.similarity, 0) /
               connections.length
             : 0;
 
-        // Use connection count and average similarity to determine radius
-        // More connections and higher similarity = closer to center
-        const maxRadius = 350;
-        const minRadius = 0; // Allow images to be at the very center
-        const connectionFactor = Math.min(1, connectionCount / 5); // Normalize to 0-1
-        const similarityFactor = avgSimilarity;
-        const combinedFactor = (connectionFactor + similarityFactor) / 2;
-        const radius =
-          minRadius + (maxRadius - minRadius) * (1 - combinedFactor);
+        // Create more spread out positioning
+        const maxRadius = 800; // Much larger radius for more spread
+        const minRadius = 100; // Minimum distance from center to avoid overlap
 
-        // Use vibe and keywords to determine angle
+        // Use simpler, more stable positioning based on index and keywords
+        const baseAngle = (index / totalImages) * Math.PI * 2; // Even distribution around circle
+
+        // Use top keyword to create clusters
+        const topKeyword = imageData.keywords[0]?.keyword || "default";
+        const keywordHash = topKeyword
+          .split("")
+          .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+        // Create cluster groups based on keyword hash
+        const clusterGroup = keywordHash % 8; // 8 main cluster groups
+        const clusterAngle = (clusterGroup / 8) * Math.PI * 2;
+
+        // Vibe influence for fine positioning
         const vibeAngles = {
           warm: 0,
-          serene: Math.PI / 3,
-          mysterious: (2 * Math.PI) / 3,
-          neutral: Math.PI,
-          cool: (4 * Math.PI) / 3,
-          energetic: (5 * Math.PI) / 3,
+          serene: Math.PI / 8,
+          mysterious: Math.PI / 4,
+          neutral: Math.PI / 2,
+          cool: (3 * Math.PI) / 4,
+          melancholic: Math.PI,
+          whimsical: (5 * Math.PI) / 4,
+          dark: (3 * Math.PI) / 2,
+          raw: (7 * Math.PI) / 4,
         };
 
-        const baseAngle = vibeAngles[imageData.vibe] || 0;
-        const keywordHash = imageData.keywords.reduce(
-          (sum, k) => sum + k.keyword.charCodeAt(0),
-          0
-        );
-        const angleOffset = ((keywordHash % 100) / 100) * Math.PI * 0.5;
+        const vibeAngle = vibeAngles[imageData.vibe] || 0;
 
-        const theta = baseAngle + angleOffset;
-        const phi = Math.acos(1 - (2 * (index + 0.5)) / totalImages);
+        // Combine cluster and vibe positioning
+        const theta = clusterAngle + vibeAngle * 0.1; // Vibe adds small variation
 
-        // Reduce randomness for more predictable clustering
-        const randomOffset = radius * 0.1; // Reduced from 0.2 to 0.1
+        // Use keyword confidence and connections for radius
+        const keywordConfidence = imageData.keywords[0]?.confidence || 0;
+        const connectionFactor = Math.min(1, connectionCount / 5);
+
+        // Simple keyword-based positioning without complex connection analysis
+        const baseRadius = minRadius + (maxRadius - minRadius) * 0.5;
+        const radiusVariation =
+          keywordConfidence * 0.2 + connectionFactor * 0.1;
+        const radius = baseRadius + radiusVariation * 200; // Basic radius calculation
+
+        // Use free-form positioning instead of spherical
+        const baseX = radius * Math.cos(theta);
+        const baseY = radius * Math.sin(theta);
+        const baseZ = (index / totalImages) * 200 - 100; // Spread vertically
+
+        // Add organic variation with larger random offset
+        const randomOffset = 150; // Much larger offset for organic feel
         const offsetX = (Math.random() - 0.5) * randomOffset;
         const offsetY = (Math.random() - 0.5) * randomOffset;
-        const offsetZ = (Math.random() - 0.5) * randomOffset;
+        const offsetZ = (Math.random() - 0.5) * randomOffset * 0.5; // Less vertical variation
 
-        const targetX = radius * Math.sin(phi) * Math.cos(theta) + offsetX;
-        const targetY = radius * Math.sin(phi) * Math.sin(theta) + offsetY;
-        const targetZ = radius * Math.cos(phi) + offsetZ;
+        const targetX = baseX + offsetX;
+        const targetY = baseY + offsetY;
+        const targetZ = baseZ + offsetZ;
 
         sprite.position.set(targetX, targetY, targetZ);
 
@@ -1947,25 +1963,22 @@
         );
       }
 
-      function createConnectionLine(similarity) {
-        // Debug: Log similarity values to see the range
-        console.log("Connection similarity:", similarity);
-
-        // Calculate line weight based on similarity
-        const baseWidth = 8; // Increased base width for better visibility
-        const maxWidth = 250; // Increased maximum width for strongest connections
+      function createConnectionLine(similarity, keywordMatch = false) {
+        // Calculate line weight based on similarity (emphasized for keyword connections)
+        const baseWidth = keywordMatch ? 80 : 4; // 10x thicker for keyword matches
+        const maxWidth = keywordMatch ? 1500 : 100; // 10x wider max for keyword connections
         const lineWidth = baseWidth + similarity * (maxWidth - baseWidth);
 
         // Calculate opacity based on similarity (stronger connections = more opaque)
-        const minOpacity = 0.5; // Increased minimum opacity
-        const maxOpacity = 1.0;
-        const opacity = minOpacity + similarity * (maxOpacity - minOpacity);
+        const minOpacity = keywordMatch ? 1.0 : 0.5; // Full opacity for keyword matches, reduced for others
+        const maxOpacity = keywordMatch ? 1.0 : 0.5; // Full opacity for keyword matches, reduced for others
+        const opacity = minOpacity; // Fixed opacity for clear distinction
 
-        console.log("Line width:", lineWidth, "Opacity:", opacity);
+        // Color based on connection type
+        const color = keywordMatch ? 0x00ff88 : 0xffffff; // Green for keyword matches, white for others
 
-        // White color for all edges
         const material = new THREE.LineBasicMaterial({
-          color: 0xffffff,
+          color: color,
           transparent: true,
           opacity: opacity,
           linewidth: lineWidth,
@@ -1991,7 +2004,7 @@
 
         // Limit the number of connections to prevent performance issues
         let connectionCount = 0;
-        const maxConnections = 300; // Increase limit to see more connections
+        const maxConnections = 150; // Reduced limit for cleaner visualization
 
         // Create new lines based on keyword similarity
         for (
@@ -2010,7 +2023,19 @@
             const connection = connections[j];
             const targetSprite = imageSprites[connection.targetIndex];
             if (targetSprite) {
-              const line = createConnectionLine(connection.similarity);
+              // Check if images share top keywords (keyword match)
+              const spriteData = sprite.userData.imageData;
+              const targetData = targetSprite.userData.imageData;
+              const spriteTopKeyword =
+                spriteData.keywords[0]?.keyword.toLowerCase();
+              const targetTopKeyword =
+                targetData.keywords[0]?.keyword.toLowerCase();
+              const keywordMatch = spriteTopKeyword === targetTopKeyword;
+
+              const line = createConnectionLine(
+                connection.similarity,
+                keywordMatch
+              );
 
               // Use current sprite positions to keep lines connected
               const startPos = new THREE.Vector3(
@@ -4540,8 +4565,21 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "drawer-artwork";
         const artworkImg = document.createElement("img");
-        artworkImg.src = `../../images/${artworkData.filename}.jpg`;
-        artworkImg.alt = artworkData.title || "Artwork";
+        artworkImg.src = `../../images/${
+          artworkData.filename_with_extension || artworkData.filename + ".jpg"
+        }`;
+        artworkImg.alt = artworkData.filename || "Artwork";
+
+        // Add error handling for image loading
+        artworkImg.onerror = function () {
+          console.warn(`Failed to load image: ${artworkImg.src}`);
+          this.style.display = "none";
+          const errorDiv = document.createElement("div");
+          errorDiv.style.cssText =
+            "display: flex; align-items: center; justify-content: center; height: 100%; color: #666; font-size: 14px;";
+          errorDiv.textContent = "Image not available";
+          artworkSection.appendChild(errorDiv);
+        };
 
         // Smart image sizing algorithm
         artworkImg.onload = function () {
@@ -4671,68 +4709,69 @@
               <div class="drawer-field">
                   <div class="drawer-label">Title</div>
                   <div class="drawer-value">${
-                    artworkData.title || "Not specified"
+                    artworkData.filename || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Signed by</div>
+                  <div class="drawer-label">Vibe</div>
                   <div class="drawer-value">${
-                    artworkData.signedBy || "Not specified"
+                    artworkData.vibe || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Zone</div>
+                  <div class="drawer-label">File Type</div>
                   <div class="drawer-value">${
-                    artworkData.zone || "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Exact spot</div>
-                  <div class="drawer-value">${
-                    artworkData.exactSpot || "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Date stamp</div>
-                  <div class="drawer-value">${
-                    artworkData.date || "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Daytime</div>
-                  <div class="drawer-value">${
-                    artworkData.daytime || "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Rawness</div>
-                  <div class="drawer-value">${
-                    artworkData.rawness !== undefined
-                      ? artworkData.rawness
+                    artworkData.filename_with_extension
+                      ? artworkData.filename_with_extension
+                          .split(".")
+                          .pop()
+                          .toUpperCase()
                       : "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Format type</div>
+                  <div class="drawer-label">Keywords Count</div>
                   <div class="drawer-value">${
-                    artworkData.format || "Not specified"
+                    artworkData.keywords
+                      ? artworkData.keywords.length
+                      : "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Top Keyword</div>
+                  <div class="drawer-value">${
+                    artworkData.keywords && artworkData.keywords.length > 0
+                      ? artworkData.keywords[0].keyword
+                      : "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Top Confidence</div>
+                  <div class="drawer-value">${
+                    artworkData.keywords && artworkData.keywords.length > 0
+                      ? (artworkData.keywords[0].confidence * 100).toFixed(1) +
+                        "%"
+                      : "Not specified"
                   }</div>
               </div>
               <div class="drawer-field full-width">
                   <div class="drawer-label">Scene/Context</div>
                   <div class="drawer-context">${
-                    artworkData.context || "No context provided"
+                    artworkData.description || "No context provided"
                   }</div>
               </div>
               <div class="drawer-field full-width">
                   <div class="drawer-label">Vibes/Tags</div>
                   <div class="drawer-tags">
                       ${
-                        artworkData.tags && artworkData.tags.length > 0
-                          ? artworkData.tags
+                        artworkData.keywords && artworkData.keywords.length > 0
+                          ? artworkData.keywords
+                              .slice(0, 5) // Show top 5 keywords
                               .map(
-                                (tag) =>
-                                  `<span class="drawer-tag">${tag}</span>`
+                                (kw) =>
+                                  `<span class="drawer-tag">${kw.keyword} (${(
+                                    kw.confidence * 100
+                                  ).toFixed(0)}%)</span>`
                               )
                               .join("")
                           : '<span class="drawer-tag">No tags</span>'
