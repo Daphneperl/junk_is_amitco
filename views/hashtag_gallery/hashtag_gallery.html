@@ -212,7 +212,7 @@
         background: #fff;
         border-radius: 32px;
         box-shadow: 0 2px 16px #0003;
-        font-size: 20px;
+        font-size: 28px;
         font-family: "VT323", monospace, sans-serif;
         color: #888;
         border: none;
@@ -1006,7 +1006,7 @@
       <div id="hover-title"></div>
     </div>
     <!-- Search Bar (fixed) -->
-    <input id="search-bar" type="text" placeholder="I want to see..." />
+    <input id="search-bar" type="text" placeholder="Focus on..." />
     <!-- Upload Hand Button -->
     <button id="upload-hand-btn">
       <div id="upload-hand-btn-text">Upload<br />junk</div>
@@ -1526,11 +1526,11 @@
               const plane = new THREE.Mesh(geometry, material);
               plane.position.set(x, yCenter, zOffset + z);
               plane.lookAt(0, yCenter, 0); // Face the center
-              
+
               // Store image data with the mesh for drawer modal
               plane.userData.imageData = imageList[i];
               plane.userData.imageUrl = validImages[i].url;
-              
+
               scene.add(plane);
               scene.userData.imagePlanes.push(plane);
 
@@ -1897,6 +1897,8 @@
           ringsRotation.isDragging = true;
         }
 
+        // Only rotate if we're dragging
+        if (ringsRotation.isDragging) {
           rings.rotation.y += deltaX * 0.01;
           rings.rotation.x += deltaY * 0.01;
 
@@ -2169,7 +2171,7 @@
             // Load quote connections and artistic analysis data, then initialize
             Promise.all([
               loadQuoteConnections(),
-              loadArtisticAnalysisData()
+              loadArtisticAnalysisData(),
             ]).then(([quoteData]) => {
               if (quoteData) {
                 // Initialize the scene
@@ -2218,32 +2220,11 @@
       // Search bar event listeners
       document.addEventListener("DOMContentLoaded", function () {
         const searchBar = document.getElementById("search-bar");
-        let searchTimeout;
-
-        searchBar.addEventListener("input", (event) => {
-          const query = event.target.value.trim();
-
-          // Clear previous timeout
-          if (searchTimeout) {
-            clearTimeout(searchTimeout);
-          }
-
-          // Set new timeout for search (debounce)
-          if (query.length > 0) {
-            searchTimeout = setTimeout(() => {
-              performSearch(query);
-            }, 500); // Wait 500ms after user stops typing
-          }
-        });
 
         searchBar.addEventListener("keypress", (event) => {
           if (event.key === "Enter") {
             const query = event.target.value.trim();
             if (query.length > 0) {
-              // Clear timeout and perform search immediately
-              if (searchTimeout) {
-                clearTimeout(searchTimeout);
-              }
               performSearch(query);
             }
           }
@@ -2387,10 +2368,15 @@
       // Search functionality
       function performSearch(query) {
         console.log("Searching for:", query);
-        // For now, just log the search query
-        // You can implement the actual search logic here
-        // For example, navigate to a search results page or filter content
-        alert(`Searching for: ${query}`);
+
+        // Save query to localStorage for persistence
+        localStorage.setItem("lastSearchQuery", query);
+
+        // Set flag to indicate this is a navigation (not a refresh)
+        sessionStorage.setItem("fromNavigation", "true");
+
+        // Redirect to openQuestion.html with the search query
+        window.location.href = "../open_question/openQuestion.html";
       }
 
       // Initialize floating eye
@@ -2769,14 +2755,16 @@
       // Load artistic analysis data
       async function loadArtisticAnalysisData() {
         try {
-          const response = await fetch("../../image_analysis/artistic_analysis.json");
+          const response = await fetch(
+            "../../image_analysis/artistic_analysis.json"
+          );
           const data = await response.json();
-          
+
           // Convert array to object for easier lookup
-          data.forEach(item => {
+          data.forEach((item) => {
             artisticAnalysisData[item.filename] = item;
           });
-          
+
           console.log("Artistic analysis data loaded successfully");
         } catch (error) {
           console.error("Error loading artistic analysis data:", error);
@@ -2793,9 +2781,9 @@
 
         // Get artistic analysis data for this image
         const imageAnalysis = artisticAnalysisData[imageData] || {};
-        
+
         // Extract image filename without extension for lookup
-        const imageName = imageData.split('.')[0];
+        const imageName = imageData.split(".")[0];
         const analysisData = artisticAnalysisData[imageName] || {};
 
         // Create backdrop
@@ -2816,33 +2804,34 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "drawer-artwork";
         const artworkImg = document.createElement("img");
-        
+
         // Try different extensions for the image
         const extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
         let currentExtensionIndex = 0;
-        
+
         function tryLoadImage() {
           if (currentExtensionIndex >= extensions.length) {
-            artworkSection.innerHTML = '<div style="color: #666; font-size: 16px;">Image not available</div>';
+            artworkSection.innerHTML =
+              '<div style="color: #666; font-size: 16px;">Image not available</div>';
             return;
           }
-          
+
           const extension = extensions[currentExtensionIndex];
           const imagePath = `../../images/${imageData}${extension}`;
-          
-          artworkImg.onload = function() {
+
+          artworkImg.onload = function () {
             console.log(`Successfully loaded image for drawer: ${imagePath}`);
           };
-          
-          artworkImg.onerror = function() {
+
+          artworkImg.onerror = function () {
             console.log(`Failed to load image: ${imagePath}`);
             currentExtensionIndex++;
             tryLoadImage();
           };
-          
+
           artworkImg.src = imagePath;
         }
-        
+
         artworkImg.alt = "Artwork";
         artworkSection.appendChild(artworkImg);
         tryLoadImage();
@@ -2855,13 +2844,17 @@
         const title = imageData || "-";
         const signedBy = "-"; // Creator name - not available in current data
         const zone = "-"; // Geographic location - not available in current data
-        const exactSpot = currentQuoteData ? currentQuoteData.quote.replace(/_/g, " ") : "-";
+        const exactSpot = currentQuoteData
+          ? currentQuoteData.quote.replace(/_/g, " ")
+          : "-";
         const dateStamp = "-"; // Time of creation - not available in current data
         const daytime = "-"; // Level of day - not available in current data
         const rawness = "-"; // Completeness level % - not available in current data
         const formatType = "-"; // Artwork format - not available in current data
         const context = analysisData.description || "-";
-        const tags = analysisData.keywords ? analysisData.keywords.map(k => k.keyword) : [];
+        const tags = analysisData.keywords
+          ? analysisData.keywords.map((k) => k.keyword)
+          : [];
 
         // Create info content with correct semantic mapping
         infoSection.innerHTML = `
@@ -2904,7 +2897,16 @@
               <div class="drawer-field full-width">
                   <div class="drawer-label">Vibes/Tags</div>
                   <div class="drawer-tags">
-                      ${tags.length > 0 ? tags.map(tag => `<span class="drawer-tag">${tag}</span>`).join('') : '<span class="drawer-tag">No tags available</span>'}
+                      ${
+                        tags.length > 0
+                          ? tags
+                              .map(
+                                (tag) =>
+                                  `<span class="drawer-tag">${tag}</span>`
+                              )
+                              .join("")
+                          : '<span class="drawer-tag">No tags available</span>'
+                      }
                   </div>
               </div>
           `;
@@ -2966,17 +2968,17 @@
 
         // Raycast
         raycaster.setFromCamera(mouse, camera);
-        
+
         // Get all image planes from the scene
         const imagePlanes = scene.userData.imagePlanes || [];
         const intersects = raycaster.intersectObjects(imagePlanes, false);
 
         if (intersects.length > 0) {
           const clickedMesh = intersects[0].object;
-          
+
           // Get the image data stored with the mesh
           const imageData = clickedMesh.userData.imageData;
-          
+
           if (imageData) {
             // Create drawer modal with the image data
             createDrawerModal(imageData, clickedMesh);

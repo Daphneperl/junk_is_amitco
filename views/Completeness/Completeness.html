@@ -1317,7 +1317,7 @@
       <div id="hover-title"></div>
     </div>
     <!-- Search Bar (fixed) -->
-    <input id="search-bar" type="text" placeholder="I want to see..." />
+    <input id="search-bar" type="text" placeholder="focus 0n..." />
     <!-- Upload Hand Button -->
     <button id="upload-hand-btn">
       <div id="upload-hand-btn-text">Upload<br />junk</div>
@@ -2919,10 +2919,15 @@
       // Search functionality
       function performSearch(query) {
         console.log("Searching for:", query);
-        // For now, just log the search query
-        // You can implement the actual search logic here
-        // For example, navigate to a search results page or filter content
-        alert(`Searching for: ${query}`);
+
+        // Save query to localStorage for persistence
+        localStorage.setItem("lastSearchQuery", query);
+
+        // Set flag to indicate this is a navigation (not a refresh)
+        sessionStorage.setItem("fromNavigation", "true");
+
+        // Redirect to openQuestion.html with the search query
+        window.location.href = "../open_question/openQuestion.html";
       }
 
       function updateLoadingUI(progress) {
@@ -3797,33 +3802,12 @@
       // Setup event listeners function
       function setupEventListeners() {
         const searchBar = document.getElementById("search-bar");
-        let searchTimeout;
 
         if (searchBar) {
-          searchBar.addEventListener("input", (event) => {
-            const query = event.target.value.trim();
-
-            // Clear previous timeout
-            if (searchTimeout) {
-              clearTimeout(searchTimeout);
-            }
-
-            // Set new timeout for search (debounce)
-            if (query.length > 0) {
-              searchTimeout = setTimeout(() => {
-                performSearch(query);
-              }, 500); // Wait 500ms after user stops typing
-            }
-          });
-
           searchBar.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
               const query = event.target.value.trim();
               if (query.length > 0) {
-                // Clear timeout and perform search immediately
-                if (searchTimeout) {
-                  clearTimeout(searchTimeout);
-                }
                 performSearch(query);
               }
             }
