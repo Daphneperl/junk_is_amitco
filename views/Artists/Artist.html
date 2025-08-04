@@ -25,6 +25,21 @@
         font-family: "Pixel";
         src: url("../../assets/pixel.ttf") format("truetype");
       }
+
+      /* Page Title */
+      .page-title {
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        color: white;
+        font-family: "VT323", monospace;
+        font-size: 30px;
+        text-align: right;
+        z-index: 2000;
+        pointer-events: none;
+        display: none;
+      }
+
       body {
         margin: 0;
         background-color: black;
@@ -1444,6 +1459,9 @@
     </style>
   </head>
   <body>
+    <!-- Page Title -->
+    <div class="page-title">creator</div>
+
     <!-- Galaxy Navigation Button -->
     <button
       id="galaxy-nav-btn"
@@ -2000,6 +2018,10 @@
 
           if (loadingContainer) loadingContainer.style.display = "none";
           if (visualization) visualization.style.display = "block";
+
+          // Show page title after loading screen is gone
+          document.querySelector(".page-title").style.display = "block";
+
           if (blackOverlay) {
             blackOverlay.style.opacity = "0";
             setTimeout(() => {
