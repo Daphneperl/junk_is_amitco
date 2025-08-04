@@ -23,7 +23,7 @@ def generate_semantic_scores(query, image_files=None):
     
     def load_artistic_analysis():
         """Load the artistic analysis data"""
-        analysis_file = "../../image_analysis/artistic_analysis_filtered.json"
+        analysis_file = "../../image_analysis/images2_analysis/artistic_analysis_images2_filtered.json"
         if os.path.exists(analysis_file):
             with open(analysis_file, 'r') as f:
                 return json.load(f)
@@ -132,14 +132,14 @@ def generate_semantic_scores(query, image_files=None):
         if not any(filename.endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
             # Try to find the actual file extension
             for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
-                if os.path.exists(f"../../images/{filename}{ext}"):
+                if os.path.exists(f"../../images2/{filename}{ext}"):
                     filename = filename + ext
                     break
         image_data_map[filename] = item
     
     # If no specific image files provided, get the list of existing images
     if image_files is None:
-        images_dir = "../../images/"
+        images_dir = "../../images2/"
         if os.path.exists(images_dir):
             image_files = []
             for filename in os.listdir(images_dir):
