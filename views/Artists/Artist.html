@@ -1505,7 +1505,7 @@
       <div id="hover-title"></div>
     </div>
     <!-- Search Bar (fixed) -->
-    <input id="search-bar" type="text" placeholder="focus on..." />
+    <input id="search-bar" type="text" placeholder="Looking for someone? " />
     <!-- Upload Hand Button -->
     <button id="upload-hand-btn">
       <div id="upload-hand-btn-text">Upload<br />junk</div>
@@ -1710,6 +1710,9 @@
       let targetClusterPosition = new THREE.Vector3();
       const CLUSTER_TRANSITION_DURATION = 1000; // ms
       let transitionStartTime = 0;
+
+      // Camera animation variables
+      let isCameraAnimating = false;
 
       // Cluster popup variables
       let clusterPopupData = {
@@ -2005,6 +2008,14 @@
           }
 
           isInitialized = true;
+
+          // Initialize search functionality after helix is loaded
+          const searchBar = document.getElementById("search-bar");
+          if (searchBar) {
+            // Always reset to default placeholder text
+            searchBar.value = "";
+          }
+
           animate();
         } catch (error) {
           console.error("Error in loadAndCreateImageClusters:", error);
@@ -3130,8 +3141,8 @@
         if (!isInitialized) return;
         requestAnimationFrame(animate);
 
-        // Only update helix position and rotation when not in cluster mode
-        if (!isClusterMode) {
+        // Only update helix position and rotation when not in cluster mode and not animating camera
+        if (!isClusterMode && !isCameraAnimating) {
           if (!isDragging) {
             targetY += scrollVelocity * 8; // Reduced from 12 for smoother movement
             scrollVelocity *= VELOCITY_DAMPENING;
@@ -3752,22 +3763,145 @@
 
       // Search functionality
       function performSearch(query) {
-        console.log("Searching for:", query);
+        console.log("Searching for creator:", query);
 
         // Save query to localStorage for persistence
         localStorage.setItem("lastSearchQuery", query);
 
-        // Set flag to indicate this is a navigation (not a refresh)
-        sessionStorage.setItem("fromNavigation", "true");
+        // Search within creator names
+        searchCreators(query);
 
-        // Redirect to openQuestion.html with the search query
-        window.location.href = "../open_question/openQuestion.html";
+        // Clear the search bar after searching
+        const searchBar = document.getElementById("search-bar");
+        if (searchBar) {
+          searchBar.value = "";
+        }
+      }
+
+      // Function to search creators within the current page
+      function searchCreators(query) {
+        if (!helixGroup || !imageGroups) {
+          console.log("Helix not initialized yet");
+          return;
+        }
+
+        const searchTerm = query.toLowerCase().trim();
+
+        if (searchTerm === "") {
+          // If search is empty, return to normal view
+          return;
+        }
+
+        // Search through creator clusters
+        let foundMatch = false;
+        let targetCluster = null;
+
+        helixGroup.children.forEach((cluster, index) => {
+          const container = cluster.children[0];
+          if (container && container.userData.clusterData) {
+            const creatorName =
+              container.userData.clusterData.creator.toLowerCase();
+
+            if (creatorName.includes(searchTerm)) {
+              // Found matching cluster
+              foundMatch = true;
+              targetCluster = cluster;
+            }
+          }
+        });
+
+        if (foundMatch && targetCluster) {
+          // Find the cluster index in the helix
+          const clusterIndex = imageGroups.indexOf(targetCluster);
+          if (clusterIndex !== -1) {
+            // Calculate the target Y position based on cluster index and current helix position
+            const totalClusters = imageGroups.length;
+            const clusterLocalPos = createHelixPosition(
+              clusterIndex,
+              totalClusters
+            );
+            const currentHelixY = helixGroup ? helixGroup.position.y : 0;
+
+            // The target Y is the cluster's local Y position minus the current helix Y offset
+            const targetY = clusterLocalPos.y - currentHelixY;
+            const currentCameraY = camera.position.y;
+
+            console.log("Cluster index:", clusterIndex);
+            console.log("Cluster local position:", clusterLocalPos);
+            console.log("Current helix Y:", currentHelixY);
+            console.log("Current camera Y:", currentCameraY);
+            console.log("Target Y:", targetY);
+            console.log(
+              "Movement direction:",
+              targetY > currentCameraY ? "UP" : "DOWN"
+            );
+
+            // Animate camera to the cluster's Y position
+            animateCameraToY(targetY);
+
+            console.log(
+              "Found creator:",
+              targetCluster.children[0].userData.clusterData.creator
+            );
+          }
+        } else {
+          console.log("No creators found matching:", searchTerm);
+        }
+      }
+
+      // Function to animate camera to a specific Y position
+      function animateCameraToY(targetY) {
+        // Set animation flag to prevent main loop interference
+        isCameraAnimating = true;
+
+        // Disable scroll controls during animation
+        const originalIsDragging = isDragging;
+        isDragging = false;
+        scrollVelocity = 0;
+
+        const startY = camera.position.y;
+        const startTime = Date.now();
+        const duration = 2000; // 2 seconds for faster response
+
+        function animateCamera() {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // Smooth easing function (ease-out cubic)
+          const eased = 1 - Math.pow(1 - progress, 3);
+
+          // Update the current Y position
+          currentY = startY + (targetY - startY) * eased;
+
+          // Update helix position to match camera
+          if (helixGroup) {
+            helixGroup.position.y = -currentY;
+          }
+
+          // Update camera position
+          camera.position.y = currentY;
+
+          // Keep camera looking at the center
+          camera.lookAt(0, currentY, 0);
+
+          if (progress < 1) {
+            requestAnimationFrame(animateCamera);
+          } else {
+            // Animation complete - restore scroll controls and animation flag
+            isDragging = originalIsDragging;
+            isCameraAnimating = false;
+            console.log("Camera animation complete");
+          }
+        }
+
+        animateCamera();
       }
 
       // Search bar event listeners
       document.addEventListener("DOMContentLoaded", function () {
         const searchBar = document.getElementById("search-bar");
 
+        // Search only on Enter key press
         searchBar.addEventListener("keypress", (event) => {
           if (event.key === "Enter") {
             const query = event.target.value.trim();
