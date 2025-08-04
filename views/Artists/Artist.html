@@ -1811,8 +1811,8 @@
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
 
-        // Set canvas size
-        canvas.width = 256;
+        // Set canvas size with more width for longer text
+        canvas.width = 512;
         canvas.height = 64;
 
         // Set text style
@@ -1834,9 +1834,9 @@
           opacity: 0.8,
         });
 
-        // Create sprite
+        // Create sprite with moderate scale
         const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.scale.set(12, 3, 1); // Increased scale to match larger font
+        sprite.scale.set(16, 3, 1); // Moderate scale that should fit longer text without distortion
 
         return sprite;
       }
@@ -1859,36 +1859,39 @@
 
           updateLoadingUI(5); // 5% for scene setup
 
-          const response = await fetch("../../images/images.json");
+          // Load creator clusters instead of random images
+          const response = await fetch("creator_clusters.json");
           if (!response.ok) {
-            throw new Error("Failed to load images.json");
+            throw new Error(
+              "Failed to load creator_clusters.json. Please run the create_creator_clusters.py script first."
+            );
           }
-          const imageList = await response.json();
+          const creatorClusters = await response.json();
 
           updateLoadingUI(10); // 10% for JSON loaded
 
           const textureLoader = new THREE.TextureLoader();
           let loadedImages = 0;
-          const totalImages = imageList.length;
-
-          const avgClusterSize = 5;
-          const estimatedClusters = Math.ceil(
-            imageList.length / avgClusterSize
+          const totalImages = creatorClusters.reduce(
+            (sum, cluster) => sum + cluster.images.length,
+            0
           );
-          let clusterIndex = 0;
 
-          let remainingImages = [...imageList];
-          while (remainingImages.length > 0) {
-            const clusterSize = Math.min(
-              Math.floor(Math.random() * 5) + 3,
-              remainingImages.length
-            );
+          updateLoadingUI(15); // 15% for data processing
+
+          // Create clusters for each creator
+          for (
+            let clusterIndex = 0;
+            clusterIndex < creatorClusters.length;
+            clusterIndex++
+          ) {
+            const cluster = creatorClusters[clusterIndex];
             const clusterGroup = new THREE.Group();
 
             // Position cluster on helix
             const helixPos = createHelixPosition(
               clusterIndex,
-              estimatedClusters
+              creatorClusters.length
             );
             clusterGroup.position.copy(helixPos);
 
@@ -1896,22 +1899,17 @@
             const clusterContainer = new THREE.Object3D();
             clusterGroup.add(clusterContainer);
             clusterContainer.userData.shouldFaceCamera = true;
+            clusterContainer.userData.clusterData = cluster; // Store cluster data for popup
 
             // Add images to cluster
-            for (
-              let i = 0;
-              i < clusterSize && remainingImages.length > 0;
-              i++
-            ) {
-              const imageIndex = Math.floor(
-                Math.random() * remainingImages.length
-              );
-              const imagePath = remainingImages[imageIndex];
-              remainingImages.splice(imageIndex, 1);
+            const images = cluster.images;
+            for (let i = 0; i < images.length; i++) {
+              const imageData = images[i];
+              const imagePath = `../../images2/${imageData.filename}`;
 
               await new Promise((resolve, reject) => {
                 textureLoader.load(
-                  `../../images/${imagePath}`,
+                  imagePath,
                   (texture) => {
                     const aspectRatio =
                       texture.image.width / texture.image.height;
@@ -1922,33 +1920,35 @@
                     });
                     const sprite = new THREE.Sprite(spriteMaterial);
 
-                    // Store image path for click detection
+                    // Store image data for click detection
+                    sprite.userData.imageData = imageData;
                     sprite.userData.imagePath = imagePath;
+                    sprite.userData.clusterIndex = clusterIndex;
 
                     // Ensure images render in front of grid
                     sprite.renderOrder = 1000;
                     sprite.material.depthTest = false;
 
-                    const baseSize = 8; // Increased from 5 to 8
+                    const baseSize = 8;
                     sprite.scale.set(baseSize * aspectRatio, baseSize, 1);
 
                     // Calculate grid dimensions for proper spacing
-                    const gridCols = Math.ceil(Math.sqrt(clusterSize));
-                    const gridRows = Math.ceil(clusterSize / gridCols);
-                    const spacing = Math.max(10, baseSize * 1.3); // Reduced spacing to bring images closer
+                    const gridCols = Math.ceil(Math.sqrt(images.length));
+                    const gridRows = Math.ceil(images.length / gridCols);
+                    const spacing = Math.max(10, baseSize * 1.3);
 
                     // Calculate total height of the grid
                     const totalGridHeight = gridRows * spacing;
 
-                    // Add username text under the cluster
-                    const username = "@User" + (clusterIndex + 1);
-                    const textSprite = createTextSprite(username);
+                    // Add creator name text under the cluster
+                    const creatorName = cluster.creator;
+                    const textSprite = createTextSprite(creatorName);
                     // Ensure text also renders in front
                     textSprite.renderOrder = 1000;
                     textSprite.material.depthTest = false;
                     // Position the text sprite below the bottom row of images
-                    textSprite.position.y = -(totalGridHeight / 2 + 1); // 5 units padding below the last row
-                    textSprite.position.z = 0; // Keep on same plane as images
+                    textSprite.position.y = -(totalGridHeight / 2 + 1);
+                    textSprite.position.z = 0;
                     clusterContainer.add(textSprite);
 
                     // Position in a flat grid layout with increased spacing
@@ -1956,14 +1956,14 @@
                     const row = Math.floor(i / gridCols);
                     const offsetX = (col - (gridCols - 1) / 2) * spacing;
                     const offsetY = (row - (gridRows - 1) / 2) * spacing;
-                    sprite.position.set(offsetX, offsetY, 0); // All sprites at z=0 for flat plane
+                    sprite.position.set(offsetX, offsetY, 0);
 
                     clusterContainer.add(sprite);
                     loadedImages++;
 
-                    // Update progress from 10% to 90% based on image loading
+                    // Update progress from 15% to 85% based on image loading
                     const imageProgress =
-                      10 + (loadedImages / totalImages) * 80;
+                      15 + (loadedImages / totalImages) * 70;
                     updateLoadingUI(imageProgress);
                     resolve();
                   },
@@ -1975,13 +1975,12 @@
 
             helixGroup.add(clusterGroup);
             imageGroups.push(clusterGroup);
-            clusterIndex++;
           }
 
           updateLoadingUI(90); // 90% for all images loaded
 
           // Initial camera position
-          camera.position.set(80, 0, 80); // Moved camera further out
+          camera.position.set(80, 0, 80);
           camera.lookAt(0, 0, 0);
 
           updateLoadingUI(95); // 95% for camera setup
@@ -2299,21 +2298,16 @@
         const container = cluster.children[0];
         const images = [];
         let username = "";
+        let clusterData = null;
 
-        if (container) {
+        if (container && container.userData.clusterData) {
+          clusterData = container.userData.clusterData;
+          username = clusterData.creator;
+
+          // Extract image data from the cluster
           container.children.forEach((child) => {
-            if (child instanceof THREE.Sprite && child.userData.imagePath) {
-              images.push(child.userData.imagePath);
-            } else if (
-              child.material &&
-              child.material.map &&
-              child.material.map.image
-            ) {
-              // This is the username text sprite
-              const canvas = child.material.map.image;
-              const context = canvas.getContext("2d");
-              // We can't easily extract text from canvas, so we'll use the cluster index
-              username = `@User${clusterIndex + 1}`;
+            if (child instanceof THREE.Sprite && child.userData.imageData) {
+              images.push(child.userData.imageData);
             }
           });
         }
@@ -2324,6 +2318,7 @@
           currentIndex: 0,
           clusterIndex: clusterIndex,
           username: username,
+          clusterData: clusterData,
         };
 
         // Update popup title
@@ -2384,13 +2379,13 @@
         indicators.innerHTML = "";
 
         // Add images to carousel
-        clusterPopupData.images.forEach((imagePath, index) => {
+        clusterPopupData.images.forEach((imageData, index) => {
           const imageItem = document.createElement("div");
           imageItem.className = "cluster-image-item";
 
           const img = document.createElement("img");
-          img.src = `../../images/${imagePath}`;
-          img.alt = `Image ${index + 1}`;
+          img.src = `../../images2/${imageData.filename}`;
+          img.alt = imageData.title || `Image ${index + 1}`;
           img.style.cursor = "pointer";
           img.onerror = function () {
             imageItem.innerHTML =
@@ -2399,7 +2394,7 @@
 
           // Add click handler to show image details
           img.onclick = function (event) {
-            showImageDetails(imagePath, index, event);
+            showImageDetails(imageData, index, event);
           };
 
           imageItem.appendChild(img);
@@ -2475,31 +2470,31 @@
         }
       }
 
-      function showImageDetails(imagePath, imageIndex, event) {
+      function showImageDetails(imageData, imageIndex, event) {
         // Remove any existing cluster drawer modal
         const existingModal = document.querySelector(".cluster-drawer-modal");
         if (existingModal) {
           existingModal.remove();
         }
 
-        // Create artwork data for the clicked image
+        // Create artwork data for the clicked image using the actual data
         const artworkData = {
-          image: imagePath.split("/").pop(), // Get filename from path
-          title: imagePath
-            .split("/")
-            .pop()
-            .replace(/\.[^/.]+$/, ""), // Remove file extension
+          image: imageData.filename,
+          title: imageData.title || imageData.filename.replace(/\.[^/.]+$/, ""),
           signedBy: clusterPopupData.username,
-          zone: "-",
-          exactSpot: "-",
-          date: "-",
-          daytime: "-",
-          rawness: "-",
-          format: imagePath.split(".").pop().toUpperCase(), // File extension as format
-          context: `Image ${imageIndex + 1} of ${
-            clusterPopupData.images.length
-          } in cluster`,
-          tags: [],
+          zone: imageData.location || "-",
+          exactSpot: imageData.exact_spot || "-",
+          date: imageData.date_stamp || "-",
+          daytime: imageData.daytime_icon || "-",
+          rawness: imageData.rawness_percent || "-",
+          format: imageData.filename.split(".").pop().toUpperCase(),
+          context:
+            imageData.context ||
+            imageData.artistic_description ||
+            `Image ${imageIndex + 1} of ${
+              clusterPopupData.images.length
+            } in cluster`,
+          tags: imageData.keywords ? imageData.keywords.split("; ") : [],
         };
 
         // Get cluster popup container
@@ -2672,16 +2667,20 @@
 
         // Vibes/Tags section
         const tagsSection = document.createElement("div");
+        const tagsHtml =
+          artworkData.tags && artworkData.tags.length > 0
+            ? artworkData.tags
+                .map(
+                  (tag) =>
+                    `<span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; padding: 5px 12px; font-size: 12px; color: #fff; margin-right: 8px; margin-bottom: 8px;">${tag.trim()}</span>`
+                )
+                .join("")
+            : '<span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; padding: 5px 12px; font-size: 12px; color: #fff;">No tags</span>';
+
         tagsSection.innerHTML = `
           <div style="font-weight: bold; margin-bottom: 10px; font-size: 16px;">VIBES/TAGS</div>
           <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; padding: 5px 12px; font-size: 12px; color: #fff;">
-              ${
-                artworkData.tags && artworkData.tags.length > 0
-                  ? artworkData.tags[0]
-                  : "No tags"
-              }
-            </span>
+            ${tagsHtml}
           </div>
         `;
 
@@ -2718,6 +2717,51 @@
       // Add double click handler to renderer
       function initClusterInteraction() {
         const container = renderer.domElement;
+
+        // Add double click handler for clusters
+        container.addEventListener("dblclick", (event) => {
+          event.preventDefault();
+
+          // Calculate mouse position in normalized device coordinates
+          const mouse = new THREE.Vector2();
+          mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+          mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+          // Raycast to find clicked cluster
+          const raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera(mouse, camera);
+
+          // Check for intersections with cluster groups
+          const intersects = raycaster.intersectObjects(imageGroups, true);
+
+          if (intersects.length > 0) {
+            // Find the cluster group that was clicked
+            let clickedCluster = null;
+            let clusterIndex = -1;
+
+            for (let i = 0; i < imageGroups.length; i++) {
+              const cluster = imageGroups[i];
+              if (cluster.children.length > 0) {
+                const container = cluster.children[0];
+                if (
+                  container.children.some(
+                    (child) =>
+                      child instanceof THREE.Sprite &&
+                      raycaster.intersectObject(child).length > 0
+                  )
+                ) {
+                  clickedCluster = cluster;
+                  clusterIndex = i;
+                  break;
+                }
+              }
+            }
+
+            if (clickedCluster) {
+              showClusterPopup(clickedCluster, clusterIndex);
+            }
+          }
+        });
 
         // Add escape key handler
         window.addEventListener("keydown", (event) => {
