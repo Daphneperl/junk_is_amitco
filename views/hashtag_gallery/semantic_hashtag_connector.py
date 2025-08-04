@@ -241,16 +241,27 @@ class SemanticHashtagConnector:
 
     def load_data(self):
         """Load the artistic analysis and hashtags data"""
-        # Load artistic analysis
-        with open('../../image_analysis/artistic_analysis_filtered.json', 'r', encoding='utf-8') as f:
+        # Load artistic analysis for images2
+        with open('../../image_analysis/images2_analysis/artistic_analysis_images2_filtered.json', 'r', encoding='utf-8') as f:
             self.artistic_analysis = json.load(f)
+        
+        # Load df.json for additional keywords
+        with open('../../assets/DF.json', 'r', encoding='utf-8') as f:
+            self.df_data = json.load(f)
+        
+        # Create a mapping from filename to df.json data
+        self.df_mapping = {}
+        for item in self.df_data:
+            filename = item.get('filename', '')
+            if filename:
+                self.df_mapping[filename] = item
         
         # Load hashtags
         with open('Hashtags.csv', 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             self.hashtags = list(reader)
         
-        print(f"Loaded {len(self.artistic_analysis)} images and {len(self.hashtags)} hashtags")
+        print(f"Loaded {len(self.artistic_analysis)} images from images2, {len(self.df_data)} df.json entries, and {len(self.hashtags)} hashtags")
 
     def extract_quote_keywords(self, quote: str) -> List[str]:
         """Extract keywords from a quote automatically"""
@@ -300,6 +311,18 @@ class SemanticHashtagConnector:
         # Get image keywords and description
         image_keywords = [kw['keyword'].lower() for kw in image_data.get('keywords', [])]
         image_description = image_data.get('description', '').lower()
+        
+        # Add df.json keywords if available
+        filename = image_data.get('filename', '')
+        if filename in self.df_mapping:
+            df_keywords = self.df_mapping[filename].get('keywords', [])
+            df_keywords_lower = [kw.lower() for kw in df_keywords]
+            image_keywords.extend(df_keywords_lower)
+            
+            # Also add artistic description from df.json
+            df_description = self.df_mapping[filename].get('artistic_description', '')
+            if df_description:
+                image_description += ' ' + df_description.lower()
         
         # HIGHEST PRIORITY: Bottom line matching (if bottom_line is provided)
         if bottom_line and bottom_line in self.bottom_line_keywords:
