@@ -1459,7 +1459,9 @@
       // Load sketchiness scores
       async function loadSketchinessScores() {
         try {
-          const response = await fetch("inverted_sketchiness_scores.json");
+          const response = await fetch(
+            "inverted_sketchiness_scores_images2.json"
+          );
           sketchinessScores = await response.json();
         } catch (error) {
           console.error("Error loading sketchiness scores:", error);
@@ -1699,7 +1701,7 @@
           this.score = score;
           this.image = new Image();
           this.image.crossOrigin = "anonymous";
-          this.image.src = `../../images/${filename}`;
+          this.image.src = `../../images2/${filename}`;
           this.image.onload = () => {
             this.loaded = true;
           };
@@ -2033,7 +2035,7 @@
         imageFiles.forEach((filename) => {
           const img = new Image();
           img.crossOrigin = "anonymous";
-          img.src = `../../images/${filename}`;
+          img.src = `../../images2/${filename}`;
           img.onload = () => {
             loadedCount++;
             images[filename] = img;
@@ -3882,7 +3884,7 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "drawer-artwork";
         const artworkImg = document.createElement("img");
-        artworkImg.src = `../../images/${artworkData.image}`;
+        artworkImg.src = `../../images2/${artworkData.image}`;
         artworkImg.alt = artworkData.title || "Artwork";
 
         // Handle image loading to ensure proper sizing for elongated images
