@@ -2286,7 +2286,16 @@
               resolve();
             },
             undefined,
-            reject
+            (error) => {
+              console.warn(`Failed to load texture for ${filename}:`, error);
+              reject(
+                new Error(
+                  `Failed to load texture for ${filename}: ${
+                    error.message || "Unknown error"
+                  }`
+                )
+              );
+            }
           );
         });
       }
@@ -2372,7 +2381,7 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "drawer-artwork";
         const artworkImg = document.createElement("img");
-        artworkImg.src = `../../images/${filename}`;
+        artworkImg.src = `../../images2/${filename}`;
         artworkImg.alt = "Artwork";
 
         // Dynamic image sizing logic
@@ -2478,9 +2487,7 @@
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Intimacy Score</div>
-                  <div class="drawer-value">${scores.intimacy_score.toFixed(
-                    2
-                  )}</div>
+                  <div class="drawer-value">Not available</div>
               </div>
           `;
 
@@ -2614,6 +2621,7 @@
       function preloadImages(data) {
         const totalImages = Object.keys(data).length;
         let loadedImages = 0;
+        let failedImages = 0;
 
         const promises = Object.keys(data).map((filename) => {
           return new Promise((resolve, reject) => {
@@ -2624,15 +2632,24 @@
               updateLoadingUI(progress);
               resolve();
             };
-            img.onerror = () => reject();
-            img.src = `../../images/${filename}`;
+            img.onerror = () => {
+              failedImages++;
+              console.warn(`Failed to preload image: ${filename}`);
+              // Don't reject, just resolve to continue with other images
+              resolve();
+            };
+            img.src = `../../images2/${filename}`;
           });
         });
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => {
+          console.log(
+            `Preloaded ${loadedImages} images, failed to load ${failedImages} images`
+          );
+        });
       }
 
       // Load the JSON data and create 3D visualization
-      fetch("temperament_scores.json")
+      fetch("temperament_scores_images2.json")
         .then((response) => response.json())
         .then((data) => {
           const totalImages = Object.keys(data).length;
@@ -2680,18 +2697,39 @@
                 const z = radius * Math.cos(theta);
 
                 return createImageSprite(
-                  `../../images/${d.filename}`,
+                  `../../images2/${d.filename}`,
                   { x, y, z },
                   {
                     temperament_score: d.temperament_score,
-                    intimacy_score: d.intimacy_score,
                   },
                   normalizedScore,
                   d.filename
                 ).then(() => updateLoadingProgress());
               });
 
-              return Promise.all(createSpritesPromises);
+              return Promise.allSettled(createSpritesPromises).then(
+                (results) => {
+                  const successful = results.filter(
+                    (r) => r.status === "fulfilled"
+                  ).length;
+                  const failed = results.filter(
+                    (r) => r.status === "rejected"
+                  ).length;
+                  console.log(
+                    `Successfully created ${successful} sprites, failed to create ${failed} sprites`
+                  );
+
+                  // Log failed sprite creations
+                  results.forEach((result, index) => {
+                    if (result.status === "rejected") {
+                      console.warn(
+                        `Failed to create sprite for ${dataArray[index].filename}:`,
+                        result.reason
+                      );
+                    }
+                  });
+                }
+              );
             })
             .then(() => {
               // Hide loading page and show visualization
@@ -2760,8 +2798,10 @@
         })
         .catch((error) => {
           console.error("Error loading images:", error);
-          document.getElementById("loading-text").textContent =
-            "Error loading images. Please refresh the page.";
+          console.error("Error details:", error.message, error.stack);
+          document.getElementById(
+            "loading-text"
+          ).textContent = `Error loading images: ${error.message}. Please refresh the page.`;
           document.getElementById("loading-text").style.color = "#ff0000";
         })
         .finally(() => {
