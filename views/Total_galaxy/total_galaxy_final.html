@@ -2,12 +2,21 @@
 <html>
   <head>
     <title>Total Galaxy - Accurate Views</title>
-    <link rel="preload" href="../../assets/TransperentLogo_3107.gif" as="image" type="image/gif" fetchpriority="high">
-    <link rel="dns-prefetch" href="../../assets/">
-    <link rel="preconnect" href="../../assets/">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <link
+      rel="preload"
+      href="../../assets/TransperentLogo_3107.gif"
+      as="image"
+      type="image/gif"
+      fetchpriority="high"
+    />
+    <link rel="dns-prefetch" href="../../assets/" />
+    <link rel="preconnect" href="../../assets/" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -126,85 +135,49 @@
     <div id="visualization"></div>
 
     <script>
-      // Advanced performance-optimized GIF loading
-      document.addEventListener('DOMContentLoaded', function() {
-        const gifImage = document.querySelector('.title-gif');
-        const loadingContainer = document.getElementById('loading-container');
-        
-        // Add performance monitoring display
-        const perfDisplay = document.createElement('div');
-        perfDisplay.style.cssText = 'position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; font-family: monospace; font-size: 12px; z-index: 9999; border-radius: 5px;';
-        document.body.appendChild(perfDisplay);
-        
+      // GIF loading
+      document.addEventListener("DOMContentLoaded", function () {
+        const gifImage = document.querySelector(".title-gif");
+
         if (gifImage) {
-          // Performance monitoring with detailed metrics
-          const startTime = performance.now();
-          
-          gifImage.onload = function() {
-            const loadTime = performance.now() - startTime;
-            console.log(`GIF loaded successfully in ${loadTime.toFixed(2)}ms`);
-            
-            // Display performance info
-            perfDisplay.innerHTML = `
-              <strong>GIF Performance:</strong><br>
-              Load Time: ${loadTime.toFixed(2)}ms<br>
-              File Size: ~1.1MB<br>
-              Status: ✅ Loaded
-            `;
-            
+          gifImage.onload = function () {
+            console.log("GIF loaded successfully");
+
             // Smooth transition to loaded state
-            gifImage.classList.remove('loading');
-            gifImage.classList.add('loaded');
-            
+            gifImage.classList.remove("loading");
+            gifImage.classList.add("loaded");
+
             // Optimize rendering performance
-            gifImage.style.willChange = 'auto';
+            gifImage.style.willChange = "auto";
           };
-          
-          gifImage.onerror = function() {
-            const loadTime = performance.now() - startTime;
-            console.error('Failed to load GIF');
-            
-            perfDisplay.innerHTML = `
-              <strong>GIF Performance:</strong><br>
-              Load Time: ${loadTime.toFixed(2)}ms<br>
-              Status: ❌ Failed to load
-            `;
-            
+
+          gifImage.onerror = function () {
+            console.error("Failed to load GIF");
+
             // Show GIF anyway after timeout
             setTimeout(() => {
-              gifImage.style.display = 'block';
-              gifImage.classList.remove('loading');
+              gifImage.style.display = "block";
+              gifImage.classList.remove("loading");
             }, 3000);
           };
-          
-          // Add system performance check
-          const systemInfo = {
-            userAgent: navigator.userAgent,
-            memory: navigator.deviceMemory || 'Unknown',
-            cores: navigator.hardwareConcurrency || 'Unknown',
-            connection: navigator.connection ? navigator.connection.effectiveType : 'Unknown'
-          };
-          
-          console.log('System Info:', systemInfo);
-          perfDisplay.innerHTML += `<br><strong>System:</strong><br>Memory: ${systemInfo.memory}GB<br>Cores: ${systemInfo.cores}<br>Connection: ${systemInfo.connection}`;
         }
       });
-      
-      // Enhanced manual reload function with performance monitoring
-      window.reloadGif = function() {
-        const gifImage = document.querySelector('.title-gif');
+
+      // Manual reload function
+      window.reloadGif = function () {
+        const gifImage = document.querySelector(".title-gif");
         if (gifImage) {
-          const startTime = performance.now();
-          gifImage.classList.add('loading');
-          gifImage.classList.remove('loaded');
-          
-          gifImage.src = '../../assets/Title_Glitch_Transperent_0108.gif?' + new Date().getTime();
-          
-          gifImage.onload = function() {
-            const loadTime = performance.now() - startTime;
-            console.log(`GIF manually reloaded in ${loadTime.toFixed(2)}ms`);
-            gifImage.classList.remove('loading');
-            gifImage.classList.add('loaded');
+          gifImage.classList.add("loading");
+          gifImage.classList.remove("loaded");
+
+          gifImage.src =
+            "../../assets/Title_Glitch_Transperent_0108.gif?" +
+            new Date().getTime();
+
+          gifImage.onload = function () {
+            console.log("GIF manually reloaded");
+            gifImage.classList.remove("loading");
+            gifImage.classList.add("loaded");
           };
         }
       };
@@ -253,12 +226,12 @@
       // View display names
       const viewDisplayNames = {
         rhizome: "RHIZOME",
-        artist: "ARTIST",
+        artist: "CREATOR",
         "open-question": "OPEN QUESTION",
         "hashtag-gallery": "HASHTAG GALLERY",
         completeness: "COMPLETENESS",
         intimacy: "INTIMACY",
-        temperament: "TEMPERAMENT",
+        temperament: "TEMPERATURE",
       };
 
       // View navigation URLs
@@ -741,7 +714,7 @@
         return group;
       }
 
-      // Create Artist view (exact replica of original)
+      // Create Creator view (exact replica of original)
       function createArtistView(textures) {
         const group = new THREE.Group();
         group.position.set(

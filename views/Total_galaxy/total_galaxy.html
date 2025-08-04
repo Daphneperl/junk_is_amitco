@@ -226,12 +226,12 @@
 
     <div id="view-labels">
       <div class="view-label" data-view="rhizome">Rhizome</div>
-      <div class="view-label" data-view="artist">Artist</div>
+      <div class="view-label" data-view="artist">Creator</div>
       <div class="view-label" data-view="open-question">Open Question</div>
       <div class="view-label" data-view="hashtag-gallery">Hashtag Gallery</div>
       <div class="view-label" data-view="completeness">Completeness</div>
       <div class="view-label" data-view="intimacy">Intimacy</div>
-      <div class="view-label" data-view="temperament">Temperament</div>
+      <div class="view-label" data-view="temperament">Temperature</div>
     </div>
 
     <div id="camera-info">
@@ -881,7 +881,7 @@
         return group;
       }
 
-      // Create Temperament view (score-based spiral)
+      // Create Temperature view (score-based spiral)
       function createTemperamentView(textures) {
         const group = new THREE.Group();
         group.position.set(
