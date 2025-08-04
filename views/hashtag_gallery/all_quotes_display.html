@@ -493,9 +493,9 @@
                     <div class="image-item">
                         <div class="score-badge">${item.score}</div>
                         <div class="connecting-word ${connectingWord.type}">${connectingWord.word}</div>
-                        <img src="../../images/${item.filename}.jpg" 
+                        <img src="../../images2/${item.filename}.jpg" 
                              alt="${item.filename}" 
-                             onerror="this.src='../../images/${item.filename}.jpeg'; this.onerror=function(){this.src='../../images/${item.filename}.png'; this.onerror=function(){this.src='../../images/${item.filename}.webp'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='block';}}};">
+                             onerror="this.src='../../images2/${item.filename}.jpeg'; this.onerror=function(){this.src='../../images2/${item.filename}.png'; this.onerror=function(){this.src='../../images2/${item.filename}.webp'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='block';}}};">
                         <div class="image-fallback" style="display: none; width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center; color: #ff4444; font-size: 0.8em; text-align: center; padding: 10px;">
                             <div>
                                 <div style="font-size: 1.2em; margin-bottom: 5px;">⚠️</div>
@@ -516,9 +516,9 @@
                 .map(
                   (img) => `
                 <div class="image-item">
-                    <img src="../../images/${img}.jpg" 
+                    <img src="../../images2/${img}.jpg" 
                          alt="${img}" 
-                         onerror="this.src='../../images/${img}.jpeg'; this.onerror=function(){this.src='../../images/${img}.png'; this.onerror=function(){this.src='../../images/${img}.webp'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='block';}}};">
+                         onerror="this.src='../../images2/${img}.jpeg'; this.onerror=function(){this.src='../../images2/${img}.png'; this.onerror=function(){this.src='../../images2/${img}.webp'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='block';}}};">
                     <div class="image-fallback" style="display: none; width: 100%; height: 100%; background: #333; display: flex; align-items: center; justify-content: center; color: #ff4444; font-size: 0.8em; text-align: center; padding: 10px;">
                         <div>
                             <div style="font-size: 1.2em; margin-bottom: 5px;">⚠️</div>

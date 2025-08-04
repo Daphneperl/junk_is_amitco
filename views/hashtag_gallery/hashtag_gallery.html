@@ -808,8 +808,6 @@
         position: relative;
         width: auto;
         height: auto;
-        max-width: 45vw;
-        max-height: 80vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -822,8 +820,6 @@
       }
 
       .drawer-artwork img {
-        max-width: 100%;
-        max-height: 100%;
         object-fit: contain;
         border-radius: 4px;
         display: block;
@@ -1420,7 +1416,7 @@
               const extension = extensions[currentExtensionIndex];
               // Add cache-busting parameter to prevent browser caching
               const cacheBuster = Date.now() + Math.random();
-              const url = `../../images/${imageName}${extension}?cb=${cacheBuster}`;
+              const url = `../../images2/${imageName}${extension}?cb=${cacheBuster}`;
 
               img.onload = function () {
                 console.log(`Successfully loaded: ${url}`);
@@ -2151,65 +2147,6 @@
         scene.add(curvedText);
       }
 
-      // Initialize the visualization
-      function startVisualization() {
-        // Ensure loading page is visible
-        document.getElementById("loading-container").style.display = "block";
-        document.getElementById("black-overlay").style.display = "block";
-        document.getElementById("black-overlay").style.opacity = "1";
-        document.getElementById("visualization").style.display = "none";
-
-        // Simulate loading progress
-        let progress = 0;
-        const loadingInterval = setInterval(() => {
-          progress += 2;
-          updateLoadingUI(progress);
-
-          if (progress >= 100) {
-            clearInterval(loadingInterval);
-
-            // Load quote connections and artistic analysis data, then initialize
-            Promise.all([
-              loadQuoteConnections(),
-              loadArtisticAnalysisData(),
-            ]).then(([quoteData]) => {
-              if (quoteData) {
-                // Initialize the scene
-                init();
-
-                // Add image wall with semantically connected images
-                updateQuoteInfo();
-              }
-
-              // Hide loading page and show visualization
-              document.getElementById("loading-container").style.display =
-                "none";
-              document.getElementById("visualization").style.display = "block";
-              setTimeout(() => {
-                document.getElementById("black-overlay").style.display = "none";
-
-                // Show galaxy button after loading screen is gone
-                const galaxyBtn = document.getElementById("galaxy-nav-btn");
-                if (galaxyBtn) {
-                  galaxyBtn.style.display = "flex";
-                }
-              }, 500);
-
-              // Start animation
-              animate();
-
-              // Start camera position animation after loading
-              isRotating = true;
-              rotationStart = performance.now();
-              initialAngle = 0;
-            });
-          }
-        }, 50);
-      }
-
-      // Start the visualization when the page loads
-      window.addEventListener("load", startVisualization);
-
       // Chatbot state
       let chatbotState = {
         currentQuestion: 0,
@@ -2584,8 +2521,11 @@
           if (progress >= 100) {
             clearInterval(loadingInterval);
 
-            // Load quote connections and initialize
-            loadQuoteConnections().then((quoteData) => {
+            // Load quote connections and artistic analysis data, then initialize
+            Promise.all([
+              loadQuoteConnections(),
+              loadArtisticAnalysisData(),
+            ]).then(([quoteData]) => {
               if (quoteData) {
                 // Initialize the scene
                 init();
@@ -2632,6 +2572,9 @@
           }
         }, 50);
       }
+
+      // Start the visualization when the page loads
+      window.addEventListener("load", startVisualization);
 
       // Chatbot functions
       function showChatbot() {
@@ -2756,7 +2699,7 @@
       async function loadArtisticAnalysisData() {
         try {
           const response = await fetch(
-            "../../image_analysis/artistic_analysis.json"
+            "../../image_analysis/images2_analysis/artistic_analysis_images2_filtered.json"
           );
           const data = await response.json();
 
@@ -2817,10 +2760,53 @@
           }
 
           const extension = extensions[currentExtensionIndex];
-          const imagePath = `../../images/${imageData}${extension}`;
+          const imagePath = `../../images2/${imageData}${extension}`;
 
           artworkImg.onload = function () {
             console.log(`Successfully loaded image for drawer: ${imagePath}`);
+
+            // Calculate optimal dimensions based on aspect ratio
+            const aspectRatio = this.naturalWidth / this.naturalHeight;
+            const isPortrait = aspectRatio < 1;
+
+            // Get container dimensions
+            const container = artworkSection;
+            const containerRect = container.getBoundingClientRect();
+
+            // Define maximum dimensions (responsive)
+            const maxWidth = window.innerWidth <= 768 ? 0.95 : 0.45; // 95% on mobile, 45% on desktop
+            const maxHeight = window.innerWidth <= 768 ? 0.5 : 0.8; // 50% on mobile, 80% on desktop
+
+            const maxContainerWidth = window.innerWidth * maxWidth;
+            const maxContainerHeight = window.innerHeight * maxHeight;
+
+            let finalWidth, finalHeight;
+
+            if (isPortrait) {
+              // For elongated images: start with height, then adjust width if needed
+              finalHeight = maxContainerHeight;
+              finalWidth = finalHeight * aspectRatio;
+
+              // If width exceeds container, scale down proportionally
+              if (finalWidth > maxContainerWidth) {
+                finalWidth = maxContainerWidth;
+                finalHeight = finalWidth / aspectRatio;
+              }
+            } else {
+              // For landscape images: start with width, then adjust height if needed
+              finalWidth = maxContainerWidth;
+              finalHeight = finalWidth / aspectRatio;
+
+              // If height exceeds container, scale down proportionally
+              if (finalHeight > maxContainerHeight) {
+                finalHeight = maxContainerHeight;
+                finalWidth = finalHeight * aspectRatio;
+              }
+            }
+
+            // Apply calculated dimensions
+            this.style.width = `${finalWidth}px`;
+            this.style.height = `${finalHeight}px`;
           };
 
           artworkImg.onerror = function () {
@@ -2942,6 +2928,50 @@
           });
         });
 
+        // Add resize handler to recalculate image dimensions
+        const resizeHandler = () => {
+          if (artworkImg.complete && artworkImg.naturalWidth > 0) {
+            // Recalculate dimensions when window is resized
+            const aspectRatio =
+              artworkImg.naturalWidth / artworkImg.naturalHeight;
+            const isPortrait = aspectRatio < 1;
+
+            const maxWidth = window.innerWidth <= 768 ? 0.95 : 0.45;
+            const maxHeight = window.innerWidth <= 768 ? 0.5 : 0.8;
+
+            const maxContainerWidth = window.innerWidth * maxWidth;
+            const maxContainerHeight = window.innerHeight * maxHeight;
+
+            let finalWidth, finalHeight;
+
+            if (isPortrait) {
+              finalHeight = maxContainerHeight;
+              finalWidth = finalHeight * aspectRatio;
+
+              if (finalWidth > maxContainerWidth) {
+                finalWidth = maxContainerWidth;
+                finalHeight = finalWidth / aspectRatio;
+              }
+            } else {
+              finalWidth = maxContainerWidth;
+              finalHeight = finalWidth / aspectRatio;
+
+              if (finalHeight > maxContainerHeight) {
+                finalHeight = maxContainerHeight;
+                finalWidth = finalHeight * aspectRatio;
+              }
+            }
+
+            artworkImg.style.width = `${finalWidth}px`;
+            artworkImg.style.height = `${finalHeight}px`;
+          }
+        };
+
+        window.addEventListener("resize", resizeHandler);
+
+        // Store the resize handler for cleanup
+        backdrop.resizeHandler = resizeHandler;
+
         // Store reference to mesh for potential future use
         backdrop.mesh = mesh;
       }
@@ -2949,6 +2979,11 @@
       function closeDrawerModal() {
         const backdrop = document.querySelector(".drawer-backdrop");
         if (backdrop) {
+          // Clean up resize event listener
+          if (backdrop.resizeHandler) {
+            window.removeEventListener("resize", backdrop.resizeHandler);
+          }
+
           const container = backdrop.querySelector(".drawer-container");
           container.classList.remove("show");
           backdrop.classList.remove("show");
