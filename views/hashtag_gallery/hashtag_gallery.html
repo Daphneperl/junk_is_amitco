@@ -2545,10 +2545,12 @@
           if (progress >= 100) {
             clearInterval(loadingInterval);
 
-            // Load quote connections and artistic analysis data, then initialize
+            // Load quote connections and all data sources, then initialize
             Promise.all([
               loadQuoteConnections(),
               loadArtisticAnalysisData(),
+              loadDFData(),
+              loadCompletenessScores(),
             ]).then(([quoteData]) => {
               if (quoteData) {
                 // Initialize the scene
@@ -2722,6 +2724,10 @@
 
       // Global variable to store artistic analysis data
       let artisticAnalysisData = {};
+      // Global variable to store DF.json data
+      let dfData = {};
+      // Global variable to store completeness scores
+      let completenessScores = {};
 
       // Load artistic analysis data
       async function loadArtisticAnalysisData() {
@@ -2742,6 +2748,37 @@
         }
       }
 
+      // Load DF.json data
+      async function loadDFData() {
+        try {
+          const response = await fetch("../../assets/DF.json");
+          const data = await response.json();
+
+          // Convert array to object for easier lookup by filename
+          data.forEach((item) => {
+            dfData[item.filename] = item;
+          });
+
+          console.log("DF.json data loaded successfully");
+        } catch (error) {
+          console.error("Error loading DF.json data:", error);
+        }
+      }
+
+      // Load completeness scores
+      async function loadCompletenessScores() {
+        try {
+          const response = await fetch(
+            "../../views/Completeness/inverted_sketchiness_scores_images2.json"
+          );
+          const data = await response.json();
+          completenessScores = data;
+          console.log("Completeness scores loaded successfully");
+        } catch (error) {
+          console.error("Error loading completeness scores:", error);
+        }
+      }
+
       // Drawer Modal Functions
       function createDrawerModal(imageData, mesh) {
         // Remove existing drawer modal if any
@@ -2750,12 +2787,14 @@
           existingModal.remove();
         }
 
-        // Get artistic analysis data for this image
+        // Get data for this image from all sources
         const imageAnalysis = artisticAnalysisData[imageData] || {};
 
         // Extract image filename without extension for lookup
         const imageName = imageData.split(".")[0];
         const analysisData = artisticAnalysisData[imageName] || {};
+        const dfImageData = dfData[imageName] || {};
+        const completenessScore = completenessScores[imageData] || "-";
 
         // Create backdrop
         const backdrop = document.createElement("div");
@@ -2828,7 +2867,7 @@
               // If height exceeds container, scale down proportionally
               if (finalHeight > maxContainerHeight) {
                 finalHeight = maxContainerHeight;
-                finalWidth = finalHeight * aspectRatio;
+                finalWidth = finalHeight / aspectRatio;
               }
             }
 
@@ -2854,27 +2893,27 @@
         const infoSection = document.createElement("div");
         infoSection.className = "drawer-info";
 
-        // Map data to semantic fields according to user's definitions
-        const title = imageData || "-";
-        const signedBy = "-"; // Creator name - not available in current data
-        const zone = "-"; // Geographic location - not available in current data
-        const exactSpot = currentQuoteData
-          ? currentQuoteData.quote.replace(/_/g, " ")
-          : "-";
-        const dateStamp = "-"; // Time of creation - not available in current data
-        const daytime = "-"; // Level of day - not available in current data
-        const rawness = "-"; // Completeness level % - not available in current data
-        const formatType = "-"; // Artwork format - not available in current data
-        const context = analysisData.description || "-";
-        const tags = analysisData.keywords
-          ? analysisData.keywords.map((k) => k.keyword)
-          : [];
+        // Map data to semantic fields according to user's requirements
+        const title = dfImageData.title || imageData || "-";
+        const completenessScoreValue =
+          completenessScore !== "-" ? completenessScore : "-";
+        const signedBy = dfImageData["@creator"] || "-";
+        const zone = dfImageData.location || "-";
+        const exactSpot = dfImageData.exact_spot || "-";
+        const dateStamp = dfImageData.date_stamp || "-";
+        const daytime = dfImageData.daytime_icon || "-";
+        const context = dfImageData.context || "-";
+        const tags = dfImageData.keywords || [];
 
-        // Create info content with correct semantic mapping
+        // Create info content with correct semantic mapping and field order
         infoSection.innerHTML = `
               <div class="drawer-field">
                   <div class="drawer-label">Title</div>
                   <div class="drawer-value">${title}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Completeness score</div>
+                  <div class="drawer-value">${completenessScoreValue}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Signed by</div>
@@ -2896,20 +2935,12 @@
                   <div class="drawer-label">Daytime</div>
                   <div class="drawer-value">${daytime}</div>
               </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Rawness</div>
-                  <div class="drawer-value">${rawness}</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Format type</div>
-                  <div class="drawer-value">${formatType}</div>
-              </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Scene/Context</div>
+                  <div class="drawer-label">Context</div>
                   <div class="drawer-context">${context}</div>
               </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Vibes/Tags</div>
+                  <div class="drawer-label">Tags</div>
                   <div class="drawer-tags">
                       ${
                         tags.length > 0

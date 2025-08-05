@@ -3814,10 +3814,33 @@
 
       // Focus Mode Functions
       let focusRaycaster, focusMouse;
+      let dfData = null;
+      let completenessScores = null;
+
+      async function loadFocusData() {
+        try {
+          // Load DF.json data
+          const dfResponse = await fetch("../../assets/DF.json");
+          dfData = await dfResponse.json();
+
+          // Load completeness scores
+          const completenessResponse = await fetch(
+            "../Completeness/inverted_sketchiness_scores_images2.json"
+          );
+          completenessScores = await completenessResponse.json();
+
+          console.log("Focus data loaded successfully");
+        } catch (error) {
+          console.error("Failed to load focus data:", error);
+        }
+      }
 
       function initFocusMode() {
         focusRaycaster = new THREE.Raycaster();
         focusMouse = new THREE.Vector2();
+
+        // Load focus data
+        loadFocusData();
 
         // Add double click event listener to the renderer
         renderer.domElement.addEventListener("dblclick", onArtworkDoubleClick);
@@ -3937,56 +3960,85 @@
         const texturePath2 = dot.texture.image.src;
         const filename2 = texturePath2.split("/").pop();
 
+        // Extract base filename without extension for data lookup
+        const baseFilename = filename2 ? filename2.split(".")[0] : "";
+
+        // Find matching data from JSON files
+        let title = "Not specified";
+        let completenessScore = "Not specified";
+        let signedBy = "Anonymous";
+        let zone = "Open Question View";
+        let exactSpot = "Canvas Position";
+        let dateStamp = "Unknown";
+        let daytime = "Unknown";
+        let context = "No context available";
+        let tags = ["artwork", "digital"];
+
+        // Look up data in DF.json
+        if (dfData) {
+          const dfEntry = dfData.find(
+            (entry) => entry.filename === baseFilename
+          );
+          if (dfEntry) {
+            title = dfEntry.title || "Not specified";
+            signedBy = dfEntry["@creator"] || "Anonymous";
+            zone = dfEntry.location || "Open Question View";
+            exactSpot = dfEntry.exact_spot || "Canvas Position";
+            dateStamp = dfEntry.date_stamp || "Unknown";
+            daytime = dfEntry.daytime_icon || "Unknown";
+            context = dfEntry.context || "No context available";
+            tags = dfEntry.keywords || ["artwork", "digital"];
+          }
+        }
+
+        // Look up completeness score
+        if (completenessScores && filename2) {
+          const score = completenessScores[filename2];
+          if (score !== undefined) {
+            completenessScore = score.toString();
+          }
+        }
+
         // Create info content
         infoSection.innerHTML = `
               <div class="focus-field">
                   <div class="focus-label">Title</div>
-                  <div class="focus-value">${filename2 || "Not specified"}</div>
-              </div>
-              <div class="focus-field">
-                  <div class="focus-label">Completeness Score</div>
-                  <div class="focus-value">${dot.score || "Not specified"}</div>
-              </div>
-              <div class="focus-field">
-                  <div class="focus-label">Signed by</div>
-                  <div class="focus-value">Anonymous</div>
-              </div>
-              <div class="focus-field">
-                  <div class="focus-label">Zone</div>
-                  <div class="focus-value">Open Question View</div>
-              </div>
-              <div class="focus-field">
-                  <div class="focus-label">Exact spot</div>
-                  <div class="focus-value">Canvas Position</div>
+                  <div class="focus-value">${title}</div>
               </div>
               <div class="focus-field">
                   <div class="focus-label">Date stamp</div>
-                  <div class="focus-value">Unknown</div>
+                  <div class="focus-value">${dateStamp}</div>
+              </div>
+              <div class="focus-field">
+                  <div class="focus-label">Signed by</div>
+                  <div class="focus-value">${signedBy}</div>
+              </div>
+              <div class="focus-field">
+                  <div class="focus-label">Zone</div>
+                  <div class="focus-value">${zone}</div>
+              </div>
+              <div class="focus-field">
+                  <div class="focus-label">Exact spot</div>
+                  <div class="focus-value">${exactSpot}</div>
+              </div>
+              <div class="focus-field">
+                  <div class="focus-label">Completeness Score</div>
+                  <div class="focus-value">${completenessScore}</div>
               </div>
               <div class="focus-field">
                   <div class="focus-label">Daytime</div>
-                  <div class="focus-value">Unknown</div>
-              </div>
-              <div class="focus-field">
-                  <div class="focus-label">Rawness</div>
-                  <div class="focus-value">Unknown</div>
-              </div>
-              <div class="focus-field">
-                  <div class="focus-label">Format type</div>
-                  <div class="focus-value">Digital</div>
+                  <div class="focus-value">${daytime}</div>
               </div>
               <div class="focus-field full-width">
-                  <div class="focus-label">Scene/Context</div>
-                  <div class="focus-context">This artwork has a completeness score of ${
-                    dot.score
-                  }. The higher the score, the more complete the artwork appears to be.</div>
+                  <div class="focus-label">Context</div>
+                  <div class="focus-context">${context}</div>
               </div>
               <div class="focus-field full-width">
                   <div class="focus-label">Vibes/Tags</div>
                   <div class="focus-tags">
-                      <span class="focus-tag">completeness</span>
-                      <span class="focus-tag">artwork</span>
-                      <span class="focus-tag">digital</span>
+                      ${tags
+                        .map((tag) => `<span class="focus-tag">${tag}</span>`)
+                        .join("")}
                   </div>
               </div>
           `;

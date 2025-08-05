@@ -1423,6 +1423,7 @@
       let imageCanvas, imageCtx;
       let imageParticles = [];
       let sketchinessScores = {};
+      let dfData = {}; // Store DF.json data
 
       // Separate variables for rings
       let ringsScene, ringsCamera, ringsRenderer;
@@ -1483,6 +1484,20 @@
           sketchinessScores = await response.json();
         } catch (error) {
           console.error("Error loading sketchiness scores:", error);
+        }
+      }
+
+      // Load DF.json data
+      async function loadDFData() {
+        try {
+          const response = await fetch("../../assets/DF.json");
+          const data = await response.json();
+          // Convert array to object with filename as key for easier lookup
+          data.forEach((item) => {
+            dfData[item.filename] = item;
+          });
+        } catch (error) {
+          console.error("Error loading DF data:", error);
         }
       }
 
@@ -2225,23 +2240,29 @@
           }
 
           if (selectedParticle) {
+            // Get filename without extension for lookup
+            const filenameWithoutExt = selectedParticle.filename.replace(
+              /\.[^/.]+$/,
+              ""
+            );
+            const dfItem = dfData[filenameWithoutExt];
+
             // Create artwork data for the drawer modal
             const artworkData = {
-              title: selectedParticle.filename,
+              title: dfItem?.title || selectedParticle.filename,
               image: selectedParticle.filename,
               score: selectedParticle.score,
               completeness: selectedParticle.score,
               filename: selectedParticle.filename,
-              // Add other metadata as needed
-              signedBy: "Anonymous",
-              zone: "Completeness View",
-              exactSpot: "Canvas Position",
-              date: "Unknown",
-              daytime: "Unknown",
-              rawness: "Unknown",
-              format: "Digital",
-              context: `This artwork has a completeness score of ${selectedParticle.score}. The higher the score, the more complete the artwork appears to be.`,
-              tags: ["completeness", "artwork", "digital"],
+              signedBy: dfItem?.["@creator"] || "Anonymous",
+              zone: dfItem?.location || "Unknown",
+              exactSpot: dfItem?.exact_spot || "Unknown",
+              date: dfItem?.date_stamp || "Unknown",
+              daytime: dfItem?.daytime_icon || "Unknown",
+              context:
+                dfItem?.context ||
+                `This artwork has a completeness score of ${selectedParticle.score}. The higher the score, the more complete the artwork appears to be.`,
+              tags: dfItem?.keywords || ["completeness", "artwork", "digital"],
             };
             createDrawerModal(artworkData, selectedParticle);
           }
@@ -2984,7 +3005,7 @@
             initRings();
 
             // Initialize image canvas
-            loadSketchinessScores().then(() => {
+            Promise.all([loadSketchinessScores(), loadDFData()]).then(() => {
               const imageFiles = Object.keys(sketchinessScores);
               preloadAllImages(imageFiles, (preloadedImages) => {
                 initImageCanvas(preloadedImages);
@@ -4002,20 +4023,8 @@
               artworkData.daytime || "Not specified"
             }</div>
           </div>
-          <div class="drawer-field">
-            <div class="drawer-label">Rawness</div>
-            <div class="drawer-value">${
-              artworkData.rawness || "Not specified"
-            }</div>
-          </div>
-          <div class="drawer-field">
-            <div class="drawer-label">Format type</div>
-            <div class="drawer-value">${
-              artworkData.format || "Not specified"
-            }</div>
-          </div>
           <div class="drawer-field full-width">
-            <div class="drawer-label">Scene/Context</div>
+            <div class="drawer-label">Context</div>
             <div class="drawer-context">${
               artworkData.context || "No context provided"
             }</div>
