@@ -1189,6 +1189,10 @@
       let eyeDriftSpeed = 0.001; // Very slow drift
       let eyeDriftAmplitude = 15; // Small drift amplitude
 
+      // Global variables to store additional data
+      let dfData = {};
+      let completenessScores = {};
+
       function init() {
         // Create scene
         scene = new THREE.Scene();
@@ -2381,6 +2385,18 @@
           existingModal.remove();
         }
 
+        // Find the corresponding data from DF.json
+        const dfEntry = dfData.find(
+          (item) => item.filename === filename.replace(/\.[^/.]+$/, "")
+        );
+        const completenessScore =
+          completenessScores[filename] || "Not available";
+
+        // Helper function to safely get values
+        const getValue = (value, defaultValue = "Not specified") => {
+          return value !== null && value !== undefined ? value : defaultValue;
+        };
+
         // Create backdrop
         const backdrop = document.createElement("div");
         backdrop.className = "drawer-backdrop";
@@ -2453,48 +2469,63 @@
         const infoSection = document.createElement("div");
         infoSection.className = "drawer-info";
 
-        // Create info content
+        // Create tags HTML if keywords exist
+        let tagsHtml = '<span class="drawer-tag">No tags</span>';
+        if (dfEntry && dfEntry.keywords && dfEntry.keywords.length > 0) {
+          tagsHtml = dfEntry.keywords
+            .map((keyword) => `<span class="drawer-tag">${keyword}</span>`)
+            .join("");
+        }
+
+        // Create info content with reordered fields and populated data
         infoSection.innerHTML = `
               <div class="drawer-field">
                   <div class="drawer-label">Title</div>
-                  <div class="drawer-value">Not specified</div>
+                  <div class="drawer-value">${getValue(dfEntry?.title)}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Signed by</div>
-                  <div class="drawer-value">Not specified</div>
+                  <div class="drawer-value">${getValue(
+                    dfEntry?.["@creator"]
+                  )}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Zone</div>
-                  <div class="drawer-value">Not specified</div>
+                  <div class="drawer-value">${getValue(dfEntry?.location)}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Exact spot</div>
-                  <div class="drawer-value">Not specified</div>
+                  <div class="drawer-value">${getValue(
+                    dfEntry?.exact_spot
+                  )}</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Completeness Score</div>
+                  <div class="drawer-value">${completenessScore}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Date stamp</div>
-                  <div class="drawer-value">Not specified</div>
+                  <div class="drawer-value">${getValue(
+                    dfEntry?.date_stamp
+                  )}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Daytime</div>
-                  <div class="drawer-value">Not specified</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Rawness</div>
-                  <div class="drawer-value">Not specified</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Format type</div>
-                  <div class="drawer-value">Not specified</div>
+                  <div class="drawer-value">${getValue(
+                    dfEntry?.daytime_icon
+                  )}</div>
               </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Scene/Context</div>
-                  <div class="drawer-context">No context provided</div>
+                  <div class="drawer-label">Context</div>
+                  <div class="drawer-context">${getValue(
+                    dfEntry?.context,
+                    "No context provided"
+                  )}</div>
               </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Vibes/Tags</div>
+                  <div class="drawer-label">Tags</div>
                   <div class="drawer-tags">
-                      <span class="drawer-tag">No tags</span>
+                      ${tagsHtml}
                   </div>
               </div>
               <div class="drawer-field">
@@ -2502,10 +2533,6 @@
                   <div class="drawer-value">${scores.temperament_score.toFixed(
                     2
                   )}</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Intimacy Score</div>
-                  <div class="drawer-value">Not available</div>
               </div>
           `;
 
@@ -2667,10 +2694,21 @@
       }
 
       // Load the JSON data and create 3D visualization
-      fetch("temperament_scores_images2.json")
-        .then((response) => response.json())
-        .then((data) => {
-          const totalImages = Object.keys(data).length;
+      Promise.all([
+        fetch("temperament_scores_images2.json").then((response) =>
+          response.json()
+        ),
+        fetch("../../assets/DF.json").then((response) => response.json()),
+        fetch("../Completeness/inverted_sketchiness_scores_images2.json").then(
+          (response) => response.json()
+        ),
+      ])
+        .then(([temperamentData, dfJsonData, completenessJsonData]) => {
+          // Store the additional data globally
+          dfData = dfJsonData;
+          completenessScores = completenessJsonData;
+
+          const totalImages = Object.keys(temperamentData).length;
           let createdSprites = 0;
 
           // Ensure loading page is visible
@@ -2685,11 +2723,11 @@
             updateLoadingUI(progress);
           };
 
-          return preloadImages(data)
+          return preloadImages(temperamentData)
             .then(() => {
               init();
 
-              const dataArray = Object.entries(data).map(
+              const dataArray = Object.entries(temperamentData).map(
                 ([filename, scores]) => ({
                   filename,
                   ...scores,

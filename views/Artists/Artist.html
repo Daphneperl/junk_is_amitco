@@ -1055,7 +1055,7 @@
       .drawer-label {
         font-weight: bold;
         font-family: "Overpass Mono", monospace;
-        font-size: 16px;
+        font-size: 20px;
         color: rgba(255, 255, 255, 0.9);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -1065,7 +1065,7 @@
         font-weight: normal;
         font-family: "Overpass Mono", monospace;
         font-style: italic;
-        font-size: 14px;
+        font-size: 18px;
         line-height: 1.4;
         word-wrap: break-word;
         color: rgba(255, 255, 255, 0.7);
@@ -1077,7 +1077,7 @@
         border-radius: 4px;
         padding: 12px;
         min-height: 80px;
-        font-size: 13px;
+        font-size: 16px;
         line-height: 1.5;
         margin-top: 4px;
       }
@@ -1093,8 +1093,8 @@
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 16px;
-        padding: 4px 10px;
-        font-size: 11px;
+        padding: 6px 12px;
+        font-size: 14px;
         white-space: nowrap;
         transition: all 0.2s ease;
       }
@@ -1140,11 +1140,11 @@
         }
 
         .drawer-label {
-          font-size: 14px;
+          font-size: 16px;
         }
 
         .drawer-value {
-          font-size: 13px;
+          font-size: 15px;
           background: #fff;
           color: #000;
           padding: 3px 6px;
@@ -1152,13 +1152,13 @@
         }
 
         .drawer-context {
-          font-size: 12px;
+          font-size: 14px;
           padding: 10px;
           min-height: 60px;
         }
 
         .drawer-tag {
-          font-size: 10px;
+          font-size: 12px;
           padding: 3px 8px;
         }
       }
@@ -1296,28 +1296,42 @@
       .cluster-carousel-container {
         flex: 1;
         position: relative;
-        overflow: hidden;
+        overflow: auto;
         background: #000;
         border: 2px inset #555;
         margin: 8px;
         box-shadow: inset 2px 2px 0px rgba(0, 0, 0, 0.8),
           inset -2px -2px 0px rgba(255, 255, 255, 0.1);
+        padding: 20px;
       }
 
       .cluster-carousel {
-        display: flex;
-        transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        height: 100%;
+        display: grid;
+        grid-template-rows: repeat(2, 1fr);
+        gap: 25px;
+        height: auto;
+        width: 100%;
+        max-height: 600px;
       }
 
       .cluster-image-item {
-        min-width: 100%;
-        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 20px;
+        padding: 15px;
         box-sizing: border-box;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-height: 250px;
+      }
+
+      .cluster-image-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: scale(1.02);
       }
 
       .cluster-image-item img {
@@ -1326,90 +1340,6 @@
         object-fit: contain;
         border: 1px solid #333;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-      }
-
-      .cluster-carousel-nav {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: #555;
-        border: 2px outset #777;
-        color: #fff;
-        font-size: 20px;
-        cursor: pointer;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.1s ease;
-        z-index: 10;
-        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.5),
-          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
-      }
-
-      .cluster-carousel-nav:hover {
-        background: #666;
-        border-color: #888;
-      }
-
-      .cluster-carousel-nav:active {
-        border-style: inset;
-        box-shadow: inset -1px -1px 0px rgba(0, 0, 0, 0.5),
-          inset 1px 1px 0px rgba(255, 255, 255, 0.1);
-      }
-
-      .cluster-carousel-nav.prev {
-        left: 20px;
-      }
-
-      .cluster-carousel-nav.next {
-        right: 20px;
-      }
-
-      .cluster-carousel-nav:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-        background: #333;
-        border-color: #444;
-      }
-
-      .cluster-carousel-nav:disabled:hover {
-        background: #333;
-        border-color: #444;
-      }
-
-      .cluster-carousel-indicators {
-        display: flex;
-        justify-content: center;
-        gap: 6px;
-        margin: 8px;
-        padding: 8px;
-        background: #333;
-        border: 2px inset #555;
-        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.8),
-          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
-      }
-
-      .cluster-carousel-indicator {
-        width: 10px;
-        height: 10px;
-        background: #555;
-        border: 1px outset #777;
-        cursor: pointer;
-        transition: all 0.1s ease;
-        box-shadow: inset 1px 1px 0px rgba(0, 0, 0, 0.5),
-          inset -1px -1px 0px rgba(255, 255, 255, 0.1);
-      }
-
-      .cluster-carousel-indicator.active {
-        background: #888;
-        border-color: #aaa;
-      }
-
-      .cluster-carousel-indicator:hover {
-        background: #666;
-        border-color: #888;
       }
 
       .cluster-info {
@@ -1441,19 +1371,248 @@
         .cluster-popup-title {
           font-size: 16px;
         }
+      }
 
-        .cluster-carousel-nav {
-          width: 35px;
-          height: 35px;
-          font-size: 18px;
+      /* Focus Mode Styles */
+      .focus-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 8000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+      }
+
+      .focus-backdrop.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .focus-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        z-index: 8001;
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        max-width: 95vw;
+        max-height: 90vh;
+        justify-content: center;
+        position: relative;
+      }
+
+      .focus-container.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .focus-artwork {
+        position: relative;
+        width: auto;
+        height: auto;
+        max-width: 45vw;
+        max-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        overflow: hidden;
+        z-index: 2;
+        flex-shrink: 0;
+      }
+
+      .focus-artwork img {
+        object-fit: contain;
+        border-radius: 4px;
+        display: block;
+      }
+
+      .focus-info {
+        position: relative;
+        width: 350px;
+        height: auto;
+        background: #000;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        font-family: "Overpass Mono", monospace;
+        color: #fff;
+        font-size: 14px;
+        transform: translateX(-100%);
+        transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 1;
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .focus-container.show .focus-info {
+        transform: translateX(0);
+      }
+
+      .focus-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+
+      .focus-field.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .focus-close {
+        position: absolute;
+        top: -40px;
+        right: 0;
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        font-family: "VT323", monospace;
+        z-index: 8002;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(4px);
+      }
+
+      .focus-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+
+      .focus-container.show .focus-close {
+        opacity: 1;
+      }
+
+      .focus-label {
+        font-weight: bold;
+        font-family: "Overpass Mono", monospace;
+        font-size: 20px;
+        color: rgba(255, 255, 255, 0.9);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .focus-value {
+        font-weight: normal;
+        font-family: "Overpass Mono", monospace;
+        font-style: italic;
+        font-size: 18px;
+        line-height: 1.4;
+        word-wrap: break-word;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .focus-context {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        padding: 12px;
+        min-height: 80px;
+        font-size: 16px;
+        line-height: 1.5;
+        margin-top: 4px;
+      }
+
+      .focus-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .focus-tag {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        padding: 6px 12px;
+        font-size: 14px;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+      }
+
+      .focus-tag:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* Mobile responsive for focus mode */
+      @media (max-width: 768px) {
+        .focus-container {
+          flex-direction: column;
+          max-width: 95vw;
+          max-height: 90vh;
+          gap: 15px;
+          padding: 10px;
         }
 
-        .cluster-carousel-nav.prev {
-          left: 8px;
+        .focus-artwork {
+          max-width: 100%;
+          max-height: 50vh;
         }
 
-        .cluster-carousel-nav.next {
-          right: 8px;
+        .focus-info {
+          position: relative;
+          width: 100%;
+          height: auto;
+          max-height: 40vh;
+          transform: translateY(-100%);
+          padding: 15px;
+          font-size: 13px;
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .focus-container.show .focus-info {
+          transform: translateY(0);
+        }
+
+        .focus-field {
+          margin-bottom: 8px;
+        }
+
+        .focus-label {
+          font-size: 16px;
+        }
+
+        .focus-value {
+          font-size: 15px;
+          background: #fff;
+          color: #000;
+          padding: 3px 6px;
+          border-radius: 3px;
+        }
+
+        .focus-context {
+          font-size: 14px;
+          padding: 10px;
+          min-height: 60px;
+        }
+
+        .focus-tag {
+          font-size: 12px;
+          padding: 3px 8px;
         }
       }
     </style>
@@ -1619,26 +1778,6 @@
           <div class="cluster-carousel" id="cluster-carousel">
             <!-- Images will be dynamically added here -->
           </div>
-          <button
-            class="cluster-carousel-nav prev"
-            id="cluster-carousel-prev"
-            onclick="navigateClusterCarousel(-1)"
-          >
-            ‹
-          </button>
-          <button
-            class="cluster-carousel-nav next"
-            id="cluster-carousel-next"
-            onclick="navigateClusterCarousel(1)"
-          >
-            ›
-          </button>
-        </div>
-        <div
-          class="cluster-carousel-indicators"
-          id="cluster-carousel-indicators"
-        >
-          <!-- Indicators will be dynamically added here -->
         </div>
         <div class="cluster-info">
           <p class="cluster-info-text" id="cluster-info-text">• • •</p>
@@ -1666,6 +1805,35 @@
       const VELOCITY_DAMPENING = 0.96; // Increased from 0.92 for smoother deceleration
       const MAX_SCROLL = 900; // Increased to accommodate longer helix
       const ROTATION_SPEED = 0.5;
+
+      // Data storage
+      let dfData = {};
+      let completenessScores = {};
+
+      // Load data from DF.json and completeness scores
+      async function loadData() {
+        try {
+          // Load DF.json
+          const dfResponse = await fetch("../../assets/DF.json");
+          const dfJson = await dfResponse.json();
+
+          // Convert to lookup object by filename
+          dfData = {};
+          dfJson.forEach((item) => {
+            dfData[item.filename] = item;
+          });
+
+          // Load completeness scores
+          const completenessResponse = await fetch(
+            "../Completeness/inverted_sketchiness_scores_images2.json"
+          );
+          completenessScores = await completenessResponse.json();
+
+          console.log("Data loaded successfully");
+        } catch (error) {
+          console.error("Error loading data:", error);
+        }
+      }
 
       // Separate variables for rings
       let ringsScene, ringsCamera, ringsRenderer;
@@ -1866,6 +2034,9 @@
         try {
           // Ensure loading screen is visible and update initial progress
           updateLoadingUI(0);
+
+          // Load data first
+          await loadData();
 
           helixGroup = new THREE.Group();
           scene.add(helixGroup);
@@ -2348,7 +2519,6 @@
         // Store cluster data
         clusterPopupData = {
           images: images,
-          currentIndex: 0,
           clusterIndex: clusterIndex,
           username: username,
           clusterData: clusterData,
@@ -2401,17 +2571,20 @@
 
       function buildClusterCarousel() {
         const carousel = document.getElementById("cluster-carousel");
-        const indicators = document.getElementById(
-          "cluster-carousel-indicators"
-        );
 
-        if (!carousel || !indicators) return;
+        if (!carousel) return;
 
         // Clear existing content
         carousel.innerHTML = "";
-        indicators.innerHTML = "";
 
-        // Add images to carousel
+        // Calculate number of columns needed for 2 rows
+        const numImages = clusterPopupData.images.length;
+        const columnsNeeded = Math.ceil(numImages / 2);
+
+        // Set grid template columns for exactly 2 rows
+        carousel.style.gridTemplateColumns = `repeat(${columnsNeeded}, 1fr)`;
+
+        // Add images to grid
         clusterPopupData.images.forEach((imageData, index) => {
           const imageItem = document.createElement("div");
           imageItem.className = "cluster-image-item";
@@ -2420,6 +2593,9 @@
           img.src = `../../images2/${imageData.filename}`;
           img.alt = imageData.title || `Image ${index + 1}`;
           img.style.cursor = "pointer";
+          img.style.maxWidth = "100%";
+          img.style.maxHeight = "220px";
+          img.style.objectFit = "contain";
           img.onerror = function () {
             imageItem.innerHTML =
               '<div style="color: #666; font-size: 16px;">Image not available</div>';
@@ -2432,71 +2608,11 @@
 
           imageItem.appendChild(img);
           carousel.appendChild(imageItem);
-
-          // Add indicator
-          const indicator = document.createElement("div");
-          indicator.className = "cluster-carousel-indicator";
-          if (index === 0) indicator.classList.add("active");
-          indicator.onclick = () => goToClusterImage(index);
-          indicators.appendChild(indicator);
         });
-
-        // Update navigation buttons
-        updateClusterNavigation();
-      }
-
-      function navigateClusterCarousel(direction) {
-        const newIndex = clusterPopupData.currentIndex + direction;
-        if (newIndex >= 0 && newIndex < clusterPopupData.images.length) {
-          goToClusterImage(newIndex);
-        }
-      }
-
-      function goToClusterImage(index) {
-        if (index < 0 || index >= clusterPopupData.images.length) return;
-
-        clusterPopupData.currentIndex = index;
-
-        // Update carousel position
-        const carousel = document.getElementById("cluster-carousel");
-        if (carousel) {
-          carousel.style.transform = `translateX(-${index * 100}%)`;
-        }
-
-        // Update indicators
-        const indicators = document.querySelectorAll(
-          ".cluster-carousel-indicator"
-        );
-        indicators.forEach((indicator, i) => {
-          indicator.classList.toggle("active", i === index);
-        });
-
-        // Update navigation buttons
-        updateClusterNavigation();
-      }
-
-      function updateClusterNavigation() {
-        const prevBtn = document.getElementById("cluster-carousel-prev");
-        const nextBtn = document.getElementById("cluster-carousel-next");
-
-        if (prevBtn) {
-          prevBtn.disabled = clusterPopupData.currentIndex === 0;
-        }
-        if (nextBtn) {
-          nextBtn.disabled =
-            clusterPopupData.currentIndex ===
-            clusterPopupData.images.length - 1;
-        }
       }
 
       function handleClusterPopupKeydown(event) {
         switch (event.key) {
-          case "ArrowLeft":
-            navigateClusterCarousel(-1);
-            break;
-          case "ArrowRight":
-            navigateClusterCarousel(1);
-            break;
           case "Escape":
             closeClusterPopup();
             break;
@@ -2504,247 +2620,211 @@
       }
 
       function showImageDetails(imageData, imageIndex, event) {
-        // Remove any existing cluster drawer modal
-        const existingModal = document.querySelector(".cluster-drawer-modal");
+        // Remove any existing focus modal
+        const existingModal = document.querySelector(".focus-backdrop");
         if (existingModal) {
           existingModal.remove();
         }
 
-        // Create artwork data for the clicked image using the actual data
+        // Get data from DF.json and completeness scores
+        const dfItem = dfData[imageData.filename];
+        // Handle filename extension mismatch for completeness scores
+        const filenameWithExt = imageData.filename.includes(".")
+          ? imageData.filename
+          : imageData.filename + ".jpg";
+        const completenessScore =
+          completenessScores[filenameWithExt] ||
+          completenessScores[imageData.filename] ||
+          "-";
+
+        // Create artwork data for the clicked image using the correct data sources
         const artworkData = {
           image: imageData.filename,
-          title: imageData.title || imageData.filename.replace(/\.[^/.]+$/, ""),
-          signedBy: clusterPopupData.username,
-          zone: imageData.location || "-",
-          exactSpot: imageData.exact_spot || "-",
-          date: imageData.date_stamp || "-",
-          daytime: imageData.daytime_icon || "-",
-          rawness: imageData.rawness_percent || "-",
-          format: imageData.filename.split(".").pop().toUpperCase(),
-          context:
-            imageData.context ||
-            imageData.artistic_description ||
-            `Image ${imageIndex + 1} of ${
-              clusterPopupData.images.length
-            } in cluster`,
-          tags: imageData.keywords ? imageData.keywords.split("; ") : [],
+          title: dfItem
+            ? dfItem.title
+            : imageData.title || imageData.filename.replace(/\.[^/.]+$/, ""),
+          completenessScore: completenessScore,
+          signedBy: dfItem ? dfItem["@creator"] : clusterPopupData.username,
+          zone: dfItem ? dfItem.location : imageData.location || "-",
+          exactSpot: dfItem ? dfItem.exact_spot : imageData.exact_spot || "-",
+          date: dfItem ? dfItem.date_stamp : imageData.date_stamp || "-",
+          daytime: dfItem ? dfItem.daytime_icon : imageData.daytime_icon || "-",
+          context: dfItem ? dfItem.context : imageData.context || "-",
+          tags:
+            dfItem && dfItem.keywords
+              ? dfItem.keywords
+              : imageData.keywords
+              ? imageData.keywords.split("; ")
+              : [],
         };
 
-        // Get cluster popup container
-        const clusterPopup = document.getElementById("cluster-popup-overlay");
-        if (!clusterPopup) return;
+        // Create backdrop
+        const backdrop = document.createElement("div");
+        backdrop.className = "focus-backdrop";
 
-        // Calculate position relative to clicked image
-        const clusterRect = clusterPopup.getBoundingClientRect();
-        const clickX = event.clientX - clusterRect.left;
-        const clickY = event.clientY - clusterRect.top;
-
-        // Drawer modal dimensions
-        const drawerWidth = 600;
-        const drawerHeight = 500;
-        const padding = 20;
-
-        // Calculate initial position (20px offset from click)
-        let left = clickX + 20;
-        let top = clickY + 20;
-
-        // Ensure drawer doesn't go outside the cluster popup bounds
-        if (left + drawerWidth > clusterRect.width - padding) {
-          left = clusterRect.width - drawerWidth - padding;
-        }
-        if (top + drawerHeight > clusterRect.height - padding) {
-          top = clusterRect.height - drawerHeight - padding;
-        }
-        if (left < padding) {
-          left = padding;
-        }
-        if (top < padding) {
-          top = padding;
-        }
-
-        // Create the drawer modal
-        const drawerModal = document.createElement("div");
-        drawerModal.className = "cluster-drawer-modal";
-        drawerModal.style.cssText = `
-          position: absolute;
-          left: ${left}px;
-          top: ${top}px;
-          background: #000;
-          border: 1px solid rgba(255, 255, 255, 0.8);
-          border-radius: 8px;
-          padding: 25px;
-          width: 600px;
-          max-height: 500px;
-          overflow-y: auto;
-          z-index: 7000;
-          opacity: 0;
-          transform: scale(0.8);
-          transition: all 0.3s ease;
-          box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-        `;
+        // Create focus container
+        const focusContainer = document.createElement("div");
+        focusContainer.className = "focus-container";
 
         // Create close button
-        const closeBtn = document.createElement("button");
-        closeBtn.innerHTML = "×";
-        closeBtn.style.cssText = `
-          position: absolute;
-          top: 15px;
-          right: 15px;
-          background: none;
-          border: none;
-          color: #fff;
-          font-size: 24px;
-          cursor: pointer;
-          font-family: "VT323", monospace;
-          width: 30px;
-          height: 30px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        `;
-        closeBtn.onclick = () => drawerModal.remove();
+        const closeButton = document.createElement("button");
+        closeButton.className = "focus-close";
+        closeButton.innerHTML = "×";
+        closeButton.onclick = closeFocusModal;
 
-        // Create content with structured layout
-        const content = document.createElement("div");
-        content.style.cssText = `
-          font-family: "VT323", monospace;
-          color: #fff;
-          font-size: 14px;
-          line-height: 1.6;
-        `;
+        // Create artwork section
+        const artworkSection = document.createElement("div");
+        artworkSection.className = "focus-artwork";
+        const artworkImg = document.createElement("img");
+        artworkImg.src = `../../images2/${artworkData.image}`;
+        artworkImg.alt = artworkData.title || "Artwork";
 
-        // Create two-column layout for top section
-        const topSection = document.createElement("div");
-        topSection.style.cssText = `
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 30px;
-          margin-bottom: 25px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-          padding-bottom: 20px;
-        `;
+        // Dynamic image sizing logic
+        artworkImg.onload = function () {
+          const isMobile = window.innerWidth <= 768;
+          const maxWidth = isMobile
+            ? window.innerWidth * 0.95
+            : window.innerWidth * 0.45;
+          const maxHeight = isMobile
+            ? window.innerHeight * 0.5
+            : window.innerHeight * 0.8;
 
-        // Left column
-        const leftColumn = document.createElement("div");
-        leftColumn.innerHTML = `
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">TITLE</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.title || "Not specified"
-            }</div>
-          </div>
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">ZONE</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.zone || "Not specified"
-            }</div>
-          </div>
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">DATE STAMP</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.date || "Not specified"
-            }</div>
-          </div>
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">RAWNESS</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.rawness || "Not specified"
-            }</div>
-          </div>
-        `;
+          const aspectRatio = this.naturalWidth / this.naturalHeight;
 
-        // Right column
-        const rightColumn = document.createElement("div");
-        rightColumn.innerHTML = `
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">SIGNED BY</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.signedBy || "Not specified"
-            }</div>
-          </div>
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">EXACT SPOT</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.exactSpot || "Not specified"
-            }</div>
-          </div>
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">DAYTIME</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.daytime || "Not specified"
-            }</div>
-          </div>
-          <div style="margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.2); padding-bottom: 8px;">
-            <div style="font-weight: bold; margin-bottom: 5px;">FORMAT TYPE</div>
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.format || "Not specified"
-            }</div>
-          </div>
-        `;
+          let finalWidth, finalHeight;
 
-        // Scene/Context section
-        const contextSection = document.createElement("div");
-        contextSection.style.cssText = `
-          margin-bottom: 25px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-          padding-bottom: 20px;
-        `;
-        contextSection.innerHTML = `
-          <div style="font-weight: bold; margin-bottom: 10px; font-size: 16px;">SCENE/CONTEXT</div>
-          <div style="border: 1px solid rgba(255, 255, 255, 0.3); padding: 15px; min-height: 80px; background: rgba(255, 255, 255, 0.05);">
-            <div style="font-style: italic; color: rgba(255, 255, 255, 0.8);">${
-              artworkData.context || "No context provided"
-            }</div>
-          </div>
-        `;
+          if (aspectRatio > 1) {
+            // Landscape image: fit to width first
+            finalWidth = maxWidth;
+            finalHeight = maxWidth / aspectRatio;
 
-        // Vibes/Tags section
-        const tagsSection = document.createElement("div");
-        const tagsHtml =
-          artworkData.tags && artworkData.tags.length > 0
-            ? artworkData.tags
-                .map(
-                  (tag) =>
-                    `<span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; padding: 5px 12px; font-size: 12px; color: #fff; margin-right: 8px; margin-bottom: 8px;">${tag.trim()}</span>`
-                )
-                .join("")
-            : '<span style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; padding: 5px 12px; font-size: 12px; color: #fff;">No tags</span>';
+            // If height exceeds max height, scale down proportionally
+            if (finalHeight > maxHeight) {
+              finalHeight = maxHeight;
+              finalWidth = maxHeight * aspectRatio;
+            }
+          } else {
+            // Portrait/elongated image: fit to height first
+            finalHeight = maxHeight;
+            finalWidth = maxHeight * aspectRatio;
 
-        tagsSection.innerHTML = `
-          <div style="font-weight: bold; margin-bottom: 10px; font-size: 16px;">VIBES/TAGS</div>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            ${tagsHtml}
-          </div>
-        `;
+            // If width exceeds max width, scale down proportionally
+            if (finalWidth > maxWidth) {
+              finalWidth = maxWidth;
+              finalHeight = maxWidth / aspectRatio;
+            }
+          }
 
-        // Assemble the content
-        topSection.appendChild(leftColumn);
-        topSection.appendChild(rightColumn);
-        content.appendChild(topSection);
-        content.appendChild(contextSection);
-        content.appendChild(tagsSection);
+          // Apply calculated dimensions
+          this.style.width = finalWidth + "px";
+          this.style.height = finalHeight + "px";
+        };
 
-        // Assemble modal
-        drawerModal.appendChild(closeBtn);
-        drawerModal.appendChild(content);
-        clusterPopup.appendChild(drawerModal);
+        artworkImg.onerror = function () {
+          artworkSection.innerHTML =
+            '<div style="color: #666; font-size: 16px;">Image not available</div>';
+        };
+        artworkSection.appendChild(artworkImg);
 
-        // Trigger fade-in animation
-        setTimeout(() => {
-          drawerModal.style.opacity = "1";
-          drawerModal.style.transform = "scale(1)";
-        }, 10);
+        // Create info section
+        const infoSection = document.createElement("div");
+        infoSection.className = "focus-info";
 
-        // Close on click outside
-        const handleOutsideClick = (e) => {
-          if (!drawerModal.contains(e.target)) {
-            drawerModal.remove();
-            document.removeEventListener("click", handleOutsideClick);
+        // Create info content
+        infoSection.innerHTML = `
+           <div class="focus-field">
+             <div class="focus-label">Title</div>
+             <div class="focus-value">${artworkData.title}</div>
+           </div>
+           <div class="focus-field">
+             <div class="focus-label">Date stamp</div>
+             <div class="focus-value">${artworkData.date}</div>
+           </div>
+           <div class="focus-field">
+             <div class="focus-label">Signed by</div>
+             <div class="focus-value">${artworkData.signedBy}</div>
+           </div>
+           <div class="focus-field">
+             <div class="focus-label">Zone</div>
+             <div class="focus-value">${artworkData.zone}</div>
+           </div>
+           <div class="focus-field">
+             <div class="focus-label">Exact spot</div>
+             <div class="focus-value">${artworkData.exactSpot}</div>
+           </div>
+           <div class="focus-field">
+             <div class="focus-label">Completeness Score</div>
+             <div class="focus-value">${artworkData.completenessScore}</div>
+           </div>
+           <div class="focus-field">
+             <div class="focus-label">Daytime</div>
+             <div class="focus-value">${artworkData.daytime}</div>
+           </div>
+           <div class="focus-field full-width">
+             <div class="focus-label">Context</div>
+             <div class="focus-context">${artworkData.context}</div>
+           </div>
+           <div class="focus-field full-width">
+             <div class="focus-label">Vibes/Tags</div>
+             <div class="focus-tags">
+               ${
+                 artworkData.tags && artworkData.tags.length > 0
+                   ? artworkData.tags
+                       .map((tag) => `<span class="focus-tag">${tag}</span>`)
+                       .join("")
+                   : '<span class="focus-tag">No tags</span>'
+               }
+             </div>
+           </div>
+         `;
+
+        // Assemble the modal
+        focusContainer.appendChild(closeButton);
+        focusContainer.appendChild(artworkSection);
+        focusContainer.appendChild(infoSection);
+        backdrop.appendChild(focusContainer);
+        document.body.appendChild(backdrop);
+
+        // Add click outside to close
+        backdrop.addEventListener("click", function (e) {
+          if (e.target === backdrop) {
+            closeFocusModal();
+          }
+        });
+
+        // Add escape key to close
+        const escapeHandler = function (e) {
+          if (e.key === "Escape") {
+            closeFocusModal();
+            document.removeEventListener("keydown", escapeHandler);
           }
         };
-        setTimeout(() => {
-          document.addEventListener("click", handleOutsideClick);
-        }, 100);
+        document.addEventListener("keydown", escapeHandler);
+
+        // Animate in
+        requestAnimationFrame(() => {
+          backdrop.classList.add("show");
+          requestAnimationFrame(() => {
+            focusContainer.classList.add("show");
+          });
+        });
+
+        // Store reference to image data for potential future use
+        backdrop.imageData = imageData;
+      }
+
+      function closeFocusModal() {
+        const backdrop = document.querySelector(".focus-backdrop");
+        if (backdrop) {
+          const container = backdrop.querySelector(".focus-container");
+          container.classList.remove("show");
+          backdrop.classList.remove("show");
+
+          // Remove after animation
+          setTimeout(() => {
+            backdrop.remove();
+          }, 400);
+        }
       }
 
       // Add double click handler to renderer
@@ -5428,6 +5508,12 @@
             <div class="drawer-value">${artworkData.title || "-"}</div>
           </div>
           <div class="drawer-field">
+            <div class="drawer-label">Completeness Score</div>
+            <div class="drawer-value">${
+              artworkData.completenessScore || "-"
+            }</div>
+          </div>
+          <div class="drawer-field">
             <div class="drawer-label">Signed by</div>
             <div class="drawer-value">${artworkData.signedBy || "-"}</div>
           </div>
@@ -5447,18 +5533,8 @@
             <div class="drawer-label">Daytime</div>
             <div class="drawer-value">${artworkData.daytime || "-"}</div>
           </div>
-          <div class="drawer-field">
-            <div class="drawer-label">Rawness</div>
-            <div class="drawer-value">${
-              artworkData.rawness !== undefined ? artworkData.rawness : "-"
-            }</div>
-          </div>
-          <div class="drawer-field">
-            <div class="drawer-label">Format type</div>
-            <div class="drawer-value">${artworkData.format || "-"}</div>
-          </div>
           <div class="drawer-field full-width">
-            <div class="drawer-label">Scene/Context</div>
+            <div class="drawer-label">Context</div>
             <div class="drawer-context">${artworkData.context || "-"}</div>
           </div>
           <div class="drawer-field full-width">
