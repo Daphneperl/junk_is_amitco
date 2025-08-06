@@ -38,9 +38,6 @@
         z-index: 2000;
         pointer-events: none;
         display: none;
-        background: rgba(0, 0, 0, 0.2);
-        padding: 10px;
-        border-radius: 5px;
       }
 
       body {
@@ -2003,52 +2000,37 @@
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
 
-        // Set canvas size with more width for longer text
+        // Set canvas size with better aspect ratio for text
         canvas.width = 512;
-        canvas.height = 64;
+        canvas.height = 128; // Increased height to give text more room
 
-        // Set text style - increased font size from 32px to 40px
-        context.font = "40px monospace";
+        // Draw black background box with 0.28 opacity
+        context.fillStyle = "rgba(0, 0, 0, 0.28)";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Set text style
+        context.font = "48px monospace"; // Increased font size for better readability
         context.textAlign = "center";
-
-        // Measure text to get its dimensions for background
-        const textMetrics = context.measureText(text);
-        const textWidth = textMetrics.width;
-        const textHeight = 40; // Approximate height for 40px font
-
-        // Calculate background dimensions with padding
-        const padding = 20;
-        const bgWidth = textWidth + padding * 2;
-        const bgHeight = textHeight + padding * 2;
-
-        // Calculate background position (centered)
-        const bgX = (canvas.width - bgWidth) / 2;
-        const bgY = (canvas.height - bgHeight) / 2;
-
-        // Draw semi-transparent black background
-        context.globalAlpha = 0.5;
-        context.fillStyle = "black";
-        context.fillRect(bgX, bgY, bgWidth, bgHeight);
-        context.globalAlpha = 1.0; // Reset alpha for text
-
-        // Draw white text centered within the black background
+        context.textBaseline = "middle"; // Center text vertically
         context.fillStyle = "white";
-        context.fillText(text, bgX + bgWidth / 2, bgY + bgHeight / 2 + 15);
+
+        // Draw text
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
 
         // Create texture
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
 
-        // Create sprite material with reduced opacity for the entire sprite
+        // Create sprite material
         const spriteMaterial = new THREE.SpriteMaterial({
           map: texture,
           transparent: true,
-          opacity: 0.5,
+          opacity: 0.8,
         });
 
-        // Create sprite with increased scale - increased from (16, 3, 1) to (20, 4, 1)
+        // Create sprite with proper aspect ratio
         const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.scale.set(20, 4, 1); // Increased scale for bigger creator names
+        sprite.scale.set(16, 4, 1); // Adjusted height to 4 to match the doubled canvas height
 
         return sprite;
       }
@@ -3927,7 +3909,8 @@
         const searchTerm = query.toLowerCase().trim();
 
         if (searchTerm === "") {
-          // If search is empty, return to normal view
+          // If search is empty, restore all opacities and return to normal view
+          restoreAllOpacities();
           return false;
         }
 
@@ -3980,33 +3963,24 @@
         }
 
         if (foundMatch && targetCluster && targetClusterIndex !== -1) {
-          // Calculate the target position for the helix to center the cluster both vertically and horizontally
+          // Calculate the target Y position for the helix to center the cluster
           const totalClusters = imageGroups.length;
           const clusterLocalPos = createHelixPosition(
             targetClusterIndex,
             totalClusters
           );
 
-          // Calculate the target Y position that will center the cluster vertically
+          // Calculate the target Y position that will center the cluster in view
+          // We want the cluster's Y position to be at the camera's Y position
           const targetHelixY = -clusterLocalPos.y;
-
-          // Calculate the target rotation to center the cluster horizontally
-          // The helix rotates around the Y axis, so we need to calculate the angle
-          // that will bring the cluster's X,Z position to the front (positive Z)
-          const targetRotation = Math.atan2(
-            clusterLocalPos.x,
-            clusterLocalPos.z
-          );
 
           console.log("Cluster index:", targetClusterIndex);
           console.log("Cluster local position:", clusterLocalPos);
           console.log("Target helix Y:", targetHelixY);
-          console.log("Target rotation:", targetRotation);
           console.log("Current helix Y:", helixGroup.position.y);
-          console.log("Current rotation:", helixGroup.rotation.y);
 
-          // Use the existing smooth scrolling system to animate to the target position and rotation
-          animateToTargetPosition(targetHelixY, targetRotation);
+          // Use the existing smooth scrolling system to animate to the target position
+          animateToTargetY(targetHelixY);
 
           // Highlight the found cluster
           highlightCluster(targetCluster);
@@ -4022,8 +3996,8 @@
         }
       }
 
-      // Function to animate to a target position and rotation using the existing smooth scrolling system
-      function animateToTargetPosition(targetHelixY, targetRotationValue) {
+      // Function to animate to a target Y position using the existing smooth scrolling system
+      function animateToTargetY(targetHelixY) {
         // Set animation flag to prevent main loop interference
         isCameraAnimating = true;
 
@@ -4037,13 +4011,8 @@
         const currentHelixY = helixGroup ? helixGroup.position.y : 0;
         const targetScrollY = -targetHelixY; // Convert helix Y to scroll Y (they're inverted)
 
-        // Get current rotation
-        const currentRotation = helixGroup ? helixGroup.rotation.y : 0;
-
         console.log("Animating to target helix Y:", targetHelixY);
-        console.log("Animating to target rotation:", targetRotationValue);
         console.log("Current helix Y:", currentHelixY);
-        console.log("Current rotation:", currentRotation);
         console.log("Target scroll Y:", targetScrollY);
 
         // Set the target Y for the smooth scrolling system
@@ -4069,15 +4038,6 @@
           // Update the scrolling system's target Y
           targetY = currentScrollY;
 
-          // Update the target rotation smoothly
-          const startRotation = currentRotation;
-          const endRotation = targetRotationValue;
-          const currentRotationValue =
-            startRotation + (endRotation - startRotation) * eased;
-
-          // Update the target rotation for the main animation loop
-          targetRotation = currentRotationValue;
-
           if (progress < 1) {
             requestAnimationFrame(animateScroll);
           } else {
@@ -4091,6 +4051,10 @@
         animateScroll();
       }
 
+      // Global variable to store search highlight states
+      let searchHighlightStates = null;
+      let isSearchHighlighted = false;
+
       // Function to highlight a cluster when found via search
       function highlightCluster(cluster) {
         if (!cluster) return;
@@ -4098,8 +4062,18 @@
         const container = cluster.children[0];
         if (!container) return;
 
+        // Clear any existing search highlight states
+        if (searchHighlightStates) {
+          searchHighlightStates.forEach((state) => {
+            if (state.sprite && state.sprite.material) {
+              state.sprite.material.opacity = state.originalOpacity;
+              state.sprite.scale.copy(state.originalScale);
+            }
+          });
+        }
+
         // Store original scales and opacities
-        const originalStates = [];
+        searchHighlightStates = [];
 
         // Dim all other clusters
         helixGroup.children.forEach((otherCluster) => {
@@ -4108,7 +4082,7 @@
             if (otherContainer) {
               otherContainer.children.forEach((sprite) => {
                 if (sprite instanceof THREE.Sprite) {
-                  originalStates.push({
+                  searchHighlightStates.push({
                     sprite: sprite,
                     originalOpacity: sprite.material.opacity,
                     originalScale: sprite.scale.clone(),
@@ -4124,7 +4098,7 @@
         if (container) {
           container.children.forEach((sprite) => {
             if (sprite instanceof THREE.Sprite) {
-              originalStates.push({
+              searchHighlightStates.push({
                 sprite: sprite,
                 originalOpacity: sprite.material.opacity,
                 originalScale: sprite.scale.clone(),
@@ -4135,13 +4109,21 @@
           });
         }
 
-        // Restore original states after 3 seconds
-        setTimeout(() => {
-          originalStates.forEach((state) => {
-            state.sprite.material.opacity = state.originalOpacity;
-            state.sprite.scale.copy(state.originalScale);
+        isSearchHighlighted = true;
+      }
+
+      // Function to restore all opacities to normal
+      function restoreAllOpacities() {
+        if (searchHighlightStates) {
+          searchHighlightStates.forEach((state) => {
+            if (state.sprite && state.sprite.material) {
+              state.sprite.material.opacity = state.originalOpacity;
+              state.sprite.scale.copy(state.originalScale);
+            }
           });
-        }, 3000);
+          searchHighlightStates = null;
+          isSearchHighlighted = false;
+        }
       }
 
       // Search bar event listeners
@@ -4182,6 +4164,25 @@
         document.addEventListener("keydown", function (e) {
           if (e.key === "Escape") {
             closeChatbot();
+          }
+        });
+
+        // Global ESC key handler to restore opacities (only when no modals are open)
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            // Check if any modals are currently open
+            const focusBackdrop = document.querySelector(".focus-backdrop");
+            const drawerBackdrop = document.querySelector(".drawer-backdrop");
+            const chatbotBackdrop = document.getElementById("chatbot-backdrop");
+
+            // Only restore opacities if no modals are open
+            if (
+              !focusBackdrop &&
+              !drawerBackdrop &&
+              (!chatbotBackdrop || chatbotBackdrop.style.display === "none")
+            ) {
+              restoreAllOpacities();
+            }
           }
         });
 
