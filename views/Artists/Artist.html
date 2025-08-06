@@ -38,6 +38,9 @@
         z-index: 2000;
         pointer-events: none;
         display: none;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 5px;
       }
 
       body {
@@ -1669,7 +1672,8 @@
 
     <!-- Tooltip -->
     <div id="eye-tooltip">
-      Here is the Creator View. Get closer to the person behind the artwork by tracing the paths between their creations.
+      Here is the Creator View. Get closer to the person behind the artwork by
+      tracing the paths between their creations.
     </div>
 
     <!-- Pixel Arrow Indicator -->
@@ -2003,28 +2007,48 @@
         canvas.width = 512;
         canvas.height = 64;
 
-        // Set text style
-        context.font = "32px monospace";
+        // Set text style - increased font size from 32px to 40px
+        context.font = "40px monospace";
         context.textAlign = "center";
-        context.fillStyle = "white";
 
-        // Draw text
-        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        // Measure text to get its dimensions for background
+        const textMetrics = context.measureText(text);
+        const textWidth = textMetrics.width;
+        const textHeight = 40; // Approximate height for 40px font
+
+        // Calculate background dimensions with padding
+        const padding = 20;
+        const bgWidth = textWidth + padding * 2;
+        const bgHeight = textHeight + padding * 2;
+
+        // Calculate background position (centered)
+        const bgX = (canvas.width - bgWidth) / 2;
+        const bgY = (canvas.height - bgHeight) / 2;
+
+        // Draw semi-transparent black background
+        context.globalAlpha = 0.5;
+        context.fillStyle = "black";
+        context.fillRect(bgX, bgY, bgWidth, bgHeight);
+        context.globalAlpha = 1.0; // Reset alpha for text
+
+        // Draw white text centered within the black background
+        context.fillStyle = "white";
+        context.fillText(text, bgX + bgWidth / 2, bgY + bgHeight / 2 + 15);
 
         // Create texture
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
 
-        // Create sprite material
+        // Create sprite material with reduced opacity for the entire sprite
         const spriteMaterial = new THREE.SpriteMaterial({
           map: texture,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.5,
         });
 
-        // Create sprite with moderate scale
+        // Create sprite with increased scale - increased from (16, 3, 1) to (20, 4, 1)
         const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.scale.set(16, 3, 1); // Moderate scale that should fit longer text without distortion
+        sprite.scale.set(20, 4, 1); // Increased scale for bigger creator names
 
         return sprite;
       }
@@ -3866,16 +3890,30 @@
       function performSearch(query) {
         console.log("Searching for creator:", query);
 
+        // Show loading state
+        const searchBar = document.getElementById("search-bar");
+        if (searchBar) {
+          const originalPlaceholder = searchBar.placeholder;
+          searchBar.placeholder = "Searching...";
+          searchBar.disabled = true;
+        }
+
         // Save query to localStorage for persistence
         localStorage.setItem("lastSearchQuery", query);
 
         // Search within creator names
-        searchCreators(query);
+        const result = searchCreators(query);
 
         // Clear the search bar after searching
-        const searchBar = document.getElementById("search-bar");
         if (searchBar) {
           searchBar.value = "";
+          searchBar.placeholder = result ? "Found!" : "Not found...";
+
+          // Restore original state after a delay
+          setTimeout(() => {
+            searchBar.placeholder = "Looking for someone? ";
+            searchBar.disabled = false;
+          }, 2000);
         }
       }
 
@@ -3883,19 +3921,22 @@
       function searchCreators(query) {
         if (!helixGroup || !imageGroups) {
           console.log("Helix not initialized yet");
-          return;
+          return false;
         }
 
         const searchTerm = query.toLowerCase().trim();
 
         if (searchTerm === "") {
           // If search is empty, return to normal view
-          return;
+          return false;
         }
 
         // Search through creator clusters
         let foundMatch = false;
         let targetCluster = null;
+        let targetClusterIndex = -1;
+        let bestMatch = null;
+        let bestMatchScore = 0;
 
         helixGroup.children.forEach((cluster, index) => {
           const container = cluster.children[0];
@@ -3903,55 +3944,86 @@
             const creatorName =
               container.userData.clusterData.creator.toLowerCase();
 
-            if (creatorName.includes(searchTerm)) {
-              // Found matching cluster
+            // Check for exact match first
+            if (creatorName === searchTerm) {
               foundMatch = true;
               targetCluster = cluster;
+              targetClusterIndex = index;
+              return; // Exit early for exact match
+            }
+
+            // Check for starts with match
+            if (creatorName.startsWith(searchTerm)) {
+              const matchScore = searchTerm.length / creatorName.length;
+              if (matchScore > bestMatchScore) {
+                bestMatchScore = matchScore;
+                bestMatch = { cluster, index };
+              }
+            }
+
+            // Check for includes match
+            if (creatorName.includes(searchTerm)) {
+              const matchScore = searchTerm.length / creatorName.length;
+              if (matchScore > bestMatchScore) {
+                bestMatchScore = matchScore;
+                bestMatch = { cluster, index };
+              }
             }
           }
         });
 
-        if (foundMatch && targetCluster) {
-          // Find the cluster index in the helix
-          const clusterIndex = imageGroups.indexOf(targetCluster);
-          if (clusterIndex !== -1) {
-            // Calculate the target Y position based on cluster index and current helix position
-            const totalClusters = imageGroups.length;
-            const clusterLocalPos = createHelixPosition(
-              clusterIndex,
-              totalClusters
-            );
-            const currentHelixY = helixGroup ? helixGroup.position.y : 0;
+        // If no exact match, use the best partial match
+        if (!foundMatch && bestMatch) {
+          foundMatch = true;
+          targetCluster = bestMatch.cluster;
+          targetClusterIndex = bestMatch.index;
+        }
 
-            // The target Y is the cluster's local Y position minus the current helix Y offset
-            const targetY = clusterLocalPos.y - currentHelixY;
-            const currentCameraY = camera.position.y;
+        if (foundMatch && targetCluster && targetClusterIndex !== -1) {
+          // Calculate the target position for the helix to center the cluster both vertically and horizontally
+          const totalClusters = imageGroups.length;
+          const clusterLocalPos = createHelixPosition(
+            targetClusterIndex,
+            totalClusters
+          );
 
-            console.log("Cluster index:", clusterIndex);
-            console.log("Cluster local position:", clusterLocalPos);
-            console.log("Current helix Y:", currentHelixY);
-            console.log("Current camera Y:", currentCameraY);
-            console.log("Target Y:", targetY);
-            console.log(
-              "Movement direction:",
-              targetY > currentCameraY ? "UP" : "DOWN"
-            );
+          // Calculate the target Y position that will center the cluster vertically
+          const targetHelixY = -clusterLocalPos.y;
 
-            // Animate camera to the cluster's Y position
-            animateCameraToY(targetY);
+          // Calculate the target rotation to center the cluster horizontally
+          // The helix rotates around the Y axis, so we need to calculate the angle
+          // that will bring the cluster's X,Z position to the front (positive Z)
+          const targetRotation = Math.atan2(
+            clusterLocalPos.x,
+            clusterLocalPos.z
+          );
 
-            console.log(
-              "Found creator:",
-              targetCluster.children[0].userData.clusterData.creator
-            );
-          }
+          console.log("Cluster index:", targetClusterIndex);
+          console.log("Cluster local position:", clusterLocalPos);
+          console.log("Target helix Y:", targetHelixY);
+          console.log("Target rotation:", targetRotation);
+          console.log("Current helix Y:", helixGroup.position.y);
+          console.log("Current rotation:", helixGroup.rotation.y);
+
+          // Use the existing smooth scrolling system to animate to the target position and rotation
+          animateToTargetPosition(targetHelixY, targetRotation);
+
+          // Highlight the found cluster
+          highlightCluster(targetCluster);
+
+          console.log(
+            "Found creator:",
+            targetCluster.children[0].userData.clusterData.creator
+          );
+          return true;
         } else {
           console.log("No creators found matching:", searchTerm);
+          return false;
         }
       }
 
-      // Function to animate camera to a specific Y position
-      function animateCameraToY(targetY) {
+      // Function to animate to a target position and rotation using the existing smooth scrolling system
+      function animateToTargetPosition(targetHelixY, targetRotationValue) {
         // Set animation flag to prevent main loop interference
         isCameraAnimating = true;
 
@@ -3960,42 +4032,116 @@
         isDragging = false;
         scrollVelocity = 0;
 
-        const startY = camera.position.y;
-        const startTime = Date.now();
-        const duration = 2000; // 2 seconds for faster response
+        // Calculate the target Y position for the main scrolling system
+        // The targetHelixY is the desired helix Y position, so we need to convert it to the scrolling system's targetY
+        const currentHelixY = helixGroup ? helixGroup.position.y : 0;
+        const targetScrollY = -targetHelixY; // Convert helix Y to scroll Y (they're inverted)
 
-        function animateCamera() {
+        // Get current rotation
+        const currentRotation = helixGroup ? helixGroup.rotation.y : 0;
+
+        console.log("Animating to target helix Y:", targetHelixY);
+        console.log("Animating to target rotation:", targetRotationValue);
+        console.log("Current helix Y:", currentHelixY);
+        console.log("Current rotation:", currentRotation);
+        console.log("Target scroll Y:", targetScrollY);
+
+        // Set the target Y for the smooth scrolling system
+        targetY = Math.max(-MAX_SCROLL, Math.min(MAX_SCROLL, targetScrollY));
+
+        // Use a smooth animation duration
+        const startTime = Date.now();
+        const duration = 1500; // 1.5 seconds for smooth animation
+
+        function animateScroll() {
           const elapsed = Date.now() - startTime;
           const progress = Math.min(elapsed / duration, 1);
 
           // Smooth easing function (ease-out cubic)
           const eased = 1 - Math.pow(1 - progress, 3);
 
-          // Update the current Y position
-          currentY = startY + (targetY - startY) * eased;
+          // Update the target Y position smoothly
+          const startScrollY = currentY;
+          const endScrollY = targetScrollY;
+          const currentScrollY =
+            startScrollY + (endScrollY - startScrollY) * eased;
 
-          // Update helix position to match camera
-          if (helixGroup) {
-            helixGroup.position.y = -currentY;
-          }
+          // Update the scrolling system's target Y
+          targetY = currentScrollY;
 
-          // Update camera position
-          camera.position.y = currentY;
+          // Update the target rotation smoothly
+          const startRotation = currentRotation;
+          const endRotation = targetRotationValue;
+          const currentRotationValue =
+            startRotation + (endRotation - startRotation) * eased;
 
-          // Keep camera looking at the center
-          camera.lookAt(0, currentY, 0);
+          // Update the target rotation for the main animation loop
+          targetRotation = currentRotationValue;
 
           if (progress < 1) {
-            requestAnimationFrame(animateCamera);
+            requestAnimationFrame(animateScroll);
           } else {
             // Animation complete - restore scroll controls and animation flag
             isDragging = originalIsDragging;
             isCameraAnimating = false;
-            console.log("Camera animation complete");
+            console.log("Search animation complete");
           }
         }
 
-        animateCamera();
+        animateScroll();
+      }
+
+      // Function to highlight a cluster when found via search
+      function highlightCluster(cluster) {
+        if (!cluster) return;
+
+        const container = cluster.children[0];
+        if (!container) return;
+
+        // Store original scales and opacities
+        const originalStates = [];
+
+        // Dim all other clusters
+        helixGroup.children.forEach((otherCluster) => {
+          if (otherCluster !== cluster) {
+            const otherContainer = otherCluster.children[0];
+            if (otherContainer) {
+              otherContainer.children.forEach((sprite) => {
+                if (sprite instanceof THREE.Sprite) {
+                  originalStates.push({
+                    sprite: sprite,
+                    originalOpacity: sprite.material.opacity,
+                    originalScale: sprite.scale.clone(),
+                  });
+                  sprite.material.opacity = 0.3;
+                }
+              });
+            }
+          }
+        });
+
+        // Highlight the target cluster
+        if (container) {
+          container.children.forEach((sprite) => {
+            if (sprite instanceof THREE.Sprite) {
+              originalStates.push({
+                sprite: sprite,
+                originalOpacity: sprite.material.opacity,
+                originalScale: sprite.scale.clone(),
+              });
+              sprite.material.opacity = 1.0;
+              sprite.scale.multiplyScalar(1.2); // Slightly enlarge the found cluster
+            }
+          });
+        }
+
+        // Restore original states after 3 seconds
+        setTimeout(() => {
+          originalStates.forEach((state) => {
+            state.sprite.material.opacity = state.originalOpacity;
+            state.sprite.scale.copy(state.originalScale);
+          });
+        }, 3000);
       }
 
       // Search bar event listeners
@@ -4007,6 +4153,8 @@
           if (event.key === "Enter") {
             const query = event.target.value.trim();
             if (query.length > 0) {
+              // Prevent rapid successive searches
+              if (searchBar.disabled) return;
               performSearch(query);
             }
           }
