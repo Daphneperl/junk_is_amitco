@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Rhizome w UI</title>
+    <title>Rhizome</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -1299,11 +1299,20 @@
         googleMapsLoaded: false,
       };
 
+      // Pre-computed filename to extension mapping
+      const filenameToExtension = {
+        // This will be populated dynamically
+      };
+
+      // Data sources for focus mode
+      let dfData = {};
+      let completenessScores = {};
+
       // Load artistic analysis data
       async function loadArtisticData() {
         try {
           const response = await fetch(
-            "../../image_analysis/artistic_analysis_filtered.json"
+            "../../image_analysis/images2_analysis/artistic_analysis_images2_filtered.json"
           );
           artisticData = await response.json();
 
@@ -1318,6 +1327,85 @@
           console.error("Error loading artistic data:", error);
           return [];
         }
+      }
+
+      // Load DF data for focus mode
+      async function loadDFData() {
+        try {
+          const response = await fetch("../../assets/DF.json");
+          const dfDataArray = await response.json();
+
+          // Convert array to object with filename as key
+          dfDataArray.forEach((item) => {
+            dfData[item.filename] = item;
+          });
+
+          console.log(`Loaded ${dfDataArray.length} DF records`);
+          return dfData;
+        } catch (error) {
+          console.error("Error loading DF data:", error);
+          return {};
+        }
+      }
+
+      // Load completeness scores
+      async function loadCompletenessScores() {
+        try {
+          const response = await fetch(
+            "../../views/Completeness/inverted_sketchiness_scores_images2.json"
+          );
+          completenessScores = await response.json();
+
+          console.log(
+            `Loaded ${
+              Object.keys(completenessScores).length
+            } completeness scores`
+          );
+          return completenessScores;
+        } catch (error) {
+          console.error("Error loading completeness scores:", error);
+          return {};
+        }
+      }
+
+      // Function to get the correct file extension for a filename
+      async function getImageExtension(filename) {
+        // Common extensions to try in order of preference
+        const extensions = [
+          ".png",
+          ".jpg",
+          ".jpeg",
+          ".webp",
+          ".gif",
+          ".GIF",
+          ".JPG",
+          ".PNG",
+          ".HEIC",
+          ".heic",
+        ];
+
+        // Try to find which extension exists by making a HEAD request
+        for (const ext of extensions) {
+          try {
+            const response = await fetch(`../../images2/${filename}${ext}`, {
+              method: "HEAD",
+            });
+            if (response.ok) {
+              return ext;
+            }
+          } catch (error) {
+            // Continue to next extension
+          }
+        }
+
+        // If none found, return the most common extension
+        return ".png";
+      }
+
+      // Synchronous version for immediate use
+      function getImageExtensionSync(filename) {
+        // Based on the file listing, most images are PNG
+        return ".png";
       }
 
       // Calculate similarity between two images based on keywords
@@ -1363,212 +1451,42 @@
         return intersectionWeight / (totalWeight / 2);
       }
 
-      // Strict spatial clustering with enforced separation
-      function createStrictSpatialClusters() {
-        // Define semantic categories with their keywords
-        const semanticCategories = {
-          text_documents: [
-            "manuscript",
-            "document",
-            "text",
-            "writing",
-            "letter",
-            "signature",
-            "list",
-            "catalogue",
-            "menu",
-            "notes",
-            "scripts",
-            "correspondence",
-            "point",
-            "word",
-            "boundary",
-            "names",
-            "roster",
-          ],
-          people_faces: [
-            "face",
-            "head",
-            "person",
-            "people",
-            "portrait",
-            "figure",
-            "human",
-          ],
-          nature_landscape: [
-            "landscape",
-            "nature",
-            "tree",
-            "plant",
-            "flower",
-            "sky",
-            "mountain",
-            "water",
-            "ocean",
-            "forest",
-            "animals",
-            "zebra",
-            "center",
-          ],
-          architecture_buildings: [
-            "building",
-            "architecture",
-            "house",
-            "structure",
-            "wall",
-            "door",
-            "window",
-            "room",
-          ],
-          objects_things: [
-            "object",
-            "thing",
-            "item",
-            "tool",
-            "instrument",
-            "device",
-            "machine",
-          ],
-          abstract_patterns: [
-            "pattern",
-            "abstract",
-            "design",
-            "shape",
-            "form",
-            "texture",
-            "color",
-          ],
-          animals_creatures: [
-            "animal",
-            "creature",
-            "bird",
-            "fish",
-            "insect",
-            "mammal",
-          ],
-          food_dining: [
-            "food",
-            "meal",
-            "dish",
-            "plate",
-            "cup",
-            "drink",
-            "wine",
-            "coffee",
-            "pasta",
-          ],
-        };
+      // Simple keyword-based positioning helper
+      function getImageCategory(imageData) {
+        // Simple categorization based on top keywords
+        const topKeywords = imageData.keywords
+          .slice(0, 3)
+          .map((k) => k.keyword.toLowerCase());
 
-        // Helper function to get semantic category for an image
-        function getImageCategory(imageData) {
-          const keywordTexts = imageData.keywords.map((k) =>
-            k.keyword.toLowerCase()
-          );
-          const categoryScores = {};
-
-          for (const [category, keywords] of Object.entries(
-            semanticCategories
-          )) {
-            let score = 0;
-            for (const keyword of keywords) {
-              if (keywordTexts.includes(keyword)) {
-                score += 1;
-              }
-            }
-            categoryScores[category] = score;
-          }
-
-          // Return the category with highest score, or 'other' if no clear match
-          const maxScore = Math.max(...Object.values(categoryScores));
-          if (maxScore === 0) return "other";
-
-          for (const [category, score] of Object.entries(categoryScores)) {
-            if (score === maxScore) return category;
-          }
+        if (
+          topKeywords.some((k) =>
+            ["person", "face", "head", "people", "portrait"].includes(k)
+          )
+        ) {
+          return "people";
+        } else if (
+          topKeywords.some((k) =>
+            ["nature", "landscape", "tree", "flower", "sky"].includes(k)
+          )
+        ) {
+          return "nature";
+        } else if (
+          topKeywords.some((k) =>
+            ["building", "architecture", "house", "structure"].includes(k)
+          )
+        ) {
+          return "architecture";
+        } else if (
+          topKeywords.some((k) => ["food", "meal", "dish", "plate"].includes(k))
+        ) {
+          return "food";
+        } else {
           return "other";
         }
-
-        // Group images by semantic category
-        const categoryGroups = {};
-        artisticData.forEach((imageData, index) => {
-          const category = getImageCategory(imageData);
-          if (!categoryGroups[category]) {
-            categoryGroups[category] = [];
-          }
-          categoryGroups[category].push({ ...imageData, originalIndex: index });
-        });
-
-        // Create strict spatial clusters with large separation
-        const clusters = [];
-        const clusterPositions = {
-          text_documents: { x: -400, y: 0, z: 0 },
-          people_faces: { x: 400, y: 0, z: 0 },
-          nature_landscape: { x: 0, y: 400, z: 0 },
-          architecture_buildings: { x: 0, y: -400, z: 0 },
-          objects_things: { x: 0, y: 0, z: 400 },
-          abstract_patterns: { x: 0, y: 0, z: -400 },
-          animals_creatures: { x: -400, y: 400, z: 0 },
-          food_dining: { x: 400, y: -400, z: 0 },
-          other: { x: 0, y: 0, z: 0 },
-        };
-
-        Object.entries(categoryGroups).forEach(([category, images]) => {
-          if (images.length === 0) return;
-
-          clusters.push({
-            category: category,
-            images: images,
-            position: clusterPositions[category] || { x: 0, y: 0, z: 0 },
-          });
-        });
-
-        console.log(
-          "Created strict spatial clusters:",
-          clusters.map(
-            (c) =>
-              `${c.category}: ${c.images.length} images at (${c.position.x}, ${c.position.y}, ${c.position.z})`
-          )
-        );
-        return clusters;
       }
 
-      // Position images strictly within their cluster regions
-      function positionImagesInStrictClusters(clusters) {
-        const imagePositions = new Map();
-
-        clusters.forEach((cluster) => {
-          const baseX = cluster.position.x;
-          const baseY = cluster.position.y;
-          const baseZ = cluster.position.z;
-          const clusterRadius = 60; // Smaller radius for tighter clusters
-
-          // Position images within this cluster in a more organized way
-          cluster.images.forEach((imageData, imageIndex) => {
-            // Create a spiral pattern within the cluster
-            const angle = (imageIndex / cluster.images.length) * Math.PI * 4; // 2 full rotations
-            const radius =
-              (imageIndex / cluster.images.length) * clusterRadius * 0.8;
-            const height = Math.sin(angle * 2) * clusterRadius * 0.3;
-
-            const x = baseX + radius * Math.cos(angle);
-            const y = baseY + radius * Math.sin(angle);
-            const z = baseZ + height;
-
-            imagePositions.set(imageData.originalIndex, {
-              x,
-              y,
-              z,
-              category: cluster.category,
-              clusterCenter: { x: baseX, y: baseY, z: baseZ },
-            });
-          });
-        });
-
-        return imagePositions;
-      }
-
-      // Find connections only within the same cluster
-      function findIntraClusterConnections(clusters) {
+      // Simple keyword-based connections
+      function findSimpleConnections() {
         const connections = [];
 
         // Initialize empty connections array
@@ -1576,32 +1494,29 @@
           connections.push([]);
         }
 
-        // Only create connections within the same cluster
-        clusters.forEach((cluster) => {
-          const clusterImages = cluster.images;
-          const similarityThreshold = 0.05; // Lower threshold to see more variation
+        // Create connections based on keyword overlap
+        for (let i = 0; i < artisticData.length; i++) {
+          const image1 = artisticData[i];
+          const connectionsForImage = [];
 
-          for (let i = 0; i < clusterImages.length; i++) {
-            const image1 = clusterImages[i];
-            const connectionsForImage = [];
+          for (let j = i + 1; j < artisticData.length; j++) {
+            const image2 = artisticData[j];
+            const similarity = calculateSimilarity(image1, image2);
 
-            for (let j = i + 1; j < clusterImages.length; j++) {
-              const image2 = clusterImages[j];
-              const similarity = calculateSimilarity(image1, image2);
-
-              if (similarity > similarityThreshold) {
-                connectionsForImage.push({
-                  targetIndex: image2.originalIndex,
-                  similarity: similarity,
-                });
-              }
+            // Only connect if there's significant keyword overlap
+            if (similarity > 0.02) {
+              // Slightly higher threshold for more meaningful connections
+              connectionsForImage.push({
+                targetIndex: j,
+                similarity: similarity,
+              });
             }
-
-            // Sort by similarity and keep top connections
-            connectionsForImage.sort((a, b) => b.similarity - a.similarity);
-            connections[image1.originalIndex] = connectionsForImage.slice(0, 5); // More connections per image to see variation
           }
-        });
+
+          // Keep more connections per image for better clustering
+          connectionsForImage.sort((a, b) => b.similarity - a.similarity);
+          connections[i] = connectionsForImage.slice(0, 15); // Increased to 15 connections per image for denser clusters
+        }
 
         return connections;
       }
@@ -1609,15 +1524,20 @@
       async function loadImages() {
         try {
           // Use the filenames from artistic data
-          const imageList = artisticData.map((item) => `${item.filename}.jpg`);
+          const imageList = artisticData.map((item) => item.filename);
           totalImages = imageList.length;
 
           return Promise.all(
             imageList.map((imageName, index) => {
               return new Promise((resolve, reject) => {
                 const loader = new THREE.TextureLoader();
+
+                // Get the correct extension for this filename
+                const extension = getImageExtensionSync(imageName);
+                const imagePath = `../../images2/${imageName}${extension}`;
+
                 loader.load(
-                  `../../images/${imageName}`,
+                  imagePath,
                   (texture) => {
                     loadedImages++;
                     updateLoadingUI((loadedImages / totalImages) * 100);
@@ -1625,7 +1545,7 @@
                   },
                   undefined,
                   (error) => {
-                    console.warn(`Failed to load ${imageName}:`, error);
+                    console.warn(`Failed to load ${imagePath}:`, error);
                     loadedImages++;
                     updateLoadingUI((loadedImages / totalImages) * 100);
                     resolve({ texture: null, index });
@@ -1670,69 +1590,106 @@
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(width, height, 1);
 
-        // Position based on connection strength and keyword clusters
+        // Keyword similarity-based positioning
         const imageData = artisticData[index];
-        const connectionCount = connections.length;
 
-        // Calculate average similarity for this image
-        const avgSimilarity =
-          connections.length > 0
-            ? connections.reduce((sum, conn) => sum + conn.similarity, 0) /
-              connections.length
-            : 0;
+        // Calculate position based on keyword similarity with other images
+        let targetX = 0,
+          targetY = 0,
+          targetZ = 0;
+        let totalWeight = 0;
 
-        // Use connection count and average similarity to determine radius
-        // More connections and higher similarity = closer to center
-        const maxRadius = 350;
-        const minRadius = 0; // Allow images to be at the very center
-        const connectionFactor = Math.min(1, connectionCount / 5); // Normalize to 0-1
-        const similarityFactor = avgSimilarity;
-        const combinedFactor = (connectionFactor + similarityFactor) / 2;
-        const radius =
-          minRadius + (maxRadius - minRadius) * (1 - combinedFactor);
+        // Use connections to influence position - enhanced clustering
+        if (connections && connections.length > 0) {
+          connections.forEach((connection) => {
+            const connectedImage = artisticData[connection.targetIndex];
+            if (connectedImage) {
+              // Position closer to similar images with much stronger clustering
+              const similarity = connection.similarity;
+              const weight = similarity * 800; // Much stronger weight for tighter clustering
 
-        // Use vibe and keywords to determine angle
-        const vibeAngles = {
-          warm: 0,
-          serene: Math.PI / 3,
-          mysterious: (2 * Math.PI) / 3,
-          neutral: Math.PI,
-          cool: (4 * Math.PI) / 3,
-          energetic: (5 * Math.PI) / 3,
-        };
+              // Get position of connected image (if it exists)
+              const connectedSprite = imageSprites[connection.targetIndex];
+              if (connectedSprite) {
+                targetX += connectedSprite.position.x * weight;
+                targetY += connectedSprite.position.y * weight;
+                targetZ += connectedSprite.position.z * weight;
+              } else {
+                // If connected image not yet positioned, use a fallback
+                const hash = connectedImage.keywords
+                  .map((k) => k.keyword)
+                  .join("")
+                  .split("")
+                  .reduce((a, b) => {
+                    a = (a << 5) - a + b.charCodeAt(0);
+                    return a & a;
+                  }, 0);
+                const fallbackX =
+                  800 * Math.sin(((hash % 360) * Math.PI) / 180); // Increased radius for more spread
+                const fallbackY =
+                  800 * Math.cos(((hash % 360) * Math.PI) / 180);
+                const fallbackZ =
+                  800 * Math.sin(((hash % 180) * Math.PI) / 180);
 
-        const baseAngle = vibeAngles[imageData.vibe] || 0;
-        const keywordHash = imageData.keywords.reduce(
-          (sum, k) => sum + k.keyword.charCodeAt(0),
-          0
+                targetX += fallbackX * weight;
+                targetY += fallbackY * weight;
+                targetZ += fallbackZ * weight;
+              }
+              totalWeight += weight;
+            }
+          });
+        }
+
+        if (totalWeight > 0) {
+          // Average the positions based on similarity weights
+          targetX /= totalWeight;
+          targetY /= totalWeight;
+          targetZ /= totalWeight;
+
+          // Add a small offset towards the center to create tighter clusters
+          const centerPull = 0.3; // How much to pull towards center
+          targetX *= 1 - centerPull;
+          targetY *= 1 - centerPull;
+          targetZ *= 1 - centerPull;
+        } else {
+          // Fallback to hash-based positioning if no connections
+          const keywordString = imageData.keywords
+            .map((k) => k.keyword)
+            .join("");
+          const hash = keywordString.split("").reduce((a, b) => {
+            a = (a << 5) - a + b.charCodeAt(0);
+            return a & a;
+          }, 0);
+
+          const radius = 600 + (hash % 600); // Increased radius range for more spread
+          const theta = (hash % 360) * (Math.PI / 180);
+          const phi = (hash % 180) * (Math.PI / 180);
+
+          targetX = radius * Math.sin(phi) * Math.cos(theta);
+          targetY = radius * Math.cos(phi);
+          targetZ = radius * Math.sin(phi) * Math.sin(theta);
+        }
+
+        // Add larger random offset for more spread
+        const offsetX = (Math.random() - 0.5) * 80; // Increased for more spread
+        const offsetY = (Math.random() - 0.5) * 80; // Increased for more spread
+        const offsetZ = (Math.random() - 0.5) * 80; // Increased for more spread
+
+        sprite.position.set(
+          targetX + offsetX,
+          targetY + offsetY,
+          targetZ + offsetZ
         );
-        const angleOffset = ((keywordHash % 100) / 100) * Math.PI * 0.5;
-
-        const theta = baseAngle + angleOffset;
-        const phi = Math.acos(1 - (2 * (index + 0.5)) / totalImages);
-
-        // Reduce randomness for more predictable clustering
-        const randomOffset = radius * 0.1; // Reduced from 0.2 to 0.1
-        const offsetX = (Math.random() - 0.5) * randomOffset;
-        const offsetY = (Math.random() - 0.5) * randomOffset;
-        const offsetZ = (Math.random() - 0.5) * randomOffset;
-
-        const targetX = radius * Math.sin(phi) * Math.cos(theta) + offsetX;
-        const targetY = radius * Math.sin(phi) * Math.sin(theta) + offsetY;
-        const targetZ = radius * Math.cos(phi) + offsetZ;
-
-        sprite.position.set(targetX, targetY, targetZ);
 
         // Store data for animation and connections
         sprite.userData = {
           timeOffset: index * 0.1,
-          originalX: targetX,
-          originalY: targetY,
-          originalZ: targetZ,
+          originalX: targetX + offsetX,
+          originalY: targetY + offsetY,
+          originalZ: targetZ + offsetZ,
           connections: connections,
           imageData: imageData,
           index: index,
-          avgSimilarity: avgSimilarity,
         };
 
         return sprite;
@@ -2009,7 +1966,7 @@
 
         // Limit the number of connections to prevent performance issues
         let connectionCount = 0;
-        const maxConnections = 300; // Increase limit to see more connections
+        const maxConnections = 500; // Increased limit to see more clustering connections
 
         // Create new lines based on keyword similarity
         for (
@@ -2077,7 +2034,7 @@
           // 70% of particles in the outer space, 30% within the network area
           if (Math.random() < 0.7) {
             // Outer space particles (around the clusters)
-            const radius = 800 + Math.random() * 400; // 800-1200 range
+            const radius = 1200 + Math.random() * 600; // 1200-1800 range for more spread
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
 
@@ -2086,7 +2043,7 @@
             z = radius * Math.cos(phi);
           } else {
             // Inner network particles (within and around the clusters)
-            const clusterRadius = 500; // Area where clusters are located
+            const clusterRadius = 800; // Larger area where clusters are located
             x = (Math.random() - 0.5) * clusterRadius * 2;
             y = (Math.random() - 0.5) * clusterRadius * 2;
             z = (Math.random() - 0.5) * clusterRadius * 2;
@@ -2173,21 +2130,16 @@
       }
 
       async function init() {
-        // Load artistic data first
-        await loadArtisticData();
+        // Load all data sources
+        await Promise.all([
+          loadArtisticData(),
+          loadDFData(),
+          loadCompletenessScores(),
+        ]);
 
-        // Create strict spatial clusters
-        const clusters = createStrictSpatialClusters();
-
-        // Position images strictly within their cluster regions
-        const imagePositions = positionImagesInStrictClusters(clusters);
-
-        // Find connections only within the same cluster
-        const intraClusterConnections = findIntraClusterConnections(clusters);
-        console.log(
-          "Found intra-cluster connections:",
-          intraClusterConnections.length
-        );
+        // Find simple keyword-based connections
+        const connections = findSimpleConnections();
+        console.log("Found keyword-based connections:", connections.length);
 
         // Create scene
         scene = new THREE.Scene();
@@ -2222,19 +2174,38 @@
 
         // Load and create image sprites
         const textureResults = await loadImages();
+        let loadedCount = 0;
+        let failedCount = 0;
+
         textureResults.forEach((result, index) => {
           if (result.texture) {
-            const clusterPosition = imagePositions.get(index);
             const sprite = createImageSprite(
               result.texture,
               index,
-              intraClusterConnections[index],
-              clusterPosition
+              connections[index]
             );
             imageSprites.push(sprite);
             scene.add(sprite);
+            loadedCount++;
+          } else {
+            failedCount++;
           }
         });
+
+        console.log(
+          `Image loading results: ${loadedCount} loaded, ${failedCount} failed out of ${totalImages} total`
+        );
+        console.log(
+          `Connection statistics: ${
+            connections.filter((c) => c.length > 0).length
+          } images have connections`
+        );
+        console.log(
+          `Total connections: ${connections.reduce(
+            (sum, c) => sum + c.length,
+            0
+          )}`
+        );
 
         // Initial creation of connection lines
         updateConnectionLines(0, 0); // Start with no rotation
@@ -2246,7 +2217,7 @@
           0.1,
           2000
         );
-        camera.position.set(0, 0, 800); // More zoomed out initial view
+        camera.position.set(0, 0, 800); // More zoomed in for better cluster visibility
 
         // Create renderer
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -2303,7 +2274,7 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.minDistance = 1; // Allow zooming extremely close
-        controls.maxDistance = 3000; // Allow zooming much further out
+        controls.maxDistance = 4000; // Allow zooming much further out
         controls.target.set(0, 0, 0);
         controls.update();
 
@@ -2490,15 +2461,15 @@
           rings.rotation.y += 0.0008; // Reduced from 0.0006
         }
 
+        // Calculate entrance rotation once for both particles and images
+        const entranceRotation = entranceEase * Math.PI * -0.5; // -90 degrees (25% turn) in the opposite direction
+        const rotationMatrix = new THREE.Matrix4();
+        rotationMatrix.makeRotationY(entranceRotation);
+
         // Animate particles with slow, gentle movement and entrance rotation
         if (particles) {
           const positions = particles.geometry.attributes.position.array;
           const speeds = particles.userData.speeds;
-
-          // Apply entrance rotation to particles
-          const entranceRotation = entranceEase * Math.PI * 0.5; // Same rotation as images (90 degrees)
-          const particleRotationMatrix = new THREE.Matrix4();
-          particleRotationMatrix.makeRotationY(entranceRotation);
 
           for (let i = 0; i < positions.length; i += 3) {
             const speed = speeds[i / 3];
@@ -2515,12 +2486,12 @@
               originalY,
               originalZ
             );
-            particlePosition.applyMatrix4(particleRotationMatrix);
+            particlePosition.applyMatrix4(rotationMatrix);
 
             // Simple particle movement - much larger amplitude
-            const movementX = Math.sin(time) * 50; // Much larger movement
-            const movementY = Math.cos(time * 0.7) * 50;
-            const movementZ = Math.sin(time * 0.5) * 30;
+            const movementX = Math.sin(time) * 80; // Even larger movement for spread
+            const movementY = Math.cos(time * 0.7) * 80;
+            const movementZ = Math.sin(time * 0.5) * 50;
 
             positions[i] = particlePosition.x + movementX;
             positions[i + 1] = particlePosition.y + movementY;
@@ -2535,11 +2506,6 @@
           const floatTime = time * 0.00005 + sprite.userData.timeOffset; // Much slower time
           const connections = sprite.userData.connections;
           const clusterPosition = sprite.userData.clusterPosition;
-
-          // Apply entrance rotation animation - only one direction
-          const entranceRotation = entranceEase * Math.PI * 0.5; // 90 degrees (25% turn) in one direction
-          const rotationMatrix = new THREE.Matrix4();
-          rotationMatrix.makeRotationY(entranceRotation);
 
           // Get the original position relative to center
           const originalX = sprite.userData.originalX;
@@ -2590,7 +2556,7 @@
           }
 
           // Very gentle floating movement within cluster bounds
-          const floatRadius = 0.2; // Much smaller radius for stable connections
+          const floatRadius = 0.1; // Even smaller radius for tighter clusters
           const floatX = Math.sin(floatTime * 0.02) * floatRadius; // Much slower movement
           const floatY = Math.cos(floatTime * 0.03) * floatRadius;
           const floatZ = Math.sin(floatTime * 0.015) * floatRadius;
@@ -2610,8 +2576,8 @@
               const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
               if (distance > 0) {
-                // Very weak attraction
-                const attractionForce = connection.similarity * 0.002; // Even weaker
+                // Much stronger attraction for tighter clustering
+                const attractionForce = connection.similarity * 0.008; // Increased from 0.002 to 0.008
                 const weight = connection.similarity;
 
                 connectionForceX += (dx / distance) * attractionForce * weight;
@@ -2631,7 +2597,7 @@
 
           // Add very gentle jitter for subtle movement while keeping connections stable
           const jitterTime = time * 0.0005 + sprite.userData.timeOffset; // Much slower for stability
-          const jitterAmplitude = 0.3; // Much smaller amplitude for stable connections
+          const jitterAmplitude = 0.15; // Even smaller amplitude for tighter clusters
 
           // Single gentle sine wave for subtle movement
           const jitterX = Math.sin(jitterTime * 0.7) * jitterAmplitude;
@@ -4562,7 +4528,30 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "drawer-artwork";
         const artworkImg = document.createElement("img");
-        artworkImg.src = `../../images/${artworkData.filename}.jpg`;
+        // Load artwork image with correct extension
+        const extension = getImageExtensionSync(artworkData.filename);
+        const imagePath = `../../images2/${artworkData.filename}${extension}`;
+        artworkImg.src = imagePath;
+        artworkImg.onerror = () => {
+          console.warn(`Failed to load artwork image ${imagePath}`);
+          // Create a placeholder for failed images
+          artworkImg.style.display = "none";
+          const placeholder = document.createElement("div");
+          placeholder.style.cssText = `
+            width: 300px;
+            height: 200px;
+            background: #333;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: monospace;
+            text-align: center;
+            border: 1px solid #555;
+          `;
+          placeholder.innerHTML = `Image not found<br><small>${artworkData.filename}${extension}</small>`;
+          artworkSection.appendChild(placeholder);
+        };
         artworkImg.alt = artworkData.title || "Artwork";
 
         // Smart image sizing algorithm
@@ -4688,70 +4677,79 @@
         const infoSection = document.createElement("div");
         infoSection.className = "drawer-info";
 
+        // Get data from different sources
+        const filename = artworkData.filename;
+        const dfRecord = dfData[filename];
+        const completenessScore =
+          completenessScores[`${filename}.png`] ||
+          completenessScores[`${filename}.jpg`] ||
+          completenessScores[`${filename}.jpeg`] ||
+          completenessScores[`${filename}.webp`] ||
+          completenessScores[`${filename}.gif`] ||
+          completenessScores[`${filename}.GIF`] ||
+          completenessScores[`${filename}.JPG`] ||
+          completenessScores[`${filename}.PNG`] ||
+          completenessScores[`${filename}.HEIC`] ||
+          completenessScores[`${filename}.heic`];
+
         // Create info content
         infoSection.innerHTML = `
               <div class="drawer-field">
                   <div class="drawer-label">Title</div>
                   <div class="drawer-value">${
-                    artworkData.title || "Not specified"
+                    dfRecord?.title || "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Completeness score</div>
+                  <div class="drawer-value">${
+                    completenessScore !== undefined
+                      ? completenessScore
+                      : "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Signed by</div>
                   <div class="drawer-value">${
-                    artworkData.signedBy || "Not specified"
+                    dfRecord?.["@creator"] || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Zone</div>
                   <div class="drawer-value">${
-                    artworkData.zone || "Not specified"
+                    dfRecord?.location || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Exact spot</div>
                   <div class="drawer-value">${
-                    artworkData.exactSpot || "Not specified"
+                    dfRecord?.exact_spot || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Date stamp</div>
                   <div class="drawer-value">${
-                    artworkData.date || "Not specified"
+                    dfRecord?.date_stamp || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Daytime</div>
                   <div class="drawer-value">${
-                    artworkData.daytime || "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Rawness</div>
-                  <div class="drawer-value">${
-                    artworkData.rawness !== undefined
-                      ? artworkData.rawness
-                      : "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
-                  <div class="drawer-label">Format type</div>
-                  <div class="drawer-value">${
-                    artworkData.format || "Not specified"
+                    dfRecord?.daytime_icon || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Scene/Context</div>
+                  <div class="drawer-label">Context</div>
                   <div class="drawer-context">${
-                    artworkData.context || "No context provided"
+                    dfRecord?.context || "No context provided"
                   }</div>
               </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Vibes/Tags</div>
+                  <div class="drawer-label">Tags</div>
                   <div class="drawer-tags">
                       ${
-                        artworkData.tags && artworkData.tags.length > 0
-                          ? artworkData.tags
+                        dfRecord?.keywords && dfRecord.keywords.length > 0
+                          ? dfRecord.keywords
                               .map(
                                 (tag) =>
                                   `<span class="drawer-tag">${tag}</span>`
