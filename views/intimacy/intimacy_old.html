@@ -1146,31 +1146,19 @@
     </div>
 
     <script>
-      // 1. Define stations and Z mapping - 13 layers based on CSV exact_spot values
+      // 1. Define stations and Z mapping
       const stations = [
-        { name: "empty", flower: "empty" },
-        { name: "metro station", flower: "mind the gap" },
-        { name: "park bench", flower: "So poetic" },
-        { name: "bus seat", flower: "Stories pass by outside the window" },
-        {
-          name: "stuck in traffic",
-          flower: "Everything pauses, except your mind",
-        },
-        { name: "beach", flower: "Sand in your soul and sketchbook" },
-        {
-          name: "train window seat",
-          flower: "pretending you're in a music video",
-        },
-        {
-          name: "office desk corner",
-          flower: "working hard or hardly working",
-        },
-        { name: "balcony at sunset", flower: "Placeholder subtitle 8" },
-        { name: "kitchen table", flower: "cooking lovely sketches" },
-        { name: "museum", flower: "It's not stealing if you make it your own" },
-        { name: "attic", flower: "nice and haunted" },
-        { name: "toilet", flower: "that's some shitty art- love it!" },
-        { name: "bed at midnight", flower: "Where the magic happens" },
+        { name: "", flower: "" }, // Empty first layer
+        { name: "The Beach", flower: "Sand in your soul and sketchbook" },
+        { name: "The Park", flower: "So poetic" },
+        { name: "Museum", flower: "It's not stealing if you make it your own" },
+        { name: "Cafe", flower: "Coffee stains everywhere" },
+        { name: "Pub", flower: "Who needs friends when there's beer?" },
+        { name: "Class", flower: "Teacher's pet!" },
+        { name: "Studio", flower: "Artist's layer" },
+        { name: "Living room", flower: "Couchpotato or artistic genius?" },
+        { name: "Bedroom", flower: "Where the magic happens" },
+        { name: "Toilet", flower: "Where shit gets real" },
       ];
 
       const imageRingRadius = 75;
@@ -1217,156 +1205,36 @@
       async function loadArtworks() {
         let imageList = [];
         try {
-          const response = await fetch("../../images2/images2.json");
+          const response = await fetch("../../images/images.json");
           imageList = await response.json();
         } catch (e) {
           document.getElementById("loading-text").textContent =
-            "Error loading images2.json";
+            "Error loading images.json";
           return [];
         }
 
-        // Load DF.json data for artwork information
-        let dfData = [];
-        try {
-          const dfResponse = await fetch("../../assets/DF.json");
-          dfData = await dfResponse.json();
-        } catch (e) {
-          console.error("Error loading DF.json data:", e);
-        }
+        // Shuffle the image list to randomize selection
+        const shuffledImages = [...imageList].sort(() => Math.random() - 0.5);
 
-        // Load completeness scores
-        let completenessScores = {};
-        try {
-          const completenessResponse = await fetch(
-            "../../views/Completeness/inverted_sketchiness_scores_images2.json"
-          );
-          completenessScores = await completenessResponse.json();
-        } catch (e) {
-          console.error("Error loading completeness scores:", e);
-        }
+        // Calculate how many images per station (ensure equal distribution)
+        const imagesPerStation = Math.floor(
+          shuffledImages.length / stations.length
+        );
+        const totalImagesToUse = imagesPerStation * stations.length;
 
-        // Create mapping from exact_spot to station index
-        const spotToStationMap = {};
-        stations.forEach((station, index) => {
-          spotToStationMap[station.name] = index;
-        });
-
-        // Assign images to stations based on their exact_spot from CSV
+        // Distribute images evenly across stations
         const artworks = [];
-        const imagesPerStation = {};
-
-        // Initialize counters for each station
-        stations.forEach((_, index) => {
-          imagesPerStation[index] = 0;
-        });
-
-        // Helper function to extract base filename without extension
-        function getBaseFilename(filename) {
-          return filename.replace(/\.[^/.]+$/, "");
-        }
-
-        // First, try to assign images based on DF.json data
-        imageList.forEach((imageName, imageIndex) => {
-          const baseFilename = getBaseFilename(imageName);
-
-          // Find corresponding data from DF.json
-          const dfEntry = dfData.find(
-            (entry) => entry.filename === baseFilename
-          );
-
-          // Get completeness score
-          const completenessScore =
-            completenessScores[imageName] || "Not available";
-
-          if (
-            dfEntry &&
-            dfEntry.exact_spot &&
-            spotToStationMap[dfEntry.exact_spot] !== undefined
-          ) {
-            const stationIdx = spotToStationMap[dfEntry.exact_spot];
-            artworks.push({
-              id: imageIndex,
-              stationIdx,
-              station: stations[stationIdx],
-              image: imageName,
-              title: dfEntry?.title || "Not specified",
-              signedBy: dfEntry?.["@creator"] || "Not specified",
-              zone: dfEntry?.location || "Not specified",
-              exactSpot: dfEntry?.exact_spot || "Not specified",
-              date: dfEntry?.date_stamp || "Not specified",
-              daytime: dfEntry?.daytime_icon || "Not specified",
-              completenessScore: completenessScore,
-              context: dfEntry?.context || "No context provided",
-              tags: dfEntry?.keywords || [],
-            });
-            imagesPerStation[stationIdx]++;
-          }
-        });
-
-        // Log assignment statistics
-        console.log("DF data loaded:", dfData.length, "entries");
-        console.log(
-          "Completeness scores loaded:",
-          Object.keys(completenessScores).length,
-          "entries"
-        );
-        console.log("Images assigned to stations:", artworks.length);
-        console.log("Images per station:", imagesPerStation);
-
-        // Debug: Log a few sample artworks to verify data
-        if (artworks.length > 0) {
-          console.log("Sample artwork data:", artworks[0]);
-        }
-
-        // If some stations have no images, distribute remaining images evenly
-        const remainingImages = imageList.filter((imageName) => {
-          return !artworks.some((art) => art.image === imageName);
-        });
-
-        // Shuffle remaining images
-        const shuffledRemaining = [...remainingImages].sort(
-          () => Math.random() - 0.5
-        );
-
-        // Distribute remaining images to stations with fewer images
-        let remainingIndex = 0;
-        while (remainingIndex < shuffledRemaining.length) {
-          // Find station with least images
-          let minStation = 0;
-          let minCount = imagesPerStation[0];
-          for (let i = 1; i < stations.length; i++) {
-            if (imagesPerStation[i] < minCount) {
-              minCount = imagesPerStation[i];
-              minStation = i;
+        for (let stationIdx = 0; stationIdx < stations.length; stationIdx++) {
+          for (let i = 0; i < imagesPerStation; i++) {
+            const imageIndex = stationIdx * imagesPerStation + i;
+            if (imageIndex < shuffledImages.length) {
+              artworks.push({
+                id: imageIndex,
+                stationIdx,
+                station: stations[stationIdx],
+                image: shuffledImages[imageIndex],
+              });
             }
-          }
-
-          if (remainingIndex < shuffledRemaining.length) {
-            const imageName = shuffledRemaining[remainingIndex];
-            const baseFilename = getBaseFilename(imageName);
-            const dfEntry = dfData.find(
-              (entry) => entry.filename === baseFilename
-            );
-            const completenessScore =
-              completenessScores[imageName] || "Not available";
-
-            artworks.push({
-              id: remainingIndex + imageList.length,
-              stationIdx: minStation,
-              station: stations[minStation],
-              image: imageName,
-              title: dfEntry?.title || "Not specified",
-              signedBy: dfEntry?.["@creator"] || "Not specified",
-              zone: dfEntry?.location || "Not specified",
-              exactSpot: dfEntry?.exact_spot || "Not specified",
-              date: dfEntry?.date_stamp || "Not specified",
-              daytime: dfEntry?.daytime_icon || "Not specified",
-              completenessScore: completenessScore,
-              context: dfEntry?.context || "No context provided",
-              tags: dfEntry?.keywords || [],
-            });
-            imagesPerStation[minStation]++;
-            remainingIndex++;
           }
         }
 
@@ -1550,10 +1418,10 @@
         const tempCtx = tempCanvas.getContext("2d");
 
         // Measure title text
-        tempCtx.font = "bold 200px VT323, monospace";
+        tempCtx.font = "bold 300px VT323, monospace";
         const titleMetrics = tempCtx.measureText(title);
         const titleWidth = Math.ceil(titleMetrics.width);
-        const titleHeight = 300; // Smaller height for smaller font
+        const titleHeight = 450; // Bigger height for bigger font
 
         // Measure subtitle text if provided
         let subtitleWidth = 0;
@@ -1619,7 +1487,7 @@
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw title
-        context.font = "bold 200px VT323, monospace";
+        context.font = "bold 300px VT323, monospace";
         context.fillStyle = "rgba(255,255,255,1)";
         context.textAlign = "center";
         context.textBaseline = "middle";
@@ -1791,7 +1659,7 @@
         }
         artworks.forEach((art) => {
           textureLoader.load(
-            `../../images2/${art.image}`,
+            `../../images/${art.image}`,
             (texture) => {
               art._texture = texture;
               loaded++;
@@ -3774,7 +3642,7 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "drawer-artwork";
         const artworkImg = document.createElement("img");
-        artworkImg.src = `../../images2/${artworkData.image}`;
+        artworkImg.src = `../../images/${artworkData.image}`;
         artworkImg.alt = artworkData.title || "Artwork";
 
         // Dynamic image sizing logic
@@ -3837,12 +3705,6 @@
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Rawness</div>
-                  <div class="drawer-value">${
-                    artworkData.completenessScore || "Not specified"
-                  }</div>
-              </div>
-              <div class="drawer-field">
                   <div class="drawer-label">Signed by</div>
                   <div class="drawer-value">${
                     artworkData.signedBy || "Not specified"
@@ -3872,14 +3734,28 @@
                     artworkData.daytime || "Not specified"
                   }</div>
               </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Rawness</div>
+                  <div class="drawer-value">${
+                    artworkData.rawness !== undefined
+                      ? artworkData.rawness
+                      : "Not specified"
+                  }</div>
+              </div>
+              <div class="drawer-field">
+                  <div class="drawer-label">Format type</div>
+                  <div class="drawer-value">${
+                    artworkData.format || "Not specified"
+                  }</div>
+              </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Context</div>
+                  <div class="drawer-label">Scene/Context</div>
                   <div class="drawer-context">${
                     artworkData.context || "No context provided"
                   }</div>
               </div>
               <div class="drawer-field full-width">
-                  <div class="drawer-label">Tags</div>
+                  <div class="drawer-label">Vibes/Tags</div>
                   <div class="drawer-tags">
                       ${
                         artworkData.tags && artworkData.tags.length > 0
