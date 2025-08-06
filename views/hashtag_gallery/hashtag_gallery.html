@@ -2794,7 +2794,30 @@
         const imageName = imageData.split(".")[0];
         const analysisData = artisticAnalysisData[imageName] || {};
         const dfImageData = dfData[imageName] || {};
-        const completenessScore = completenessScores[imageData] || "-";
+
+        // Try multiple ways to find the completeness score
+        let completenessScore = completenessScores[imageData];
+        if (completenessScore === undefined) {
+          // Try with different extensions
+          const extensions = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+          for (const ext of extensions) {
+            const testKey = imageName + ext;
+            if (completenessScores[testKey] !== undefined) {
+              completenessScore = completenessScores[testKey];
+              break;
+            }
+          }
+        }
+
+        // If still not found, try just the base name
+        if (completenessScore === undefined) {
+          completenessScore = completenessScores[imageName];
+        }
+
+        // Default to "-" if not found
+        if (completenessScore === undefined) {
+          completenessScore = "-";
+        }
 
         // Create backdrop
         const backdrop = document.createElement("div");
@@ -2895,12 +2918,12 @@
 
         // Map data to semantic fields according to user's requirements
         const title = dfImageData.title || imageData || "-";
-        const completenessScoreValue =
-          completenessScore !== "-" ? completenessScore : "-";
+        const dateStamp = dfImageData.date_stamp || "-";
         const signedBy = dfImageData["@creator"] || "-";
         const zone = dfImageData.location || "-";
         const exactSpot = dfImageData.exact_spot || "-";
-        const dateStamp = dfImageData.date_stamp || "-";
+        const completenessScoreValue =
+          completenessScore !== "-" ? completenessScore : "-";
         const daytime = dfImageData.daytime_icon || "-";
         const context = dfImageData.context || "-";
         const tags = dfImageData.keywords || [];
@@ -2912,8 +2935,8 @@
                   <div class="drawer-value">${title}</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Rawness</div>
-                  <div class="drawer-value">${completenessScoreValue}</div>
+                  <div class="drawer-label">Date stamp</div>
+                  <div class="drawer-value">${dateStamp}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Signed by</div>
@@ -2928,8 +2951,8 @@
                   <div class="drawer-value">${exactSpot}</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Date stamp</div>
-                  <div class="drawer-value">${dateStamp}</div>
+                  <div class="drawer-label">Rawness</div>
+                  <div class="drawer-value">${completenessScoreValue}</div>
               </div>
               <div class="drawer-field">
                   <div class="drawer-label">Daytime</div>

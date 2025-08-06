@@ -4701,11 +4701,9 @@
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Completeness score</div>
+                  <div class="drawer-label">Date stamp</div>
                   <div class="drawer-value">${
-                    completenessScore !== undefined
-                      ? completenessScore
-                      : "Not specified"
+                    dfRecord?.date_stamp || "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
@@ -4727,9 +4725,11 @@
                   }</div>
               </div>
               <div class="drawer-field">
-                  <div class="drawer-label">Date stamp</div>
+                  <div class="drawer-label">Rawness</div>
                   <div class="drawer-value">${
-                    dfRecord?.date_stamp || "Not specified"
+                    completenessScore !== undefined
+                      ? completenessScore
+                      : "Not specified"
                   }</div>
               </div>
               <div class="drawer-field">
