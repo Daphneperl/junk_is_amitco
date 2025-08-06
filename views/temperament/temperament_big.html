@@ -1193,11 +1193,6 @@
       let dfData = {};
       let completenessScores = {};
 
-      // Auto-rotation variables
-      let autoRotateStartTime = 0;
-      let autoRotateDuration = 4000; // 4 seconds in milliseconds
-      let isAutoRotating = false;
-
       function init() {
         // Create scene
         scene = new THREE.Scene();
@@ -1230,7 +1225,7 @@
         scene.background = noiseTexture;
 
         // Create particles
-        const particleCount = 50; // Reduced from 300 for much better performance
+        const particleCount = 300;
         const particleGeometry = new THREE.BufferGeometry();
         const particlePositions = new Float32Array(particleCount * 3);
         const particleSizes = new Float32Array(particleCount);
@@ -1238,8 +1233,8 @@
         const particleSpeeds = new Float32Array(particleCount);
 
         for (let i = 0; i < particleCount; i++) {
-          // Random positions within a larger sphere to match image spread
-          const radius = 120; // Increased from 80 to 120 to match image spread
+          // Random positions within a sphere
+          const radius = 80;
           const theta = Math.random() * Math.PI * 2;
           const phi = Math.acos(2 * Math.random() - 1);
 
@@ -1329,7 +1324,7 @@
           0.1,
           1000
         );
-        camera.position.z = 150; // Increased from 100 to 150 to better view spread out images
+        camera.position.z = 100;
 
         // Create renderer
         renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -1392,7 +1387,6 @@
         controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.autoRotate = false; // Start with auto-rotate disabled
 
         // Initialize raycaster for mouse interaction
         raycaster = new THREE.Raycaster();
@@ -2216,7 +2210,7 @@
 
               // Calculate aspect ratio and maintain original proportions
               const aspectRatio = texture.image.width / texture.image.height;
-              const baseSize = 8; // Increased from 5 to 8 for larger images
+              const baseSize = 5; // Base size for the larger dimension
               const width = aspectRatio > 1 ? baseSize : baseSize * aspectRatio;
               const height =
                 aspectRatio > 1 ? baseSize / aspectRatio : baseSize;
@@ -2643,24 +2637,6 @@
           sprite.position.set(newX, newY, newZ);
         });
 
-        // Auto-rotation for 4 seconds when page loads
-        if (isAutoRotating) {
-          const currentTime = Date.now();
-          const elapsed = currentTime - autoRotateStartTime;
-          const progress = Math.min(elapsed / autoRotateDuration, 1);
-
-          if (progress >= 1) {
-            // Auto-rotation complete
-            isAutoRotating = false;
-            controls.autoRotate = false;
-            controls.autoRotateSpeed = 0;
-          } else {
-            // Enable auto-rotation with slow speed
-            controls.autoRotate = true;
-            controls.autoRotateSpeed = -0.5; // Negative for left rotation, slow speed
-          }
-        }
-
         // Animate rings - natural slow rotation when not dragging
         if (rings && !ringsRotation.isDragging) {
           // Very slow, natural rotation
@@ -2697,7 +2673,7 @@
             const img = new Image();
             img.onload = () => {
               loadedImages++;
-              const progress = (loadedImages / totalImages) * 100; // Full 100% for preloading
+              const progress = (loadedImages / totalImages) * 50; // First 50% for preloading
               updateLoadingUI(progress);
               resolve();
             };
@@ -2732,46 +2708,7 @@
           dfData = dfJsonData;
           completenessScores = completenessJsonData;
 
-          // Select 300 diverse images for balanced performance and visual richness
-          const dataArray = Object.entries(temperamentData).map(
-            ([filename, scores]) => ({
-              filename,
-              ...scores,
-            })
-          );
-
-          // Sort by temperament score to ensure diversity
-          dataArray.sort((a, b) => a.temperament_score - b.temperament_score);
-
-          // Select 300 images with good distribution across the score range
-          const selectedImages = [];
-          const step = Math.floor(dataArray.length / 300);
-
-          for (
-            let i = 0;
-            i < dataArray.length && selectedImages.length < 300;
-            i += step
-          ) {
-            selectedImages.push(dataArray[i]);
-          }
-
-          // If we don't have 300 yet, add some random ones
-          while (
-            selectedImages.length < 300 &&
-            dataArray.length > selectedImages.length
-          ) {
-            const randomIndex = Math.floor(Math.random() * dataArray.length);
-            const randomImage = dataArray[randomIndex];
-            if (
-              !selectedImages.find(
-                (img) => img.filename === randomImage.filename
-              )
-            ) {
-              selectedImages.push(randomImage);
-            }
-          }
-
-          const totalImages = selectedImages.length;
+          const totalImages = Object.keys(temperamentData).length;
           let createdSprites = 0;
 
           // Ensure loading page is visible
@@ -2782,46 +2719,38 @@
 
           const updateLoadingProgress = () => {
             createdSprites++;
-            const progress = (createdSprites / totalImages) * 100; // Full progress for sprite creation
+            const progress = 50 + (createdSprites / totalImages) * 50; // Second 50% for sprite creation
             updateLoadingUI(progress);
           };
 
-          return preloadImages(
-            selectedImages.reduce((acc, img) => {
-              acc[img.filename] = img;
-              return acc;
-            }, {})
-          )
+          return preloadImages(temperamentData)
             .then(() => {
               init();
 
-              const maxScore = d3.max(
-                selectedImages,
-                (d) => d.temperament_score
-              );
-              const minScore = d3.min(
-                selectedImages,
-                (d) => d.temperament_score
+              const dataArray = Object.entries(temperamentData).map(
+                ([filename, scores]) => ({
+                  filename,
+                  ...scores,
+                })
               );
 
+              const maxScore = d3.max(dataArray, (d) => d.temperament_score);
+              const minScore = d3.min(dataArray, (d) => d.temperament_score);
+
               // Create image sprites in 3D space
-              const createSpritesPromises = selectedImages.map((d) => {
+              const createSpritesPromises = dataArray.map((d) => {
                 const normalizedScore =
                   (d.temperament_score - minScore) / (maxScore - minScore);
 
-                // Spherical coordinates mapping with increased spread
-                const radius = 120 * (1 - normalizedScore); // Increased from 80 to 120 for more spread
+                // Spherical coordinates mapping based only on temperament for radius
+                const radius = 80 * (1 - normalizedScore); // Map temperament to radius
                 const theta = Math.random() * Math.PI; // Random inclination (0 to PI)
                 const phi = Math.random() * 2 * Math.PI; // Random azimuthal angle (0 to 2*PI)
 
-                // Convert spherical to Cartesian coordinates with additional spread
-                const x =
-                  radius * Math.sin(theta) * Math.cos(phi) +
-                  (Math.random() - 0.5) * 40; // Add random spread
-                const y =
-                  radius * Math.sin(theta) * Math.sin(phi) +
-                  (Math.random() - 0.5) * 40; // Add random spread
-                const z = radius * Math.cos(theta) + (Math.random() - 0.5) * 40; // Add random spread
+                // Convert spherical to Cartesian coordinates
+                const x = radius * Math.sin(theta) * Math.cos(phi);
+                const y = radius * Math.sin(theta) * Math.sin(phi);
+                const z = radius * Math.cos(theta);
 
                 return createImageSprite(
                   `../../images2/${d.filename}`,
@@ -2850,7 +2779,7 @@
                   results.forEach((result, index) => {
                     if (result.status === "rejected") {
                       console.warn(
-                        `Failed to create sprite for ${selectedImages[index].filename}:`,
+                        `Failed to create sprite for ${dataArray[index].filename}:`,
                         result.reason
                       );
                     }
@@ -2877,13 +2806,6 @@
                   galaxyBtn.style.display = "flex";
                 }
               }, 500);
-
-              // Start auto-rotation after a short delay
-              setTimeout(() => {
-                isAutoRotating = true;
-                autoRotateStartTime = Date.now();
-              }, 1000); // Start auto-rotation 1 second after visualization appears
-
               animate();
 
               const scoreOverlay = document.getElementById("score-overlay");
