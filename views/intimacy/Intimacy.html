@@ -1071,7 +1071,7 @@
         id="loading-text"
         style="color: #ffffff; font-family: monospace; margin-top: 10px"
       >
-        LOADING... 0%
+        CALCULATING INTIMACY...
       </div>
     </div>
     <div id="visualization"></div>
@@ -1088,7 +1088,7 @@
     <!-- Tooltip -->
     <div id="eye-tooltip">
       Here is the Intimacy View. Zoom in to discover where personal fragments
-      were left – the closer you go, the more intimate places you'll find.
+      were left – the deeper you go, the more intimate places you'll find.
     </div>
 
     <!-- Pixel Arrow Indicator -->
@@ -2129,7 +2129,7 @@
 
         if (progressBar && loadingText) {
           progressBar.style.width = `${progress}%`;
-          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+          loadingText.textContent = `CALCULATING INTIMACY...`;
         }
       }
 

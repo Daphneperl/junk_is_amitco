@@ -1145,7 +1145,7 @@
         id="loading-text"
         style="color: #ffffff; font-family: monospace; margin-top: 10px"
       >
-        LOADING... 0%
+        CALCULATING CLOSEST IMAGES...
       </div>
     </div>
     <div id="tooltip"></div>
@@ -1739,7 +1739,7 @@
 
         if (progressBar && loadingText) {
           progressBar.style.width = `${progress}%`;
-          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+          loadingText.textContent = `CALCULATING CLOSEST IMAGES...`;
         }
       }
 

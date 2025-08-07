@@ -1211,7 +1211,7 @@
         id="loading-text"
         style="color: #ffffff; font-family: monospace; margin-top: 10px"
       >
-        LOADING... 0%
+        CALCULATING NETWORK...
       </div>
     </div>
     <div id="visualization"></div>
@@ -2666,7 +2666,7 @@
 
         if (progressBar && loadingText) {
           progressBar.style.width = `${progress}%`;
-          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+          loadingText.textContent = `CALCULATING NETWORK...`;
         }
       }
 
@@ -4476,8 +4476,8 @@
         raycaster = new THREE.Raycaster();
         mouse = new THREE.Vector2();
 
-        // Add click event listener to the renderer
-        renderer.domElement.addEventListener("click", onArtworkClick);
+        // Add double click event listener to the renderer
+        renderer.domElement.addEventListener("dblclick", onArtworkClick);
       }
 
       function onArtworkClick(event) {
