@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Total Galaxy - Accurate Views</title>
+    <title>Galaxy</title>
     <link
       rel="preload"
       href="assets/TransperentLogo_3107.gif"
@@ -200,7 +200,7 @@
         duration: 6000, // Reduced from 10 seconds to 6 seconds for smoother feel
         startPosition: new THREE.Vector3(),
         startAngle: 0, // Starting angle around the environment
-        targetDistance: 800, // Distance from center (reduced from 1000)
+        targetDistance: 700, // Distance from center (reduced from 1000)
         targetAngle: -Math.PI * 1.6, // End at 135 degrees counter-clockwise (leftward) - showing the spiral prominently
         targetHeight: 200, // Slightly elevated view for better perspective
       };
@@ -227,7 +227,7 @@
         rhizome: "RHIZOME",
         artist: "CREATOR",
         "open-question": "OPEN QUESTION",
-        "hashtag-gallery": "HASHTAG GALLERY",
+        "hashtag-gallery": "GALLERY",
         completeness: "COMPLETENESS",
         intimacy: "INTIMACY",
         temperament: "TEMPERATURE",
@@ -483,20 +483,22 @@
       // Load images with progress tracking and parallel loading
       async function loadImages() {
         try {
-          const response = await fetch("images/images.json");
+          const response = await fetch("images2/images2.json");
           const imageList = await response.json();
-          totalImages = imageList.length;
+          // Limit to 200 images
+          const limitedImageList = imageList.slice(0, 200);
+          totalImages = limitedImageList.length;
 
           const textureLoader = new THREE.TextureLoader();
           const textures = new Array(imageList.length);
           const loadPromises = [];
 
           // Create all load promises in parallel
-          for (let i = 0; i < imageList.length; i++) {
-            const imageName = imageList[i];
+          for (let i = 0; i < limitedImageList.length; i++) {
+            const imageName = limitedImageList[i];
             const loadPromise = new Promise((resolve) => {
               textureLoader.load(
-                `images/${imageName}`,
+                `images2/${imageName}`,
                 (texture) => {
                   // Optimize texture for performance
                   texture.generateMipmaps = false;
@@ -550,7 +552,7 @@
         // Create sprites and store their positions for connections
         const sprites = [];
         const spritePositions = [];
-        const sphereRadius = 70;
+        const sphereRadius = 25; // Further reduced from 40 to make rhizome even smaller
 
         // Position images randomly in a sphere
         textures.forEach((textureData, index) => {
@@ -558,7 +560,7 @@
             const aspectRatio =
               textureData.texture.image.width /
               textureData.texture.image.height;
-            const width = 6; // Smaller size for better density
+            const width = 3; // Further reduced from 4 to make images even smaller
             const height = width / aspectRatio;
 
             const material = new THREE.SpriteMaterial({
@@ -633,7 +635,8 @@
             const connectionKey = i < j ? `${i}-${j}` : `${j}-${i}`;
 
             // Check if this connection already exists
-            if (!connections.includes(connectionKey) && dist.distance < 80) {
+            if (!connections.includes(connectionKey) && dist.distance < 35) {
+              // Further reduced from 50 to match even smaller size
               connections.push(connectionKey);
               connectionCounts[i]++;
               connectionCounts[j]++;
@@ -668,7 +671,7 @@
             // Add random connections if not already connected and within distance
             if (
               !connections.includes(connectionKey) &&
-              distance < 80 &&
+              distance < 35 && // Further reduced from 50 to match even smaller size
               Math.random() < 0.7
             ) {
               connections.push(connectionKey);
@@ -973,7 +976,7 @@
               const aspectRatio =
                 textureData.texture.image.width /
                 textureData.texture.image.height;
-              const width = 3 + progress * 1.5; // Increased from 2 + progress * 1
+              const width = 5 + progress * 2.5; // Increased base size and multiplier for larger images
               const height = width / aspectRatio;
 
               const material = new THREE.SpriteMaterial({
@@ -1146,8 +1149,8 @@
         const wallRadius = 100; // Increased from 70
         const arcAngle = Math.PI * 1.22; // 220 degrees (same as hashtag gallery)
         const yCenter = 15; // Images positioned higher above floor
-        const fixedHeight = 18; // Increased fixed height for all images
-        const gap = 4; // Increased gap between images
+        const fixedHeight = 15; // Reduced height to match original
+        const gap = 3; // Reduced gap to match original
 
         // Calculate how many images to show (limit to fit the arc nicely)
         const maxImages = Math.min(15, textures.length);
@@ -1202,7 +1205,7 @@
               usedRadius * Math.sin(angle)
             );
 
-            // Make sprite always face forward (toward the viewer)
+            // Make sprite always face the center of the circle
             // Calculate the normal vector pointing toward the center
             const normalX = -Math.cos(angle);
             const normalZ = -Math.sin(angle);
@@ -1229,7 +1232,7 @@
         // Create a floating sheet of images similar to the collage structure
         const sheetWidth = 200;
         const sheetHeight = 150;
-        const maxImages = Math.min(200, textures.length); // Limit for performance
+        const maxImages = textures.length; // Use all 200 images
 
         // Create a main sheet group that will contain all images
         const sheetGroup = new THREE.Group();
@@ -1456,7 +1459,7 @@
         );
 
         const particleMaterial = new THREE.PointsMaterial({
-          size: 8.0,
+          size: 12.0,
           vertexColors: true,
           transparent: true,
           opacity: 0.5,
@@ -1517,7 +1520,7 @@
           0.1,
           3000
         );
-        camera.position.set(0, 0, 70);
+        camera.position.set(0, 0, 40); // More zoomed in starting position
 
         // Pre-allocate camera direction vector for reuse
         camera.direction = new THREE.Vector3();
@@ -1694,7 +1697,9 @@
             } else if (viewName === "temperament") {
               verticalOffset = 70; // Closer for temperament
             } else if (viewName === "hashtag-gallery") {
-              verticalOffset = 70; // Closer for hashtag gallery
+              verticalOffset = 50; // Lower and closer for hashtag gallery
+            } else if (viewName === "rhizome") {
+              verticalOffset = 50; // Lower and closer for rhizome
             }
 
             const titlePosition = new THREE.Vector3(
