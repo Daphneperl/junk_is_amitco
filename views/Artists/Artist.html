@@ -1908,6 +1908,16 @@
         username: "",
       };
 
+      // Function to check if a file exists
+      async function checkFileExists(url) {
+        try {
+          const response = await fetch(url, { method: "HEAD" });
+          return response.ok;
+        } catch (error) {
+          return false;
+        }
+      }
+
       // Function to position clusters in a helix
       function createHelixPosition(index, totalClusters) {
         const turns = 20; // Increased turns to make helix longer
@@ -2065,11 +2075,16 @@
           }
           const creatorClusters = await response.json();
 
+          // Randomize the order of creators on the helix
+          const shuffledClusters = [...creatorClusters].sort(
+            () => Math.random() - 0.5
+          );
+
           updateLoadingUI(10); // 10% for JSON loaded
 
           const textureLoader = new THREE.TextureLoader();
           let loadedImages = 0;
-          const totalImages = creatorClusters.reduce(
+          const totalImages = shuffledClusters.reduce(
             (sum, cluster) => sum + cluster.images.length,
             0
           );
@@ -2079,16 +2094,16 @@
           // Create clusters for each creator
           for (
             let clusterIndex = 0;
-            clusterIndex < creatorClusters.length;
+            clusterIndex < shuffledClusters.length;
             clusterIndex++
           ) {
-            const cluster = creatorClusters[clusterIndex];
+            const cluster = shuffledClusters[clusterIndex];
             const clusterGroup = new THREE.Group();
 
             // Position cluster on helix
             const helixPos = createHelixPosition(
               clusterIndex,
-              creatorClusters.length
+              shuffledClusters.length
             );
             clusterGroup.position.copy(helixPos);
 
@@ -2102,7 +2117,12 @@
             const images = cluster.images;
             for (let i = 0; i < images.length; i++) {
               const imageData = images[i];
-              const imagePath = `../../images2/${imageData.filename}`;
+              // Try images2 first, then images folder
+              let imagePath = `../../images2/${imageData.filename}`;
+              // Check if file exists in images2, if not try images folder
+              if (!(await checkFileExists(imagePath))) {
+                imagePath = `../../images/${imageData.filename}`;
+              }
 
               await new Promise((resolve, reject) => {
                 textureLoader.load(
@@ -2602,8 +2622,12 @@
           img.style.maxHeight = "220px";
           img.style.objectFit = "contain";
           img.onerror = function () {
-            imageItem.innerHTML =
-              '<div style="color: #666; font-size: 16px;">Image not available</div>';
+            // Try images folder as fallback
+            this.src = `../../images/${imageData.filename}`;
+            this.onerror = function () {
+              imageItem.innerHTML =
+                '<div style="color: #666; font-size: 16px;">Image not available</div>';
+            };
           };
 
           // Add click handler to show image details
@@ -2631,36 +2655,18 @@
           existingModal.remove();
         }
 
-        // Get data from DF.json and completeness scores
-        const dfItem = dfData[imageData.filename];
-        // Handle filename extension mismatch for completeness scores
-        const filenameWithExt = imageData.filename.includes(".")
-          ? imageData.filename
-          : imageData.filename + ".jpg";
-        const completenessScore =
-          completenessScores[filenameWithExt] ||
-          completenessScores[imageData.filename] ||
-          "-";
-
-        // Create artwork data for the clicked image using the correct data sources
+        // Use data directly from imageData (which comes from creator_clusters.json)
         const artworkData = {
           image: imageData.filename,
-          title: dfItem
-            ? dfItem.title
-            : imageData.title || imageData.filename.replace(/\.[^/.]+$/, ""),
-          completenessScore: completenessScore,
-          signedBy: dfItem ? dfItem["@creator"] : clusterPopupData.username,
-          zone: dfItem ? dfItem.location : imageData.location || "-",
-          exactSpot: dfItem ? dfItem.exact_spot : imageData.exact_spot || "-",
-          date: dfItem ? dfItem.date_stamp : imageData.date_stamp || "-",
-          daytime: dfItem ? dfItem.daytime_icon : imageData.daytime_icon || "-",
-          context: dfItem ? dfItem.context : imageData.context || "-",
-          tags:
-            dfItem && dfItem.keywords
-              ? dfItem.keywords
-              : imageData.keywords
-              ? imageData.keywords.split("; ")
-              : [],
+          title: imageData.title || imageData.filename.replace(/\.[^/.]+$/, ""),
+          completenessScore: "-", // We can add this later if needed
+          signedBy: clusterPopupData.username,
+          zone: imageData.location || "-",
+          exactSpot: imageData.exact_spot || "-",
+          date: imageData.date_stamp || "-",
+          daytime: imageData.daytime_icon || "-",
+          context: imageData.context || "-",
+          tags: imageData.keywords || [],
         };
 
         // Create backdrop
@@ -2681,7 +2687,14 @@
         const artworkSection = document.createElement("div");
         artworkSection.className = "focus-artwork";
         const artworkImg = document.createElement("img");
-        artworkImg.src = `../../images2/${artworkData.image}`;
+
+        // Try images2 first, then images folder
+        let imageSrc = `../../images2/${artworkData.image}`;
+        artworkImg.src = imageSrc;
+        // Add fallback for images folder
+        artworkImg.onerror = function () {
+          this.src = `../../images/${artworkData.image}`;
+        };
         artworkImg.alt = artworkData.title || "Artwork";
 
         // Dynamic image sizing logic
