@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Hashtag Gallery Visualization</title>
+    <title>Gallery Visualization</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -996,7 +996,7 @@
         id="loading-text"
         style="color: #ffffff; font-family: monospace; margin-top: 10px"
       >
-        LOADING... 0%
+        CALCULATING IMAGE-QUOTE CONNECTIONS...
       </div>
     </div>
     <div id="visualization"></div>
@@ -1403,7 +1403,7 @@
 
         if (progressBar && loadingText) {
           progressBar.style.width = `${progress}%`;
-          loadingText.textContent = `LOADING... ${Math.floor(progress)}%`;
+          loadingText.textContent = `CALCULATING IMAGE-QUOTE CONNECTIONS...`;
         }
       }
 
